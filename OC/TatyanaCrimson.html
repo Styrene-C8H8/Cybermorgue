@@ -43,7 +43,7 @@
   h1 { font-size: 28px; letter-spacing: 2px; color: var(--primary); font-weight: 800; }
   .alias { color: var(--muted); font-size: 13px; margin-top: 4px; letter-spacing: 1px; }
 
-  .badge { display: flex; gap: 20px; align-items: flex-start; width: fit-content; margin: 0 auto 26px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
+  .badge { display: flex; gap: 20px; align-items: flex-start; width: fit-content; max-width: 100%; margin: 0 auto 26px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
   .bimg { position: relative; flex: 0 0 180px; aspect-ratio: 3/4; border: 2px dashed var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; letter-spacing: 2px; text-align: center; background: color-mix(in srgb, var(--card) 60%, transparent); overflow: hidden; }
   .bimg.filled { border: 1px solid var(--border); }
   .bimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; }
@@ -54,8 +54,20 @@
   .tag:first-child { border-color: var(--primary); color: var(--primary); }
   .brow { display: flex; gap: 10px; padding: 5px 0; font-size: 13px; }
   .brow .bk { flex: 0 0 120px; color: var(--muted); font-size: 12px; }
-  .brow .bv { flex: 1; }
-  @media (max-width: 640px) { .badge { flex-direction: column; width: 100%; } .bimg { flex: none; width: 100%; aspect-ratio: 3/4; } }
+  .brow .bv { flex: 1; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
+  /* 平板：压缩图片与标签列，防止内容溢出 */
+  @media (max-width: 900px) {
+    .badge { gap: 14px; padding: 12px; }
+    .bimg { flex-basis: 150px; }
+    .brow .bk { flex-basis: 92px; }
+  }
+  /* 手机：竖排，图片限宽居中，文字行不溢出 */
+  @media (max-width: 640px) {
+    .badge { flex-direction: column; width: 100%; }
+    .bimg { flex: none; width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 3/4; }
+    .brow { gap: 8px; }
+    .brow .bk { flex-basis: 84px; }
+  }
 
   section { margin-bottom: 26px; }
   h2 { font-size: 14px; letter-spacing: 3px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
