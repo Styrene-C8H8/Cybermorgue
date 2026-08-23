@@ -55,18 +55,23 @@
   .brow { display: flex; gap: 10px; padding: 5px 0; font-size: 13px; }
   .brow .bk { flex: 0 0 120px; color: var(--muted); font-size: 12px; }
   .brow .bv { flex: 1; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
-  /* 平板：压缩图片与标签列，防止内容溢出 */
+  /* 平板：紧凑双栏（图左文右），图片缩小，防止内容溢出 */
   @media (max-width: 900px) {
     .badge { gap: 14px; padding: 12px; }
-    .bimg { flex-basis: 150px; }
+    .bimg { flex: 0 0 140px; }
+    .brow { gap: 8px; }
     .brow .bk { flex-basis: 92px; }
   }
-  /* 手机：竖排，图片限宽居中，文字行不溢出 */
+  /* 手机：更紧凑双栏，图片再缩小，文字行换行不溢出 */
   @media (max-width: 640px) {
+    .bimg { flex: 0 0 110px; }
+    .brow { gap: 6px; }
+    .brow .bk { flex-basis: 78px; }
+  }
+  /* 极小屏幕（≤400px）才竖排，图片限宽居中 */
+  @media (max-width: 400px) {
     .badge { flex-direction: column; width: 100%; }
-    .bimg { flex: none; width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 3/4; }
-    .brow { gap: 8px; }
-    .brow .bk { flex-basis: 84px; }
+    .bimg { flex: none; width: 100%; max-width: 180px; margin: 0 auto; }
   }
 
   section { margin-bottom: 26px; }
