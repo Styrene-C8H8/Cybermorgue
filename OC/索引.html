@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>员工档案索引 · Cybermorgue</title>
+<style>
+  :root {
+    --bg: #f1f2e6; --fg: #36382a; --card: #fcfdf7; --card2: #e6ead7;
+    --border: #cbd0b2; --primary: #6d8426; --primary-fg: #f6f7ec;
+    --muted: #767a5c; --danger: #a0452c;
+    --grad: linear-gradient(135deg, #949545, #5f7a26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12150f; --fg: #e4e6d2; --card: #1c1f16; --card2: #272b1d;
+      --border: #3c412f; --primary: #a8b456; --primary-fg: #13150d;
+      --muted: #979c7c; --danger: #e08060;
+      --grad: linear-gradient(135deg, #a8b456, #6d8a2e);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+    padding: 26px 20px 50px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; animation: pageIn .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  .pagehead { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; padding-left: 76px; justify-content: center; }
+  .back { position: fixed; top: 14px; left: 14px; z-index: 9999; font-family: inherit; background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
+  .back:hover { color: var(--primary); border-color: var(--primary); }
+  h1 { font-size: 20px; letter-spacing: 3px; color: var(--primary); }
+  .count { margin-left: 10px; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+
+  .toolbar { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 20px; }
+  input[type=text] {
+    font-family: inherit; width: 100%; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 14px; font-size: 13.5px; color: var(--fg); outline: none;
+  }
+  input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent); }
+  .filters { margin-top: 12px; display: grid; gap: 8px; }
+  .fg { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fl { font-size: 12px; color: var(--muted); letter-spacing: 1px; flex: 0 0 64px; }
+  .fchip { font-family: inherit; font-size: 12px; border: 1px solid var(--border); background: var(--card2); color: var(--fg); border-radius: 999px; padding: 3px 12px; cursor: pointer; transition: all .12s; }
+  .fchip:hover { border-color: var(--primary); }
+  .fchip.sel { background: var(--grad); color: var(--primary-fg); border-color: transparent; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .card { font-family: inherit; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; cursor: pointer; color: var(--fg); display: flex; flex-direction: column; gap: 3px; transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 15%, transparent); }
+  .card:active { background: color-mix(in srgb, var(--primary) 14%, var(--card)); border-color: var(--primary); }
+  .card b { font-size: 15px; color: var(--primary); }
+  .card i { font-style: normal; font-size: 12px; color: var(--muted); }
+  .card .no { font-size: 11px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .cldot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 0 1px rgba(128,128,128,.2); }
+  .cl-rainbow { background: linear-gradient(90deg, #ff5f5f, #ffb15f, #e6d76f, #7fce6f, #5fb4ff, #a06fff, #ff5fd0); background-size: 300% 100%; animation: rainbowMove 3s linear infinite; }
+  @keyframes rainbowMove { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+  .cl-yellow { background: #eab308; }
+  .cl-white { background: #e5e7eb; }
+  .cl-red { background: #dc2626; }
+  .cl-black { background: #17181c; }
+  .card .t { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .card .t em { font-style: normal; font-size: 11px; border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 1px 10px; }
+  .card .t em:first-child { border-color: var(--primary); color: var(--primary); }
+  .empty { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px 0; font-size: 13px; letter-spacing: 2px; }
+  /* 字号：正文16px，标题等比放大 */
+  .card b { font-size: 17px; }
+  .card i { font-size: 14px; }
+  .card .no, .card .t em, .fl { font-size: 13px; }
+  .fchip { font-size: 14px; }
+  h1 { font-size: 23px; }
+  input[type=text] { font-size: 15px; }
+</style>
+</head>
+<body>
+<button class="back" onclick="goBack()">← 返回</button>
+<div class="wrap">
+  <div class="pagehead">
+    <h1>员工档案索引</h1>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="toolbar">
+    <input id="q" type="text" placeholder="搜索：别名 / 中文名 / 英文名 / 工号 / 部门…" oninput="apply()">
+    <div class="filters" id="filters"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const OC_FILES = ["./DyeOxide.data.json", "./Kameron.data.json", "./Valentina.data.json", "./Nyxstr.data.json", "./ZakeVacuma.data.json", "./TatyanaCrimson.data.json", "./MarcusVacarcel.data.json"];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+let OCS = [];
+const st = { q: "", gender: "", zone: "", department: "" };
+
+async function load() {
+  OCS = await Promise.all(OC_FILES.map(async f => {
+    const d = await fetch(f).then(r => r.json());
+    const page = "OC/" + f.replace(/^\.\//, "").replace(/\.data\.json$/, ".html");
+    const pageRel = f.replace(/^\.\//, "").replace(/\.data\.json$/, ".html");
+    return {
+      name: d.indexName || d.name, alias: d.indexAlias || d.alias, fileNo: d.indexNo || d.fileNo, clearance: d.clearance || "yellow",
+      realName: d.name, realAlias: d.alias,
+      gender: (d.tags && d.tags.gender) || "",
+      zone: (d.tags && d.tags.zone) || "",
+      department: (d.tags && d.tags.department) || "",
+      path: page, pathRel: pageRel
+    };
+  }));
+  buildFilters();
+  apply();
+}
+function buildFilters() {
+  const uniq = k => [...new Set(OCS.map(o => o[k]).filter(Boolean))];
+  const group = (label, key, vals) => `
+    <div class="fg"><span class="fl">${label}</span>
+      <button class="fchip sel" data-k="${key}" data-v="">全部</button>
+      ${vals.map(v => `<button class="fchip" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}
+    </div>`;
+  $("filters").innerHTML =
+    group("性别", "gender", uniq("gender")) +
+    group("所属区域", "zone", uniq("zone")) +
+    group("所属部门", "department", uniq("department"));
+  document.querySelectorAll(".fchip").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k, v = b.dataset.v;
+    st[k] = st[k] === v ? "" : v;
+    document.querySelectorAll(`.fchip[data-k="${k}"]`).forEach(c => c.classList.toggle("sel", c.dataset.v === st[k]));
+    apply();
+  }));
+}
+function apply() {
+  const q = $("q").value.trim().toLowerCase();
+  const list = OCS.filter(o =>
+    (!st.gender || o.gender === st.gender) &&
+    (!st.zone || o.zone === st.zone) &&
+    (!st.department || o.department === st.department) &&
+    (!q || [o.name, o.alias, o.fileNo, o.realName, o.realAlias].join(" ").toLowerCase().includes(q))
+  );
+  $("count").textContent = `${list.length} 人`;
+  const CL = { white: 1, yellow: 1, red: 1, black: 1, rainbow: 1 };
+  $("grid").innerHTML = list.length ? list.map(o => {
+    const clc = CL[o.clearance] ? o.clearance : "yellow";
+    return `<button class="card" onclick="openFile('${esc(o.path)}','${esc(o.pathRel)}')">
+      <b>${esc(o.name)}</b>
+      <i>${esc(o.alias || "")}</i>
+      <span class="no"><i class="cldot cl-${clc}"></i>${esc(o.fileNo)}</span>
+      <span class="t">${[o.gender, o.zone, o.department].filter(Boolean).map(t => `<em>${esc(t)}</em>`).join("")}</span>
+    </button>`;
+  }).join("") : `<div class="empty">没有符合条件的员工档案</div>`;
+}
+function openFile(p, pr) {
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile(p);
+  else location.href = pr || p;
+}
+function goBack() {
+  try { sessionStorage.setItem("cm-goto", "staff"); } catch (e) {}
+  if (typeof spherse !== "undefined" && spherse.openFile) {
+    spherse.openFile("Cybermorgue-档案主页.html");
+  } else {
+    location.href = "../Cybermorgue-档案主页.html";
+  }
+}
+if (typeof spherse !== "undefined" && spherse.events) {
+  OC_FILES.forEach(f => spherse.events.on("file:update", { path: f }, load));
+}
+load().catch(e => { $("grid").innerHTML = "加载失败：" + e.message; });
+</script>
+</body>
+</html>

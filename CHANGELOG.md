@@ -1,0 +1,72 @@
+- **[2026-08-19T02:45:20.521Z]** 世界观创作助手 / create / `Cybermorgue-企划设定.md` — 整理 Cybermorgue 核心锚点与十个分区，标注待确认问题
+- **[2026-08-19T03:13:07.109Z]** 世界观创作助手 / update / `Cybermorgue-企划设定.md` — 根据昨晚 brainstorm 聊天记录更新：staff 身份确认（Cybermorgue 创造、非死人）、规则怪谈元素、安保 OC 需求、分区按原作分类确认
+- **[2026-08-19T03:48:23.520Z]** 世界观创作助手 / update / `Cybermorgue-企划设定.md` — 确认 staff 唯一会死的设定与接替机制、黄金计时以工业革命为界、管理层分类不严谨、人类观光摸鱼圣地、恐怖类新分区（待命名）、参考例不进入设定内文本
+- **[2026-08-19T04:17:59.985Z]** 世界观创作助手 / update / `Cybermorgue-企划设定.md / Cybermorgue-OC模板.md` — 确认工业革命前作品无独立分区、死人混入 staff 为极个例、staff 死后不成为复现体；新增 OC 员工档案模板 v0.1
+- **[2026-08-19T04:23:12.686Z]** 世界观创作助手 / update / `Cybermorgue-企划设定.md / Cybermorgue-OC模板.md` — 设定文档补充"与复现体互动被监控"规则；OC 模板改为官方档案格式（删剧情向/秘密，互动栏改为岗位风险提示）
+- **[2026-08-20T03:02:49.875Z]** 世界观创作助手 / create / `.spherse/theme.css / Cybermorgue-企划设定.md` — 创建 .spherse/theme.css 主题（浅色=手册纸面/深色=停尸间荧光），并同步手册新增设定（江河世年、噩兆回廊、方格厢门职能、前台审批员/规划分析师/安保岗位、申请表预勾选、独立时空维度）至设定文档 v0.5
+- **[2026-08-20T03:07:51.737Z]** 世界观创作助手 / create / `Cybermorgue-档案主页.html / Cybermorgue-档案主页.data.json` — 创建 Cybermorgue 档案主页（HTML + 外置 data.json，支持文件更新自动刷新）
+- **[2026-08-20T03:12:06.761Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html / Cybermorgue-档案主页.data.json` — 档案主页改为纯手册内容排版（移除核心锚点/staff/规则怪谈/讨论问题等对话内容，仅保留《无排版》原文：标题、手册前言、区域划分、申请入驻表格）
+- **[2026-08-20T04:39:45.720Z]** 世界观创作助手 / create / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html（含各自 data.json）/ Cybermorgue-档案主页` — 创建三个 OC 页面（Dye Oxide / Kameron / Valentina，含图片占位与 ++打码悬停效果），档案主页新增 Staff 档案访问入口
+- **[2026-08-20T04:49:34.564Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html（含各自 data.json）` — OC 页面改版：工牌式布局（左图右基本信息）、观测备注恢复标题与段落式排版、论坛改为结构化数据（用户id/IP/时间/B站式等级tag/管理员自定义tag）
+- **[2026-08-20T05:24:30.362Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html / Cybermorgue-档案主页.data.json` — 档案主页重做为交互式入口页：开场大标题上浮动效、欢迎页（手册折叠、复现体/员工双路径）、可填写可提交的入驻申请表（区域多选+查看区域介绍+提交后变暗致谢）、员工登录（工号00002自动输入+密码圆点）与员工主页（欢迎语模糊名+区域介绍+员工档案）
+- **[2026-08-20T05:28:48.442Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 主页视图切换改为平滑过渡：当前视图淡出上移，新视图元素依次上浮入场（含欢迎页选项卡片的错峰进场）
+- **[2026-08-20T05:31:40.272Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.data.json / Cybermorgue-档案主页.html` — 方格厢门标记为不可选（枢纽非居民区）：从申请表区域多选选项中移除，区域介绍中保留
+- **[2026-08-20T05:39:23.459Z]** 世界观创作助手 / create / `OC/索引.html / OC/*.data.json / OC/*.html / Cybermorgue-档案主页` — 新增员工档案索引页 OC/索引.html（按性别/所属区域/所属部门筛选 + 别名/中英文名/工号搜索）；OC 页面增加 tags 徽章（性别/区域/部门）；员工主页档案栏右下角新增"查看更多"入口
+- **[2026-08-20T05:42:59.235Z]** 世界观创作助手 / update / `OC/索引.html` — 修复索引页打开 OC 页 file not found：openFile 路径改为项目根相对路径（OC/xxx.html）
+- **[2026-08-20T06:43:49.881Z]** 世界观创作助手 / update / `OC/DyeOxide.data.json / OC/Kameron.data.json / OC/Valentina.data.json` — Dye 备注新增答疑区论坛帖（投稿/Q3071）；全部论坛帖 IP 改为区域名（如方格厢门区），删除 ✧➢■ 缩进符号（保留层级缩进）
+- **[2026-08-20T07:26:32.712Z]** 世界观创作助手 / update / `OC/索引.html / Cybermorgue-档案主页.html` — 索引页"返回"改为直接打开主页并定位到员工已登录页面（主页新增 #staff 深链接支持）
+- **[2026-08-20T07:28:10.169Z]** 世界观创作助手 / update / `OC/索引.html / Cybermorgue-档案主页.html` — 修复索引页返回 file not found：不再把 #staff 拼进 openFile 路径，改用 sessionStorage 记录目标视图，openFile 传干净路径
+- **[2026-08-20T08:21:37.915Z]** 世界观创作助手 / update / `OC/*.data.json / OC/*.html / OC/索引.html` — 新增档案密级标签色系统（白=公开/黄=内部/红=受限/黑=绝密）：OC 页面顶部细色带 + 密级旁小圆点，索引页卡片工号旁小圆点；三个 OC 均为黄签（内部）
+- **[2026-08-20T11:09:56.433Z]** 世界观创作助手 / create / `OC/Nyxstr.html / OC/Nyxstr.data.json / OC/索引.html / Cybermorgue-档案主页.data.json` — 新增死者伪装员工 OC「Nyxstr Campbell」：密级悬停扭曲（内部→机密）、++隐藏文本悬停正常文字触发、忏悔吧按钮+居中破碎文本、录音记录展示、致命错误+重新刷新进入无异常版本；加入索引页与员工主页
+- **[2026-08-20T11:14:58.696Z]** 世界观创作助手 / update / `OC/Nyxstr.html / OC/Nyxstr.data.json` — Nyxstr 论坛对齐其他 OC 格式（等级 tag 徽章、评论分隔条样式）；刷新干净版改为 URL #clean 标记（重进/重开恢复异常版），不再用 sessionStorage
+- **[2026-08-20T11:21:37.690Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — Nyxstr 页面正文格式对齐标准模板（容器宽度 860px、展开条缩进）；隐藏文本改为无黑条、悬停正常文字时乱码动画→显现红色衬线文字，移开逆动画消失
+- **[2026-08-20T11:29:21.652Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 修复 Nyxstr 正文字号（段落补包 p 标签对齐 13px 标准）；隐藏文字改为替换式乱码过渡（不占位、正常文字抖动后变成隐藏文字、移开逆动画）；忏悔按钮与异常内容加入场动画
+- **[2026-08-20T11:36:59.842Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 修复悬停闪烁（正常文字长于隐藏文字时锁定最小宽度，避免区域收缩导致循环触发）；有隐藏内容的正常文字增加常驻提示（淡红字色+点状下划线+缓慢呼吸光晕）
+- **[2026-08-20T11:41:29.833Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 点击忏悔按钮后整页进入异常模式（强制深色+血红冲击配色+暗红氛围晕影）；录音记录字号加大至14.5px、字体改为 Courier 打字机风格
+- **[2026-08-20T11:43:02.003Z]** 世界观创作助手 / update / `OC/Nyxstr.data.json / OC/Nyxstr.html` — 录音记录最后两句「他再也没有回来。而这都是你的错。」改为异常隐藏文字样式（红衬线+微光）
+- **[2026-08-20T11:46:41.423Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 录音记录字体栈改为中英文全覆盖：西文 Courier + 等宽中文字体（Sarasa/Noto Sans Mono CJK）或仿宋回退
+- **[2026-08-21T02:12:52.986Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — Nyxstr 页面显示流程反转为：默认正常版（黄签/无隐藏文字/无异象）→ 结尾系统提示框「文档有新版本」→ 刷新至顶部进入 #anom 异象版 → 错误按钮刷新回正常版；刷新均回到文档顶部
+- **[2026-08-21T02:15:23.416Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 修复刷新后未回到顶部（禁用浏览器滚动恢复 scrollRestoration=manual）；整个页面新增上浮浮现入场动画
+- **[2026-08-21T02:19:47.957Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 区分两种正常版：初始正常版（无标记，带"文档有新版本"提示框）与异象版错误刷新后的最终修正版（#restored，不带提示框）
+- **[2026-08-21T02:22:20.512Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — 密级色条移出动画容器（改为 body 直属、真正视口固定），修复与档案编号距离过近的问题，排版对齐其他 OC 页面
+- **[2026-08-21T02:48:55.517Z]** 世界观创作助手 / create / `员工手册.html|员工手册.data.json|专有名词库.html|专有名词库.data.json|Cybermorgue-档案主页|OC/*` — 新增《员工手册》页面（左侧索引：前言/专有名词库/工作岗位/规则与条例，岗位卡片双列、规则分板块、随机词条）与《专有名词库》字典式索引页（A-Z 侧栏分组，10 个占位词条）；主页员工页最上层加员工手册入口；Nyxstr 索引卡片改黄签；Dye 任职表现备注加闪烁红字；所有 OC 档案页加上浮动画（色条移出动画容器）
+- **[2026-08-21T02:59:06.312Z]** 世界观创作助手 / update / `OC/DyeOxide.html / 员工手册.html / 员工手册.data.json` — Dye 红色闪烁改为缓慢透明度脉动（2.4s 渐隐渐显）；员工手册小标题改为居中放大+淡色英文副题；工作岗位改为弧形菜单（部门名沿弧线排列、悬停浮动、点击选中纯色滑块滑动+文字放大、中间面板浮现简介）
+- **[2026-08-21T03:03:55.569Z]** 世界观创作助手 / update / `员工手册.html` — 员工手册岗位菜单弧形改为向左弯；岗位区域去掉白底卡片（介绍居中、面板改虚线分隔、间距加大更宽松）
+- **[2026-08-21T03:08:18.556Z]** 世界观创作助手 / update / `员工手册.html` — 岗位弧形菜单：滑块按放大后尺寸居中覆盖（滑块与文字一起变大不溢出）、删除面板分割线、部门名不换行、弧形始终垂直居中于简介面板（align-items:center）
+- **[2026-08-21T03:19:14.002Z]** 世界观创作助手 / update / `所有页面 / .spherse/theme.css` — 全局换新配色系（#D6B767/#E3CB8F/#949545/#724412 暖金橄榄褐，含 app 主题 theme.css，Nyx 黑红异象保留）；密级黄签改金 #D6B767；减少圆角卡片（主要内容卡改透明+左侧色条+底线档案样式、大圆角改小）；岗位滑块改用按钮实际渲染包围盒定位保证文字不溢出；专有名词随机词条改为 2 个
+- **[2026-08-21T03:22:55.997Z]** 世界观创作助手 / update / `所有页面 / .spherse/theme.css` — 配色再平衡：橄榄绿 #949545 提为主色、金色/棕色降为点缀，整体不再"满屏金色"；移除所有页面入场/过渡动画的模糊滤镜（修复 Dye 等页面加载缓慢）
+- **[2026-08-21T03:48:26.667Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html / 所有页面` — 员工手册入口改为居中整长条（标题放大居中+副题居中+绿色渐变背景）；配色提绿（主色 #6d8426/#a8b456）+ 全局加入渐变（页面背景、标题线、提交按钮、选中态、弧形滑块、字母导航）与点击变色交互（路径卡/入口/链接按下变绿填充）
+- **[2026-08-21T03:50:30.066Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 员工手册入口条改为 display:block 全宽居中；渐变加入跟随鼠标的光斑效果（mousemove 更新 --mx/--my）
+- **[2026-08-21T03:59:08.651Z]** 世界观创作助手 / update / `所有页面` — 所有页面返回按钮改为固定左上角（滚动不消失），OC 档案页新增固定返回按钮（返回索引页）；Dye 删除红色闪动代码，改为 Kameron 式黑条隐藏（reveal 后红字）；员工手册弧形滑块与主页提交按钮加跟随鼠标光斑
+- **[2026-08-21T04:03:23.969Z]** 世界观创作助手 / update / `员工手册.html / OC/DyeOxide.html` — 撤销员工手册弧形滑块光斑效果；Dye 页面移除独有的 spoiler.red/## 处理代码（那句改为直接红色加粗），使 Dye 与其他 OC 页面源码零差异
+- **[2026-08-21T04:05:34.207Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — 修复 OC 档案页头部与工牌错位：头部改为向下让位（padding-top）而非右移，档案编号+名字与工牌左缘对齐
+- **[2026-08-21T04:11:21.222Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html / Cybermorgue-档案主页.data.json` — 主页开场大标题改为英文 Cybermorgue，字体切换为 Melete（melete-bold），副标题改为中文「赛博停尸间 · 把尸体全部推进来…」
+- **[2026-08-21T04:14:36.141Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 主页大标题字体改为 Melete-Bold 优先
+- **[2026-08-21T04:17:18.331Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 申请入驻表格标题改为居中放大，与固定返回按钮分离不再重叠
+- **[2026-08-21T04:19:44.669Z]** 世界观创作助手 / update / `所有页面` — 所有页面固定返回按钮 z-index 提升至 9999，避免被下方内容覆盖导致下半部分不可点击
+- **[2026-08-21T04:22:16.242Z]** 世界观创作助手 / update / `所有页面` — 所有页面背景去掉双层渐变叠加（移除径向光晕），改为单一垂直渐变，修复"两个渐变"问题
+- **[2026-08-21T04:23:42.094Z]** 世界观创作助手 / update / `OC/索引.html` — 索引页背景移除渐变，改为纯色 var(--bg)
+- **[2026-08-21T04:39:06.771Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 区域划分标题同样改为居中放大，与固定返回按钮分离
+- **[2026-08-21T04:40:34.869Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html` — 主页返回按钮改为 body 层固定元素（#vback），按当前视图显示/隐藏并绑定返回行为，彻底脱离视图动画容器，修复点击判定问题
+- **[2026-08-21T08:51:38.018Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — OC 页面图片改为 object-fit:contain 完整显示不裁剪；窄屏下工牌图片框由 16:9 改为 3:4 竖版，适配证件照
+- **[2026-08-21T08:53:27.253Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — 工牌调整：照片框改为 180px（3:4）、有照片时用细实线框替代虚线框、工牌留白收紧
+- **[2026-08-21T08:56:23.121Z]** 世界观创作助手 / update / `OC/*.html / OC/*.data.json` — 修复工牌照片上下白条：badge 加 align-items:flex-start 防止照片框被拉伸；「使用武器」「使用魔法」两栏从工牌移至任职情况（四个 OC 数据同步）
+- **[2026-08-21T08:57:42.163Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — 工牌照片改用绝对定位铺满照片框 + object-position:center，保证图片在框内严格上下居中
+- **[2026-08-21T09:59:01.109Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — 照片对齐再上移 10px（margin-top 偏移 -10）
+- **[2026-08-21T10:04:27.924Z]** 世界观创作助手 / update / `OC/DyeOxide.html|OC/Kameron.html|OC/Valentina.html|OC/Nyxstr.html` — 工牌改为 fit-content 收缩宽度并水平居中（窄屏回退全宽），消除右侧大片空白
+- **[2026-08-21T10:37:05.599Z]** 世界观创作助手 / update / `员工手册.data.json` — 修复员工手册 data.json：删除 RAM 部门行尾多余逗号、补 jobs 与 rules 之间缺失逗号、合并事件处理重复 text 键（保留全部原文）
+- **[2026-08-22T03:42:05.850Z]** 世界观创作助手 / create / `OC/ZakeVacuma.html|OC/ZakeVacuma.data.json|OC/Nyxstr.html|OC/Nyxstr.data.json|OC/索引.html|Cybermorgue-档案主页.data.json` — 新增 OC「Zake Vacuma（ZVk）」档案页（++黑条隐藏、备注居中黑色特殊字体）；Nyx 修正版（#restored）结尾新增居中特殊字体气泡诗句；Zake 加入索引页与员工主页
+- **[2026-08-22T03:45:21.472Z]** 世界观创作助手 / update / `OC/Nyxstr.html` — Nyx 页面：删除气泡小尖角；修正版气泡与系统提示框均移至页脚（统一归档声明）之上
+- **[2026-08-22T04:05:42.850Z]** 世界观创作助手 / update / `所有页面` — 所有界面正文/次要文字字号整体调大（正文 13→14px 等，按页面追加覆盖样式）；主页 CYBERMORGUE 大标题字号（clamp 34-68px）与字距（.06em）改小
+- **[2026-08-22T04:12:51.444Z]** 世界观创作助手 / update / `所有页面` — 全局正文设为16px、标题等比放大；整体字体栈改为 Helvetica/Arial（英文）+ PingFang SC/微软雅黑（中文黑体）；主页大标题字距收至 .04em（字体 Melete 不变）
+- **[2026-08-22T07:19:21.030Z]** 世界观创作助手 / create / `员工手册.html|员工手册.data.json|OC/TatyanaCrimson.html|OC/TatyanaCrimson.data.json|OC/索引.html|Cybermorgue-档案主页.data.json` — 员工手册「五、设备相关」：账号密码警示句标红、初始密码 41823209 斜体（新增 ##/// 标记渲染）；新增 OC「Tatyana · Crimson（@TAT，民情联络部区域代表总管）」档案页：++黑条隐藏、论坛三条诉求做引用块效果、RAM年度汇报.pdf 附件卡片、邮件点击查看/隐藏（邮件卡片样式）；加入索引页与员工主页
+- **[2026-08-22T07:25:35.055Z]** 世界观创作助手 / update / `OC/TatyanaCrimson.html` — Tatyana 页面：主楼背景改中性色（去绿）、附件移入正文区并缩进、附件说明改普通正文格式、邮件卡片移出帖子独立居中并拉开距离
+- **[2026-08-22T07:36:48.987Z]** 世界观创作助手 / update / `OC/TatyanaCrimson.html / OC/ZakeVacuma.data.json / OC/ZakeVacuma.html` — Tatyana 主楼改回与其他论坛统一的普通帖样式；ZVk 档案备注新增「闲聊」论坛帖（含 ZVk 本人 OAM tag 发言）与【语音记录】录音块（Nyx 录音格式），原结尾段落移除
+- **[2026-08-23T03:57:01.431Z]** 世界观创作助手 / create / `OC/MarcusVacarcel.html|OC/MarcusVacarcel.data.json|OC/索引.html|Cybermorgue-档案主页.html|Cybermorgue-档案主页.data.json` — 索引页标题居中；主页员工档案限显示 4 位；新增 OC「Marcus Varcarcel / THE MAGICIAN」：表面/真实双套内容 + 恢复弹窗（是→显示真实版本）、密级彩虹变色（文章内+索引区）、食谱卡片、论坛帖、录音记录、特殊quote；索引显示 THE MAGICIAN/AHTMGC/彩虹点
+- **[2026-08-23T04:03:24.476Z]** 世界观创作助手 / update / `OC/MarcusVacarcel.data.json / OC/MarcusVacarcel.html` — 修复 Marcus：表面/真实内容映射（工号/部门/职位/任职时长/武器许可/武器/超能力 按 --框内容=表面 修正）；恢复后密级显示机密（Confidential）、横条与密级点变黄；档案编号恢复后显示 CM/SR-0721H3；恢复后回到顶部并重播浮动动画
+- **[2026-08-23T04:07:26.609Z]** 世界观创作助手 / update / `OC/索引.html` — 索引页搜索加入真实姓名/别名（realName/realAlias），搜 marcus/马库斯 等真实信息也能搜出 THE MAGICIAN 名片
+- **[2026-08-23T04:39:08.493Z]** 世界观创作助手 / update / `OC/MarcusVacarcel.html` — Marcus 档案结尾 quote 的英文词（Spell/Code/MAGICIAN）改为对应汉字上方的注音式 ruby 显示
+- **[2026-08-23T04:40:28.335Z]** 世界观创作助手 / update / `OC/MarcusVacarcel.html` — 修正 Marcus quote 注音：改为对 Spell/Code/MAGICIAN 三组做精确替换，注音只压在对应汉字（咒语/编码/魔术师）上方
+- **[2026-08-23T05:33:37.597Z]** 世界观创作助手 / create / `全部 HTML / index.html / README.md` — 发布适配：所有页面浏览器兜底路径改为相对路径（OC 返回索引、索引打开档案/返回主页、主页 openFile 补兜底）；新增根目录 index.html 跳转页 + README.md 部署说明（GitHub Pages 流程）
+- **[2026-08-23T05:37:15.802Z]** 世界观创作助手 / create / `.gitignore` — 新增 .gitignore（排除 .spherse 内部数据等），为 GitHub 部署做准备
+- **[2026-08-23T05:43:13.344Z]** 世界观创作助手 / update / `Cybermorgue-档案主页.html / Cybermorgue-档案主页.data.json` — 主页欢迎界面底部新增版权声明（文案存入 data.json 便于修改）

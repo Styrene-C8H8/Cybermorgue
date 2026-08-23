@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dye Oxide · 员工档案</title>
+<style>
+  :root {
+    --bg: #f1f2e6; --fg: #36382a; --card: #fcfdf7; --card2: #e6ead7;
+    --border: #cbd0b2; --primary: #6d8426; --primary-fg: #f6f7ec;
+    --muted: #767a5c; --danger: #a0452c;
+    --grad: linear-gradient(135deg, #949545, #5f7a26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12150f; --fg: #e4e6d2; --card: #1c1f16; --card2: #272b1d;
+      --border: #3c412f; --primary: #a8b456; --primary-fg: #13150d;
+      --muted: #979c7c; --danger: #e08060;
+      --grad: linear-gradient(135deg, #a8b456, #6d8a2e);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, var(--bg)) 0%, var(--bg) 48%);
+    color: var(--fg);
+    line-height: 1.8;
+    padding: 28px 20px 40px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; animation: pageIn .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  header.top { border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 20px; padding-top: 46px; }
+  .back { position: fixed; top: 14px; left: 14px; z-index: 9999; font-family: inherit; background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; }
+  .back:hover { color: var(--primary); border-color: var(--primary); }
+  .clbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; }
+  .cl-yellow { background: #d6b767; }
+  .cl-white { background: #e5e7eb; box-shadow: 0 0 0 1px rgba(128,128,128,.25); }
+  .cl-red { background: #dc2626; }
+  .cl-black { background: #17181c; box-shadow: 0 0 0 1px rgba(128,128,128,.3); }
+  .cldot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; box-shadow: 0 0 0 1px rgba(128,128,128,.2); }
+  .meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); letter-spacing: 1px; margin-bottom: 12px; }
+  h1 { font-size: 28px; letter-spacing: 2px; color: var(--primary); font-weight: 800; }
+  .alias { color: var(--muted); font-size: 13px; margin-top: 4px; letter-spacing: 1px; }
+
+  .badge { display: flex; gap: 20px; align-items: flex-start; width: fit-content; margin: 0 auto 26px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
+  .bimg { position: relative; flex: 0 0 180px; aspect-ratio: 3/4; border: 2px dashed var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; letter-spacing: 2px; text-align: center; background: color-mix(in srgb, var(--card) 60%, transparent); overflow: hidden; }
+  .bimg.filled { border: 1px solid var(--border); }
+  .bimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+  .binfo { flex: 1; min-width: 0; }
+  .btitle { font-size: 11px; letter-spacing: 2px; color: var(--muted); border-bottom: 1px dashed var(--border); padding-bottom: 8px; margin-bottom: 6px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .tag { font-size: 11px; border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 1px 10px; }
+  .tag:first-child { border-color: var(--primary); color: var(--primary); }
+  .brow { display: flex; gap: 10px; padding: 5px 0; font-size: 13px; }
+  .brow .bk { flex: 0 0 120px; color: var(--muted); font-size: 12px; }
+  .brow .bv { flex: 1; }
+  @media (max-width: 640px) { .badge { flex-direction: column; width: 100%; } .bimg { flex: none; width: 100%; aspect-ratio: 3/4; } }
+
+  section { margin-bottom: 26px; }
+  h2 { font-size: 14px; letter-spacing: 3px; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  h2::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--primary), transparent); }
+  .card { background: transparent; border: none; border-left: 3px solid var(--primary); border-bottom: 1px solid var(--border); border-radius: 0; padding: 14px 20px 16px; }
+  .item { padding: 12px 0; }
+  .ilabel { font-size: 12px; letter-spacing: 1px; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+  .itext p { font-size: 13px; margin-bottom: 10px; }
+  .itext p:last-child { margin-bottom: 0; }
+
+  .thread { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 14px; background: var(--card); }
+  .thead { padding: 12px 16px 8px; border-bottom: 1px solid var(--border); }
+  .tboard { display: inline-block; font-size: 10px; letter-spacing: 1px; color: var(--primary-fg); background: var(--primary); border-radius: 999px; padding: 1px 10px; margin-bottom: 6px; }
+  .ttitle { font-size: 14px; font-weight: 700; }
+  .post { padding: 10px 16px; border-top: 1px dashed var(--border); margin-left: calc(var(--d, 0) * 26px); }
+  .post.main { background: color-mix(in srgb, var(--card2) 55%, transparent); border-top: none; }
+  .phead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+  .uname { font-weight: 700; }
+  .lv { font-size: 10px; padding: 1px 7px; border-radius: 999px; color: #fff; line-height: 1.6; }
+  .lv1 { background: #9ca3af; } .lv2 { background: #4ade80; } .lv3 { background: #38bdf8; }
+  .lv4 { background: #a78bfa; } .lv5 { background: #fb923c; } .lv6 { background: #f87171; }
+  .lv.custom { background: linear-gradient(135deg, #14b8a6, #0d9488); color: #f0fdfa; }
+  .lv.custom.adm { background: linear-gradient(135deg, #eab308, #f59e0b); color: #1c1917; }
+  .pmeta { margin-left: auto; display: flex; gap: 10px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .ip { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .pbody { margin-top: 4px; }
+  .pbody p { font-size: 13px; margin-bottom: 8px; }
+  .pbody p:last-child { margin-bottom: 0; }
+  .expand { padding: 8px 16px; font-size: 12px; color: var(--primary); border-top: 1px dashed var(--border); margin-left: calc(var(--d, 0) * 26px); cursor: pointer; }
+  .cmtbar { padding: 7px 16px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--card2) 40%, transparent); }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 26px; }
+  footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); text-align: center; white-space: pre-wrap; }
+  .spoiler {
+    background: #151515; color: transparent; border-radius: 3px; cursor: help;
+    padding: 0 4px; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .14);
+    transition: background .18s ease, color .18s ease; user-select: none;
+  }
+  .spoiler:hover, .spoiler:focus-visible { background: transparent; color: inherit; user-select: auto; }
+  .spoiler::selection { background: transparent; }
+  .rednote { color: var(--danger); font-weight: 600; }
+  /* 字号：正文16px，标题等比放大 */
+  .brow, .brow .bv, .itext p, .pbody p, .alias, .ending .el, .be-line, .rec-line, .apass { font-size: 16px; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 16px; }
+  .ilabel, .phead, .uname, .ttitle { font-size: 14px; }
+  .btitle, .tboard, .lvl-badge { font-size: 13px; }
+  .meta, footer, .pmeta, .tag, .expand, .cmtbar, .rec-head { font-size: 12.5px; }
+  .lv { font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="clbar" id="clbar"></div>
+<button class="back" onclick="goBack()">← 返回</button>
+<div class="wrap" id="app">加载中…</div>
+<script>
+const DATA = "./DyeOxide.data.json";
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const sp = t => esc(t).replace(/##([\s\S]+?)##/g, '<span class="rednote">$1</span>').replace(/\+\+([\s\S]+?)\+\+/g, '<span class="spoiler" tabindex="0" title="悬停查看">$1</span>');
+const paras = t => String(t ?? "").split(/\n{2,}/).map(p => `<p>${sp(p.replace(/\n/g, "<br>"))}</p>`).join("");
+const lvClass = tag => /^lv\d+$/.test(tag || "") ? `lv ${tag}` : `lv custom${tag === "管理员" ? " adm" : ""}`;
+
+function postHtml(p) {
+  if (p.expand) return `<div class="expand" style="--d:${p.depth || 0}">${esc(p.content)} →</div>`;
+  const tag = p.tag ? `<span class="${lvClass(p.tag)}">${esc(p.tag)}</span>` : "";
+  return `<div class="post" style="--d:${p.depth || 0}">
+    <div class="phead"><span class="uname">${esc(p.author)}</span>${tag}
+      <span class="pmeta"><span class="ip">${esc(p.ip || "")}</span><span>${esc(p.time || "")}</span></span>
+    </div>
+    <div class="pbody">${paras(p.content)}</div>
+  </div>`;
+}
+function threadHtml(f) {
+  return `<div class="thread">
+    <div class="thead"><span class="tboard">亡语之声论坛 · ${esc(f.board)}</span><div class="ttitle">${esc(f.title)}</div></div>
+    ${postHtml(f.main)}
+    <div class="cmtbar">评论</div>
+    ${f.replies.map(postHtml).join("")}
+  </div>`;
+}
+
+function goBack() {
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("OC/索引.html");
+  else location.href = "索引.html";
+}
+function alignPortrait() {
+  const badge = document.querySelector(".badge");
+  const bimg = badge && badge.querySelector(".bimg");
+  if (!badge || !bimg || !bimg.querySelector("img")) return;
+  if (getComputedStyle(badge).flexDirection !== "row") return;
+  const br = badge.getBoundingClientRect();
+  const pad = parseFloat(getComputedStyle(badge).paddingTop) || 0;
+  let sex = null, dept = null;
+  badge.querySelectorAll(".brow").forEach(r => {
+    const t = (r.querySelector(".bk") || {}).textContent || "";
+    if (!sex && t.indexOf("性别") === 0) sex = r.getBoundingClientRect();
+    if (!dept && t.indexOf("所属分区") === 0) dept = r.getBoundingClientRect();
+  });
+  if (!sex || !dept) return;
+  const gapMid = (sex.bottom + dept.top) / 2 - br.top;
+  const mt = Math.max(0, gapMid - bimg.offsetHeight / 2 - pad - 10);
+  bimg.style.marginTop = mt + "px";
+}
+window.addEventListener("resize", () => alignPortrait());
+async function render() {
+  const d = await fetch(DATA).then(r => r.json());
+
+  const badge = `
+    <div class="badge">
+      <div class="bimg${d.portrait ? " filled" : ""}">${d.portrait ? `<img src="${esc(d.portrait)}" alt="${esc(d.name)}">` : `<span>图片占位<br>待导入</span>`}</div>
+      <div class="binfo">
+        <div class="btitle">CYBERMORGUE · 员工工牌</div>
+        <div class="tags">${(d.tags ? [d.tags.gender, d.tags.zone, d.tags.department] : []).filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+        ${d.badge.map(r => `<div class="brow"><span class="bk">${esc(r.k)}</span><span class="bv">${sp(r.v)}</span></div>`).join("")}
+      </div>
+    </div>`;
+
+  const sections = d.sections.map(s => {
+    const items = (s.items || []).filter(i => i.text).map(i =>
+      `<div class="item">${i.label ? `<div class="ilabel">${esc(i.label)}</div>` : ""}<div class="itext">${paras(i.text)}</div></div>`
+    ).join("");
+    const forum = (s.forum || []).map(threadHtml).join("");
+    return (items || forum) ? `<section><h2>${esc(s.title)}</h2><div class="card">${items}${forum}</div></section>` : "";
+  }).join("");
+
+  const gallery = (d.gallery || []).length
+    ? `<div class="gallery">${d.gallery.map(g => `<div class="bimg" style="flex:none;width:100%;aspect-ratio:16/9"><img src="${esc(g)}" alt=""></div>`).join("")}</div>`
+    : "";
+
+  const CL = { white: 1, yellow: 1, red: 1, black: 1 };
+  const clc = CL[d.clearance] ? d.clearance : "yellow";
+  document.getElementById("clbar").className = "clbar cl-" + clc;
+  document.getElementById("app").innerHTML = `
+    <header class="top">
+      <div class="meta">
+        <span>档案编号：${esc(d.fileNo)}</span>
+        <span>密级：<i class="cldot cl-${clc}"></i>${esc(d.level)}</span>
+        <span>归档日期：${esc(d.date)}</span>
+      </div>
+      <h1>${esc(d.name)}</h1>
+      <div class="alias">${esc(d.alias)}</div>
+    </header>
+    ${badge}
+    ${sections}
+    ${gallery}
+    <footer>${sp(d.notes)}</footer>`;
+  alignPortrait();
+}
+
+if (typeof spherse !== "undefined" && spherse.events) {
+  spherse.events.on("file:update", { path: DATA }, render);
+}
+render().catch(e => { document.getElementById("app").innerHTML = "加载失败：" + e.message; });
+</script>
+</body>
+</html>

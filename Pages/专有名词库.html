@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>专有名词库 · Cybermorgue</title>
+<style>
+  :root {
+    --bg: #f1f2e6; --fg: #36382a; --card: #fcfdf7; --card2: #e6ead7;
+    --border: #cbd0b2; --primary: #6d8426; --primary-fg: #f6f7ec;
+    --muted: #767a5c; --danger: #a0452c;
+    --grad: linear-gradient(135deg, #949545, #5f7a26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12150f; --fg: #e4e6d2; --card: #1c1f16; --card2: #272b1d;
+      --border: #3c412f; --primary: #a8b456; --primary-fg: #13150d;
+      --muted: #979c7c; --danger: #e08060;
+      --grad: linear-gradient(135deg, #a8b456, #6d8a2e);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, var(--bg)) 0%, var(--bg) 48%);
+    color: var(--fg);
+    line-height: 1.8;
+    padding: 26px 20px 50px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; animation: pageIn .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  .clbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: #d6b767; }
+  .pagehead { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; padding-left: 76px; }
+  .back { position: fixed; top: 14px; left: 14px; z-index: 9999; font-family: inherit; background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; align-self: center; }
+  .back:hover { color: var(--primary); border-color: var(--primary); }
+  h1 { font-size: 22px; letter-spacing: 3px; color: var(--primary); }
+  .sub { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+  .count { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+  .dlayout { display: flex; gap: 20px; align-items: flex-start; }
+  .dnav { flex: 0 0 40px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 2px; }
+  .dnav button, .dnav .dim { width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-family: inherit; }
+  .dnav button { border: 1px solid var(--border); background: var(--card); color: var(--primary); cursor: pointer; }
+  .dnav button:hover { background: var(--grad); color: var(--primary-fg); }
+  .dnav .dim { border: 1px solid transparent; color: var(--muted); opacity: .35; }
+  .dcontent { flex: 1; min-width: 0; }
+  @media (max-width: 720px) {
+    .dlayout { flex-direction: column; }
+    .dnav { position: static; flex-direction: row; flex-wrap: wrap; flex: none; gap: 4px; }
+  }
+
+  .dgroup { margin-bottom: 22px; }
+  .dletter { font-size: 16px; font-weight: 800; color: var(--primary); letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 10px; }
+  .dterm { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; }
+  .dterm b { font-size: 14px; color: var(--primary); }
+  .dterm p { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .dterm:hover { border-color: var(--primary); }
+  /* 字号：正文16px，标题等比放大 */
+  .dterm p { font-size: 16px; }
+  .dterm b { font-size: 16px; }
+  .dletter { font-size: 18px; }
+  .dnav button, .dnav .dim { font-size: 14px; }
+  .sub, .count { font-size: 13px; }
+  h1 { font-size: 24px; }
+</style>
+</head>
+<body>
+<div class="clbar"></div>
+<button class="back" onclick="goBack()">← 返回</button>
+<div class="wrap">
+  <div class="pagehead">
+    <h1>专有名词库</h1>
+    <span class="sub">Glossary</span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="dlayout">
+    <nav class="dnav" id="dnav"></nav>
+    <main class="dcontent" id="dcontent">加载中…</main>
+  </div>
+</div>
+<script>
+const DATA = "./专有名词库.data.json";
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+async function render() {
+  const d = await fetch(DATA).then(r => r.json());
+  const groups = {};
+  d.terms.forEach(t => {
+    const L = (t.p || "A").toUpperCase().charAt(0);
+    (groups[L] = groups[L] || []).push(t);
+  });
+  document.getElementById("count").textContent = `${d.terms.length} 词条`;
+  document.getElementById("dnav").innerHTML = LETTERS.map(L =>
+    groups[L] ? `<button onclick="jump('L-${L}')">${L}</button>` : `<span class="dim">${L}</span>`
+  ).join("");
+  document.getElementById("dcontent").innerHTML = LETTERS.filter(L => groups[L]).map(L => `
+    <div class="dgroup" id="L-${L}">
+      <div class="dletter">${L}</div>
+      ${groups[L].map(t => `<div class="dterm"><b>${esc(t.term)}</b><p>${esc(t.def)}</p></div>`).join("")}
+    </div>`).join("");
+  window.scrollTo(0, 0);
+}
+function jump(id) { document.getElementById(id).scrollIntoView({ behavior: "smooth" }); }
+function goBack() {
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("员工手册.html");
+  else location.href = "员工手册.html";
+}
+if (typeof spherse !== "undefined" && spherse.events) {
+  spherse.events.on("file:update", { path: DATA }, () => render());
+}
+render().catch(e => { document.getElementById("dcontent").innerHTML = "加载失败：" + e.message; });
+</script>
+</body>
+</html>

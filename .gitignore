@@ -1,0 +1,6 @@
+# Spherse 应用内部数据（含会话记录，勿上传）
+.spherse/
+
+node_modules/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>赛博停尸间员工手册</title>
+<style>
+  :root {
+    --bg: #f1f2e6; --fg: #36382a; --card: #fcfdf7; --card2: #e6ead7;
+    --border: #cbd0b2; --primary: #6d8426; --primary-fg: #f6f7ec;
+    --muted: #767a5c; --danger: #a0452c;
+    --grad: linear-gradient(135deg, #949545, #5f7a26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12150f; --fg: #e4e6d2; --card: #1c1f16; --card2: #272b1d;
+      --border: #3c412f; --primary: #a8b456; --primary-fg: #13150d;
+      --muted: #979c7c; --danger: #e08060;
+      --grad: linear-gradient(135deg, #a8b456, #6d8a2e);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--primary) 7%, var(--bg)) 0%, var(--bg) 48%);
+    color: var(--fg);
+    line-height: 1.8;
+    padding: 26px 20px 50px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; animation: pageIn .7s cubic-bezier(.2, .7, .2, 1) both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+  .clbar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; }
+  .cl-yellow { background: #d6b767; }
+  .pagehead { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; padding-left: 76px; }
+  .back { position: fixed; top: 14px; left: 14px; z-index: 9999; font-family: inherit; background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 5px 12px; font-size: 12.5px; cursor: pointer; align-self: center; }
+  .back:hover { color: var(--primary); border-color: var(--primary); }
+  h1 { font-size: 22px; letter-spacing: 3px; color: var(--primary); }
+  .sub { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+  .mred { color: var(--danger); font-weight: 600; }
+
+  .mlayout { display: flex; gap: 22px; align-items: flex-start; }
+  .mnav { flex: 0 0 168px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 4px; }
+  .mnav button { font-family: inherit; text-align: left; background: none; border: 1px solid transparent; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--muted); cursor: pointer; letter-spacing: 1px; transition: all .15s; }
+  .mnav button:hover { color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); border-color: var(--border); }
+  .mcontent { flex: 1; min-width: 0; }
+  @media (max-width: 720px) {
+    .mlayout { flex-direction: column; }
+    .mnav { position: static; flex-direction: row; flex-wrap: wrap; flex: none; }
+  }
+
+  section { margin-bottom: 34px; }
+  h2.sec { font-size: 21px; letter-spacing: 5px; color: var(--primary); text-align: center; margin-bottom: 2px; }
+  h2.sec::after { content: ''; display: block; width: 64px; height: 3px; margin: 10px auto 0; background: var(--grad); }
+  .sec-en { text-align: center; font-size: 12px; letter-spacing: 3px; color: var(--muted); margin-bottom: 18px; }
+  .card { background: transparent; border: none; border-left: 3px solid var(--primary); border-bottom: 1px solid var(--border); border-radius: 0; padding: 18px 22px; }
+  .card > p { font-size: 13.5px; margin-bottom: 12px; text-indent: 2em; }
+  .card > p:last-child { margin-bottom: 0; }
+  .muted { color: var(--muted) !important; text-indent: 0 !important; font-size: 12.5px !important; }
+
+  /* 随机词条 */
+  .gtermgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  @media (max-width: 560px) { .gtermgrid { grid-template-columns: 1fr; } }
+  .gterm { border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; background: color-mix(in srgb, var(--card2) 40%, transparent); }
+  .gterm b { font-size: 14px; color: var(--primary); }
+  .gterm span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .linkbtn { font-family: inherit; font-size: 12.5px; color: var(--primary); background: none; border: 1px solid var(--primary); border-radius: 4px; padding: 6px 16px; cursor: pointer; margin-top: 8px; }
+  .linkbtn:hover { background: var(--grad); color: var(--primary-fg); }
+  .linkbtn:active { transform: scale(.97); }
+
+  /* 工作岗位 · 弧形菜单 */
+  .jobs-intro { text-align: center; max-width: 660px; margin: 0 auto 6px; font-size: 13.5px; color: var(--muted); }
+  .arcbox { display: flex; gap: 44px; margin-top: 26px; align-items: center; }
+  .arc-list { position: relative; flex: 0 0 230px; display: flex; flex-direction: column; gap: 14px; padding: 12px 10px; }
+  .arc-slider {
+    position: absolute; left: 0; width: 100%; height: 42px; background: var(--grad); border-radius: 6px; z-index: 0;
+    box-shadow: 0 4px 18px color-mix(in srgb, var(--primary) 32%, transparent);
+    transition: top .4s cubic-bezier(.2, .7, .2, 1), height .4s cubic-bezier(.2, .7, .2, 1), left .4s cubic-bezier(.2, .7, .2, 1), width .4s cubic-bezier(.2, .7, .2, 1);
+  }
+  .arc-item {
+    position: relative; z-index: 1; font-family: inherit; display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    background: none; border: none; padding: 10px 16px; font-size: 15px; color: var(--fg); cursor: pointer; border-radius: 4px;
+    white-space: nowrap;
+    transform: translateX(var(--ox, 0));
+    transition: transform .35s cubic-bezier(.2, .7, .2, 1), color .2s;
+  }
+  .arc-item i { font-style: normal; font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+  .arc-item:hover { transform: translateX(var(--ox, 0)) translateY(-3px) scale(1.06); color: var(--primary); }
+  .arc-item.sel { transform: translateX(var(--ox, 0)) scale(1.16); color: var(--primary-fg); font-weight: 700; }
+  .arc-item.sel i { color: color-mix(in srgb, var(--primary-fg) 72%, transparent); }
+  .arc-panel { flex: 1; min-width: 0; padding: 8px 0; opacity: 0; transform: translateY(12px); }
+  .arc-panel.in { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; }
+  .pcode { display: inline-block; font-size: 10px; letter-spacing: 1px; color: var(--primary-fg); background: var(--primary); border-radius: 5px; padding: 1px 9px; }
+  .pname { font-size: 21px; font-weight: 700; margin: 8px 0 12px; color: var(--primary); letter-spacing: 1px; }
+  .ptext p { font-size: 14px; margin-bottom: 12px; text-indent: 2em; line-height: 2; }
+  .ptext p.muted { color: var(--muted); font-style: italic; }
+  @media (max-width: 720px) { .arcbox { flex-direction: column; align-items: stretch; } .arc-list { flex: none; } .arc-panel { padding: 12px 0 0; } }
+
+  /* 规则与条例 */
+  .rule { border-top: 1px dashed var(--border); padding: 16px 0 6px; }
+  .rule:first-of-type { border-top: none; }
+  .rlabel { font-size: 14px; font-weight: 700; color: var(--primary); letter-spacing: 1px; margin-bottom: 6px; }
+  .rule p { font-size: 13px; margin-bottom: 10px; }
+  .levels { margin-top: 10px; }
+  .lvl { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--border); }
+  .lvl:last-child { border-bottom: none; }
+  .lvl-badge { flex: 0 0 42px; font-size: 12px; font-weight: 700; color: var(--danger); }
+  .lvl-en { flex: 0 0 86px; font-size: 11.5px; color: var(--muted); letter-spacing: 1px; }
+  .lvl-desc { flex: 1; font-size: 12.5px; }
+  /* 字号：正文16px，标题等比放大 */
+  .card > p, .rule p, .jobs-intro, .dept p, .gterm span, .lvl-desc, .ptext p { font-size: 16px; }
+  .flabel, .linkbtn, .mnav button, .lvl-en, .sec-en, .pcode { font-size: 14px; }
+  h2.sec { font-size: 23px; }
+  .rlabel { font-size: 16px; }
+  .pname { font-size: 22px; }
+  .dhead b, .gterm b { font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="clbar" id="clbar" class="cl-yellow"></div>
+<button class="back" onclick="goBack()">← 返回</button>
+<div class="wrap">
+  <div class="pagehead">
+    <h1 id="ptitle">员工手册</h1>
+    <span class="sub" id="psub"></span>
+  </div>
+  <div class="mlayout">
+    <nav class="mnav" id="mnav"></nav>
+    <main class="mcontent" id="mcontent">加载中…</main>
+  </div>
+</div>
+<script>
+const DATA = "./员工手册.data.json";
+const DICT = "./专有名词库.data.json";
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const fmt = t => esc(t).replace(/##([\s\S]+?)##/g, '<span class="mred">$1</span>').replace(/\/\/([\s\S]+?)\/\//g, '<i>$1</i>');
+const secTitle = (t, en) => `<h2 class="sec">${esc(t)}</h2><div class="sec-en">${esc(en)}</div>`;
+
+function buildJobs(d) {
+  const list = document.getElementById("arc-list");
+  const items = d.jobs.departments.map(j => {
+    const b = document.createElement("button");
+    b.className = "arc-item";
+    b.innerHTML = `<span>${esc(j.name)}</span><i>${esc(j.code)}</i>`;
+    b.addEventListener("click", () => selectJob(j, b));
+    list.appendChild(b);
+    return b;
+  });
+  const n = items.length;
+  items.forEach((b, i) => {
+    const t = n === 1 ? 0 : i / (n - 1);
+    b.style.setProperty("--ox", Math.round(-26 * Math.sin(Math.PI * t)) + "px");
+  });
+  selectJob(d.jobs.departments[0], items[0]);
+}
+function selectJob(job, btn) {
+  document.querySelectorAll(".arc-item").forEach(b => b.classList.remove("sel"));
+  btn.classList.add("sel");
+  const s = document.getElementById("arc-slider");
+  const list = document.getElementById("arc-list");
+  const lr = list.getBoundingClientRect();
+  const br = btn.getBoundingClientRect();
+  s.style.left = (br.left - lr.left - 6) + "px";
+  s.style.width = (br.width + 12) + "px";
+  s.style.top = (br.top - lr.top - 6) + "px";
+  s.style.height = (br.height + 12) + "px";
+  const panel = document.getElementById("arc-panel");
+  panel.innerHTML = `<div class="pcode">${esc(job.code)}</div><div class="pname">${esc(job.name)}</div>
+    <div class="ptext">${job.intro ? job.intro.split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join("") : `<p class="muted">（简介待补充）</p>`}</div>`;
+  panel.classList.remove("in");
+  void panel.offsetWidth;
+  panel.classList.add("in");
+}
+
+async function render() {
+  const d = await fetch(DATA).then(r => r.json());
+  const dict = await fetch(DICT).then(r => r.json());
+
+  document.getElementById("ptitle").textContent = d.title;
+  document.getElementById("psub").textContent = d.subtitle;
+
+  const preface = `<section id="sec-preface">${secTitle(d.preface.title, d.preface.en)}<div class="card">${d.preface.paragraphs.map(p => `<p>${esc(p)}</p>`).join("")}</div></section>`;
+
+  const terms = [...dict.terms].sort(() => Math.random() - 0.5).slice(0, d.glossary.randomCount);
+  const glossary = `<section id="sec-glossary">${secTitle(d.glossary.title, d.glossary.en)}<div class="card">
+    <p class="muted">${esc(d.glossary.intro)}</p>
+    <div class="gtermgrid">${terms.map(t => `<div class="gterm"><b>${esc(t.term)}</b><span>${esc(t.def)}</span></div>`).join("")}</div>
+    <button class="linkbtn" onclick="openFile('${esc(d.glossary.dictPath)}')">${esc(d.glossary.dictTitle)}</button>
+  </div></section>`;
+
+  const jobs = `<section id="sec-jobs">${secTitle(d.jobs.title, d.jobs.en)}
+    <p class="jobs-intro">${esc(d.jobs.intro)}</p>
+    <div class="arcbox">
+      <div class="arc-list" id="arc-list"><div class="arc-slider" id="arc-slider"></div></div>
+      <div class="arc-panel" id="arc-panel"></div>
+    </div>
+  </section>`;
+
+  const rules = d.rules.sections.map(s => {
+    const levels = s.levels ? `<div class="levels"><p class="muted">${esc(s.levelsTitle)}</p>${s.levels.map(l =>
+      `<div class="lvl"><span class="lvl-badge">${esc(l.level)}</span><span class="lvl-en">${esc(l.en)}</span><span class="lvl-desc">${esc(l.desc)}</span></div>`).join("")}</div>` : "";
+    return `<div class="rule"><div class="rlabel">${esc(s.title)}</div>${s.text.split(/\n{2,}/).map(p => `<p>${fmt(p)}</p>`).join("")}${levels}</div>`;
+  }).join("");
+  const rulesSec = `<section id="sec-rules">${secTitle(d.rules.title, d.rules.en)}<div class="card"><p>${esc(d.rules.intro)}</p>${rules}</div></section>`;
+
+  document.getElementById("mnav").innerHTML = `
+    <button onclick="jump('sec-preface')">前言</button>
+    <button onclick="jump('sec-glossary')">专有名词库</button>
+    <button onclick="jump('sec-jobs')">工作岗位</button>
+    <button onclick="jump('sec-rules')">规则与条例</button>`;
+  document.getElementById("mcontent").innerHTML = preface + glossary + jobs + rulesSec;
+  buildJobs(d);
+  window.scrollTo(0, 0);
+}
+function jump(id) { document.getElementById(id).scrollIntoView({ behavior: "smooth" }); }
+function openFile(p) {
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile(p);
+  else location.href = p;
+}
+function goBack() {
+  try { sessionStorage.setItem("cm-goto", "staff"); } catch (e) {}
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("Cybermorgue-档案主页.html");
+  else location.href = "Cybermorgue-档案主页.html";
+}
+if (typeof spherse !== "undefined" && spherse.events) {
+  spherse.events.on("file:update", { path: DATA }, () => render());
+  spherse.events.on("file:update", { path: DICT }, () => render());
+}
+render().catch(e => { document.getElementById("mcontent").innerHTML = "加载失败：" + e.message; });
+</script>
+</body>
+</html>
