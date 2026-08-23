@@ -81,7 +81,7 @@
   .itext p:last-child { margin-bottom: 0; }
 
   /* 隐藏文本（悬停正常文字 → 抖动乱码 → 替换为隐藏文字；移开逆动画还原） */
-  .ghost-zone { cursor: default; }
+  .ghost-zone { cursor: pointer; touch-action: manipulation; }
   .gtext {
     display: inline-block; transition: color .15s;
     color: color-mix(in srgb, var(--fg) 82%, var(--danger) 18%);
@@ -224,6 +224,7 @@ function scramble(el, real, end) {
 }
 function enterGhost(zone, g) {
   zone._h = true;
+  zone._revealed = true;
   if (!g.style.minWidth) g.style.minWidth = g.offsetWidth + "px";
   const real = zone.dataset.hidden || "";
   g.classList.add("shaking");
@@ -234,6 +235,7 @@ function enterGhost(zone, g) {
 }
 function leaveGhost(zone, g) {
   zone._h = false;
+  zone._revealed = false;
   const real = zone.dataset.normal || "";
   g.classList.add("shaking");
   scramble(g, real, () => {
@@ -245,12 +247,22 @@ function leaveGhost(zone, g) {
     g.style.minWidth = "";
   });
 }
+const touchDevice = window.matchMedia && matchMedia("(hover: none)").matches;
 function bindGhosts() {
   document.querySelectorAll(".ghost-zone").forEach(zone => {
     const g = zone.querySelector(".gtext");
     if (!g) return;
-    zone.addEventListener("mouseenter", () => enterGhost(zone, g));
-    zone.addEventListener("mouseleave", () => leaveGhost(zone, g));
+    if (!touchDevice) {
+      zone.addEventListener("mouseenter", () => enterGhost(zone, g));
+      zone.addEventListener("mouseleave", () => leaveGhost(zone, g));
+    }
+    zone.addEventListener("click", () => {
+      if (touchDevice) {
+        if (zone._revealed) leaveGhost(zone, g); else enterGhost(zone, g);
+      } else if (!zone._revealed) {
+        enterGhost(zone, g);
+      }
+    });
   });
 }
 function rich(t) {
