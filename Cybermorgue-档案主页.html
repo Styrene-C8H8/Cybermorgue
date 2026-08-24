@@ -344,7 +344,7 @@ function closeOverlay() {
 }
 function openFile(p) {
   if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile(p);
-  else location.href = p;
+  else location.href = p.replace(/^project\//, "");
 }
 
 /* ---------- 员工登录动画 ---------- */

@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dye Oxide · 员工档案</title>
+<title>Howar Sterling · 员工档案</title>
 <style>
   :root {
     --bg: #f1f2e6; --fg: #36382a; --card: #fcfdf7; --card2: #e6ead7;
     --border: #cbd0b2; --primary: #6d8426; --primary-fg: #f6f7ec;
-    --muted: #767a5c; --danger: #a0452c;
+    --muted: #767a5c; --danger: #a0452c; --lh: #8a6d0f;
     --grad: linear-gradient(135deg, #949545, #5f7a26);
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #12150f; --fg: #e4e6d2; --card: #1c1f16; --card2: #272b1d;
       --border: #3c412f; --primary: #a8b456; --primary-fg: #13150d;
-      --muted: #979c7c; --danger: #e08060;
+      --muted: #979c7c; --danger: #e08060; --lh: #d6b767;
       --grad: linear-gradient(135deg, #a8b456, #6d8a2e);
     }
   }
@@ -55,7 +55,6 @@
   .brow { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 6px 0; }
   .brow .bk { flex: 0 0 110px; color: var(--muted); font-size: 13px; }
   .brow .bv { flex: 1 1 220px; min-width: 0; word-break: break-word; overflow-wrap: anywhere; }
-  /* 画廊图片不受工牌图片尺寸限制 */
   .gallery .bimg { max-width: none; margin: 0; width: 100%; }
 
   section { margin-bottom: 26px; }
@@ -67,12 +66,12 @@
   .itext p { font-size: 13px; margin-bottom: 10px; }
   .itext p:last-child { margin-bottom: 0; }
 
+  /* 论坛 */
   .thread { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 14px; background: var(--card); }
   .thead { padding: 12px 16px 8px; border-bottom: 1px solid var(--border); }
   .tboard { display: inline-block; font-size: 10px; letter-spacing: 1px; color: var(--primary-fg); background: var(--primary); border-radius: 999px; padding: 1px 10px; margin-bottom: 6px; }
   .ttitle { font-size: 14px; font-weight: 700; }
   .post { padding: 10px 16px; border-top: 1px dashed var(--border); margin-left: calc(var(--d, 0) * 26px); }
-  .post.main { background: color-mix(in srgb, var(--card2) 55%, transparent); border-top: none; }
   .phead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
   .uname { font-weight: 700; }
   .lv { font-size: 10px; padding: 1px 7px; border-radius: 999px; color: #fff; line-height: 1.6; }
@@ -88,6 +87,60 @@
   .expand { padding: 8px 16px; font-size: 12px; color: var(--primary); border-top: 1px dashed var(--border); margin-left: calc(var(--d, 0) * 26px); cursor: pointer; }
   .cmtbar { padding: 7px 16px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--card2) 40%, transparent); }
 
+  /* 录音 */
+  .rec { border: 1px solid var(--border); border-radius: 4px; margin-top: 16px; overflow: hidden; background: var(--card); }
+  .rec-head { padding: 8px 14px; font-size: 12.5px; letter-spacing: 1px; color: var(--fg); background: color-mix(in srgb, var(--danger) 10%, var(--card2)); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .rec-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--danger); animation: recBlink 1s infinite; }
+  @keyframes recBlink { 50% { opacity: .15; } }
+  .rec-body { padding: 10px 14px; }
+  .rec-line { font-family: "Courier New", "Sarasa Mono SC", "Noto Sans Mono CJK SC", ui-monospace, SFMono-Regular, Consolas, "FangSong", "STFangsong", "仿宋", monospace; font-size: 14.5px; padding: 4px 0; }
+  .rec-line.sfx { color: var(--muted); letter-spacing: 1px; }
+  .rec-line ruby rt { font-size: 10px; letter-spacing: .5px; color: var(--muted); font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+
+  /* 录音（可折叠） */
+  .reclist { margin-top: 18px; }
+  .rec-toggle { display: inline-block; cursor: pointer; font-weight: 700; color: var(--primary); letter-spacing: 1px; padding: 4px 2px; font-size: 15px; }
+  .rec-toggle:hover { text-decoration: underline; }
+  .recs { margin-top: 6px; }
+  .recs .rec { margin-top: 12px; }
+  .recs .rec:first-child { margin-top: 0; }
+
+  /* 特殊quote */
+  .squote { text-align: center; font-family: "Times New Roman", "Noto Serif SC", "STKaiti", serif; color: var(--fg); margin: 24px 0 6px; }
+  .squote .el { font-size: 15px; line-height: 2.1; letter-spacing: 1px; }
+  .squote ruby rt { font-size: 10.5px; letter-spacing: .5px; color: var(--muted); font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+
+  /* 隐藏内容 */
+  .hidden-block { margin: 26px 0; }
+  .hidden-card { border-left-color: var(--danger); }
+  /* 左手先生语音 */
+  .lhand { color: var(--lh); font-style: italic; }
+  /* 隐藏文字揭示（悬停/点击 → 乱码 → 揭示） */
+  .ghost-zone { cursor: help; touch-action: manipulation; }
+  .gtext { color: var(--fg); text-decoration: underline dotted; text-decoration-color: var(--danger); text-underline-offset: 3px; animation: hintGlow 3.4s ease-in-out infinite; }
+  @keyframes hintGlow {
+    0%, 100% { text-shadow: 0 0 0 transparent; }
+    50% { text-shadow: 0 0 7px color-mix(in srgb, var(--danger) 26%, transparent); }
+  }
+  .shaking { animation: shake .12s infinite; text-shadow: 0 0 7px color-mix(in srgb, var(--danger) 55%, transparent); }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 1px); }
+    75% { transform: translate(1px, 1px); }
+  }
+
+  /* 系统弹窗 */
+  .sysdlg { max-width: 460px; margin: 26px auto; background: var(--card2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.18); font-size: 13px; }
+  .sysdlg-bar { background: color-mix(in srgb, var(--primary) 12%, var(--card2)); padding: 6px 12px; font-size: 12px; letter-spacing: 1px; color: var(--muted); display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--border); }
+  .sysdlg-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--primary); }
+  .sysdlg-body { padding: 14px 16px 6px; }
+  .sysdlg-actions { padding: 10px 12px 12px; text-align: right; display: flex; justify-content: flex-end; gap: 8px; }
+  .sysdlg-btn { font-family: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--card); color: var(--fg); border-radius: 6px; padding: 6px 22px; cursor: pointer; }
+  .sysdlg-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .sysdlg-btn.yes { background: var(--grad); border-color: transparent; color: var(--primary-fg); }
+  .sysdlg-btn.yes:hover { filter: brightness(1.08); }
+
   .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 26px; }
   footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); text-align: center; white-space: pre-wrap; }
   .spoiler {
@@ -97,9 +150,9 @@
   }
   .spoiler:hover, .spoiler:focus-visible { background: transparent; color: inherit; user-select: auto; }
   .spoiler::selection { background: transparent; }
-  .rednote { color: var(--danger); font-weight: 600; }
+
   /* 字号：正文16px，标题等比放大 */
-  .brow, .brow .bv, .itext p, .pbody p, .alias, .ending .el, .be-line, .rec-line, .apass { font-size: 16px; }
+  .brow, .brow .bv, .itext p, .pbody p, .alias { font-size: 16px; }
   h1 { font-size: 30px; }
   h2 { font-size: 16px; }
   .ilabel, .phead, .uname, .ttitle { font-size: 14px; }
@@ -113,10 +166,16 @@
 <button class="back" onclick="goBack()">← 返回</button>
 <div class="wrap" id="app">加载中…</div>
 <script>
-const DATA = "./DyeOxide.data.json";
+const DATA = "./HowarSterling.data.json";
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const sp = t => esc(t).replace(/##([\s\S]+?)##/g, '<span class="rednote">$1</span>').replace(/\+\+([\s\S]+?)\+\+/g, '<span class="spoiler" tabindex="0" title="悬停查看">$1</span>');
-const paras = t => String(t ?? "").split(/\n{2,}/).map(p => `<p>${sp(p.replace(/\n/g, "<br>"))}</p>`).join("");
+const attr = s => esc(s).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+const touchDevice = window.matchMedia && matchMedia("(hover: none)").matches;
+const fmt = t => esc(t)
+  .replace(/\/\/([\s\S]+?)\/\//g, '<i>$1</i>')
+  .replace(/(?:〔|\[)([^〕\]]+?)\|([^〕\]]+?)(?:〕|\])/g, '<ruby>$1<rt>$2</rt></ruby>')
+  .replace(/%%([\s\S]+?)%%/g, '<span class="lhand">$1</span>')
+  .replace(/\+\+([\s\S]+?)\+\+/g, '<span class="spoiler" tabindex="0" title="悬停查看">$1</span>');
+const paras = t => String(t ?? "").split(/\n{2,}/).map(p => `<p>${fmt(p.replace(/\n/g, "<br>"))}</p>`).join("");
 const lvClass = tag => /^lv\d+$/.test(tag || "") ? `lv ${tag}` : `lv custom${tag === "管理员" ? " adm" : ""}`;
 
 function postHtml(p) {
@@ -137,10 +196,98 @@ function threadHtml(f) {
     ${f.replies.map(postHtml).join("")}
   </div>`;
 }
+function recHtml(r) {
+  return `<div class="rec">
+    <div class="rec-head"><i class="rec-dot"></i>${esc(r.title)}</div>
+    <div class="rec-body">${r.lines.map(l =>
+      `<div class="rec-line${l.startsWith("【") ? " sfx" : ""}">${fmt(l)}</div>`).join("")}
+    </div>
+  </div>`;
+}
 
 function goBack() {
   if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("project/OC/索引.html");
   else location.href = "索引.html";
+}
+function revealHidden() {
+  const hb = document.getElementById("hidden-block");
+  const dlg = document.getElementById("haxdlg");
+  if (hb) hb.style.display = "block";
+  if (dlg) dlg.style.display = "none";
+  if (hb) hb.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function hideDlg() {
+  const dlg = document.getElementById("haxdlg");
+  if (dlg) dlg.style.display = "none";
+}
+const GARB = "▓▒░█#@%&*$?!≡0123456789ABCDEF乱码死";
+function scramble(el, real, end) {
+  if (el._iv) clearInterval(el._iv);
+  const steps = 8, dur = 300;
+  let i = 0;
+  el._iv = setInterval(() => {
+    i++;
+    if (i >= steps) {
+      clearInterval(el._iv); el._iv = null; el.textContent = real;
+      if (end) end();
+    } else {
+      el.textContent = Array.from(real).map(c => c === " " ? " " : GARB[Math.floor(Math.random() * GARB.length)]).join("");
+    }
+  }, dur / steps);
+}
+function enterGhost(zone, g) {
+  zone._h = true;
+  zone._revealed = true;
+  if (!g.style.minWidth) g.style.minWidth = g.offsetWidth + "px";
+  const real = zone.dataset.hidden || "";
+  g.classList.add("shaking");
+  g.style.fontFamily = '"Times New Roman", "Noto Serif SC", "STKaiti", serif';
+  g.style.color = "var(--danger)";
+  scramble(g, real, () => g.classList.remove("shaking"));
+}
+function leaveGhost(zone, g) {
+  zone._h = false;
+  zone._revealed = false;
+  const real = zone.dataset.normal || "";
+  g.classList.add("shaking");
+  scramble(g, real, () => {
+    g.classList.remove("shaking");
+    if (zone._h) return;
+    g.style.fontFamily = "";
+    g.style.color = "";
+    g.style.minWidth = "";
+  });
+}
+function bindGhosts() {
+  document.querySelectorAll(".ghost-zone").forEach(zone => {
+    const g = zone.querySelector(".gtext");
+    if (!g) return;
+    if (!touchDevice) {
+      zone.addEventListener("mouseenter", () => enterGhost(zone, g));
+      zone.addEventListener("mouseleave", () => leaveGhost(zone, g));
+    }
+    zone.addEventListener("click", () => {
+      if (touchDevice) {
+        if (zone._revealed) leaveGhost(zone, g); else enterGhost(zone, g);
+      } else if (!zone._revealed) {
+        enterGhost(zone, g);
+      }
+    });
+  });
+}
+let REC_T = { open: "＋点击查看录音记录", close: "－点击收起录音记录" };
+function recsHtml(recs, t) {
+  REC_T = t;
+  return `<div class="reclist">
+    <span class="rec-toggle" onclick="toggleRecs(this)">${esc(t.open)}</span>
+    <div class="recs" style="display:none">${recs.map(recHtml).join("")}</div>
+  </div>`;
+}
+function toggleRecs(el) {
+  const box = el.nextElementSibling;
+  const open = box.style.display !== "none";
+  box.style.display = open ? "none" : "block";
+  el.textContent = open ? REC_T.close : REC_T.open;
 }
 function alignPortrait() {
   const badge = document.querySelector(".badge");
@@ -163,6 +310,7 @@ function alignPortrait() {
 window.addEventListener("resize", () => alignPortrait());
 async function render() {
   const d = await fetch(DATA).then(r => r.json());
+  D = d;
 
   const badge = `
     <div class="badge">
@@ -170,7 +318,7 @@ async function render() {
       <div class="binfo">
         <div class="btitle">CYBERMORGUE · 员工工牌</div>
         <div class="tags">${(d.tags ? [d.tags.gender, d.tags.zone, d.tags.department] : []).filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join("")}${d.faction ? `<span class="tag faction">${esc(d.faction)}</span>` : ""}</div>
-        ${d.badge.map(r => `<div class="brow"><span class="bk">${esc(r.k)}</span><span class="bv">${sp(r.v)}</span></div>`).join("")}
+        ${d.badge.map(r => `<div class="brow"><span class="bk">${esc(r.k)}</span><span class="bv">${fmt(r.v)}</span></div>`).join("")}
       </div>
     </div>`;
 
@@ -179,14 +327,33 @@ async function render() {
       `<div class="item">${i.label ? `<div class="ilabel">${esc(i.label)}</div>` : ""}<div class="itext">${paras(i.text)}</div></div>`
     ).join("");
     const forum = (s.forum || []).map(threadHtml).join("");
-    return (items || forum) ? `<section><h2>${esc(s.title)}</h2><div class="card">${items}${forum}</div></section>` : "";
+    const recs = (s.recordings && s.recordings.length) ? recsHtml(s.recordings, s.recToggle || { open: "＋点击查看录音记录", close: "－点击收起录音记录" }) : "";
+    const quote = (s.quote && s.quote.length) ? `<div class="squote">${s.quote.map(q => `<div class="el">${fmt(q)}</div>`).join("")}</div>` : "";
+    return (items || forum || recs || quote) ? `<section><h2>${esc(s.title)}</h2><div class="card">${items}${forum}${recs}${quote}</div></section>` : "";
   }).join("");
 
   const gallery = (d.gallery || []).length
     ? `<div class="gallery">${d.gallery.map(g => `<div class="bimg" style="flex:none;width:100%;aspect-ratio:16/9"><img src="${esc(g)}" alt=""></div>`).join("")}</div>`
     : "";
 
-  const CL = { white: 1, yellow: 1, red: 1, black: 1 };
+  const hidden = (d.hidden) ? `
+    <div class="hidden-block" id="hidden-block" style="display:none">
+      <div class="card hidden-card">
+        <div class="itext">${d.hidden.passage.map(p => `<p>${fmt(p)}</p>`).join("")}
+          <p><span class="ghost-zone" data-normal="${attr(d.hidden.red)}" data-hidden="${attr(d.hidden.redReveal || "")}"><span class="gtext">${esc(d.hidden.red)}</span></span></p>
+        </div>
+      </div>
+    </div>
+    <div class="sysdlg" id="haxdlg">
+      <div class="sysdlg-bar"><span class="sysdlg-dot"></span>系统提示</div>
+      <div class="sysdlg-body">${esc(d.hidden.dialog)}</div>
+      <div class="sysdlg-actions">
+        <button class="sysdlg-btn" onclick="hideDlg()">否</button>
+        <button class="sysdlg-btn yes" onclick="revealHidden()">是</button>
+      </div>
+    </div>` : "";
+
+  const CL = { white: 1, yellow: 1, red: 1, black: 1, rainbow: 1 };
   const clc = CL[d.clearance] ? d.clearance : "yellow";
   document.getElementById("clbar").className = "clbar cl-" + clc;
   document.getElementById("app").innerHTML = `
@@ -202,12 +369,14 @@ async function render() {
     ${badge}
     ${sections}
     ${gallery}
-    <footer>${sp(d.notes)}</footer>`;
+    ${hidden}
+    <footer>${fmt(d.notes)}</footer>`;
   alignPortrait();
+  bindGhosts();
 }
 
 if (typeof spherse !== "undefined" && spherse.events) {
-  spherse.events.on("file:update", { path: DATA }, render);
+  spherse.events.on("file:update", { path: DATA }, () => render());
 }
 render().catch(e => { document.getElementById("app").innerHTML = "加载失败：" + e.message; });
 </script>

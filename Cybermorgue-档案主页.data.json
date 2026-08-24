@@ -72,18 +72,20 @@
     "archiveLabel": "员工档案",
     "archiveDesc": "查看已登记的员工档案",
     "more": "查看更多员工 →",
-    "indexPath": "OC/索引.html",
+    "indexPath": "project/OC/索引.html",
     "manualLabel": "《员工手册》",
     "manualDesc": "员工入职必读 · 前言 / 专有名词库 / 工作岗位 / 规则与条例",
-    "manualPath": "员工手册.html",
+    "manualPath": "project/员工手册.html",
     "ocs": [
-      { "name": "Dye Oxide", "alias": "DyoxiiiidE", "role": "方格厢门 · 区块运行负责人", "path": "OC/DyeOxide.html" },
-      { "name": "Kameron • K • Channte", "alias": "K•K", "role": "黄金计时 · 二级巡督", "path": "OC/Kameron.html" },
-      { "name": "Valentina Bridges", "alias": "@Cofieine", "role": "方格厢门 · 前台业务员", "path": "OC/Valentina.html" },
-      { "name": "Nyxstr Campbell", "alias": "Nyx", "role": "方格厢门 · 1级外勤处理员", "path": "OC/Nyxstr.html" },
-      { "name": "Zake Vacuma", "alias": "ZVk", "role": "方格厢门 · 区块运行负责人", "path": "OC/ZakeVacuma.html" },
-      { "name": "Tatyana · Crimson", "alias": "@TAT", "role": "方格厢门 · 区域代表总管", "path": "OC/TatyanaCrimson.html" },
-      { "name": "THE MAGICIAN", "alias": "IT部门前无古人后无来者的传奇", "role": "激光停泊 · 区域网络管理员", "path": "OC/MarcusVacarcel.html" }
+      { "name": "Dye Oxide", "alias": "DyoxiiiidE", "role": "方格厢门 · 区块运行负责人", "path": "project/OC/DyeOxide.html" },
+      { "name": "Kameron • K • Channte", "alias": "K•K", "role": "黄金计时 · 二级巡督", "path": "project/OC/Kameron.html" },
+      { "name": "Valentina Bridges", "alias": "@Cofieine", "role": "方格厢门 · 前台业务员", "path": "project/OC/Valentina.html" },
+      { "name": "Nyxstr Campbell", "alias": "Nyx", "role": "方格厢门 · 1级外勤处理员", "path": "project/OC/Nyxstr.html" },
+      { "name": "Zake Vacuma", "alias": "ZVk", "role": "方格厢门 · 区块运行负责人", "path": "project/OC/ZakeVacuma.html" },
+      { "name": "Tatyana · Crimson", "alias": "@TAT", "role": "方格厢门 · 区域代表总管", "path": "project/OC/TatyanaCrimson.html" },
+      { "name": "THE MAGICIAN", "alias": "IT部门前无古人后无来者的传奇", "role": "激光停泊 · 区域网络管理员", "path": "project/OC/MarcusVacarcel.html" },
+      { "name": "Bellerophus Dessner", "alias": "Belle", "role": "电子囚笼 · 区域交通管理局局长", "path": "project/OC/BellerophusDessner.html" },
+      { "name": "Howar Sterling", "alias": "Hax", "role": "浮点终端 · 安保一队副队长", "path": "project/OC/HowarSterling.html" }
     ],
     "files": [
       

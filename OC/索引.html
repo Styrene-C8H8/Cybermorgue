@@ -89,7 +89,7 @@
   <div class="grid" id="grid"></div>
 </div>
 <script>
-const OC_FILES = ["./DyeOxide.data.json", "./Kameron.data.json", "./Valentina.data.json", "./Nyxstr.data.json", "./ZakeVacuma.data.json", "./TatyanaCrimson.data.json", "./MarcusVacarcel.data.json"];
+const OC_FILES = ["./DyeOxide.data.json", "./Kameron.data.json", "./Valentina.data.json", "./Nyxstr.data.json", "./ZakeVacuma.data.json", "./TatyanaCrimson.data.json", "./MarcusVacarcel.data.json", "./BellerophusDessner.data.json", "./HowarSterling.data.json"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 let OCS = [];
@@ -98,7 +98,7 @@ const st = { q: "", gender: "", zone: "", department: "" };
 async function load() {
   OCS = await Promise.all(OC_FILES.map(async f => {
     const d = await fetch(f).then(r => r.json());
-    const page = "OC/" + f.replace(/^\.\//, "").replace(/\.data\.json$/, ".html");
+    const page = "project/OC/" + f.replace(/^\.\//, "").replace(/\.data\.json$/, ".html");
     const pageRel = f.replace(/^\.\//, "").replace(/\.data\.json$/, ".html");
     return {
       name: d.indexName || d.name, alias: d.indexAlias || d.alias, fileNo: d.indexNo || d.fileNo, clearance: d.clearance || "yellow",
@@ -106,6 +106,7 @@ async function load() {
       gender: (d.tags && d.tags.gender) || "",
       zone: (d.tags && d.tags.zone) || "",
       department: (d.tags && d.tags.department) || "",
+      faction: d.faction || "",
       path: page, pathRel: pageRel
     };
   }));
@@ -119,10 +120,12 @@ function buildFilters() {
       <button class="fchip sel" data-k="${key}" data-v="">全部</button>
       ${vals.map(v => `<button class="fchip" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}
     </div>`;
+  const factionVals = uniq("faction");
   $("filters").innerHTML =
     group("性别", "gender", uniq("gender")) +
     group("所属区域", "zone", uniq("zone")) +
-    group("所属部门", "department", uniq("department"));
+    group("所属部门", "department", uniq("department")) +
+    (factionVals.length ? group("阵营", "faction", factionVals) : "");
   document.querySelectorAll(".fchip").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.k, v = b.dataset.v;
     st[k] = st[k] === v ? "" : v;
@@ -136,7 +139,8 @@ function apply() {
     (!st.gender || o.gender === st.gender) &&
     (!st.zone || o.zone === st.zone) &&
     (!st.department || o.department === st.department) &&
-    (!q || [o.name, o.alias, o.fileNo, o.realName, o.realAlias].join(" ").toLowerCase().includes(q))
+    (!st.faction || o.faction === st.faction) &&
+    (!q || [o.name, o.alias, o.fileNo, o.realName, o.realAlias, o.faction].join(" ").toLowerCase().includes(q))
   );
   $("count").textContent = `${list.length} 人`;
   const CL = { white: 1, yellow: 1, red: 1, black: 1, rainbow: 1 };
@@ -157,7 +161,7 @@ function openFile(p, pr) {
 function goBack() {
   try { sessionStorage.setItem("cm-goto", "staff"); } catch (e) {}
   if (typeof spherse !== "undefined" && spherse.openFile) {
-    spherse.openFile("Cybermorgue-档案主页.html");
+    spherse.openFile("project/Cybermorgue-档案主页.html");
   } else {
     location.href = "../Cybermorgue-档案主页.html";
   }

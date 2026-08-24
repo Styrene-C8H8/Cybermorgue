@@ -138,7 +138,7 @@ function threadHtml(f) {
 }
 
 function goBack() {
-  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("OC/索引.html");
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("project/OC/索引.html");
   else location.href = "索引.html";
 }
 function alignPortrait() {
@@ -168,7 +168,7 @@ async function render() {
       <div class="bimg${d.portrait ? " filled" : ""}">${d.portrait ? `<img src="${esc(d.portrait)}" alt="${esc(d.name)}">` : `<span>图片占位<br>待导入</span>`}</div>
       <div class="binfo">
         <div class="btitle">CYBERMORGUE · 员工工牌</div>
-        <div class="tags">${(d.tags ? [d.tags.gender, d.tags.zone, d.tags.department] : []).filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+        <div class="tags">${(d.tags ? [d.tags.gender, d.tags.zone, d.tags.department] : []).filter(Boolean).map(t => `<span class="tag">${esc(t)}</span>`).join("")}${d.faction ? `<span class="tag faction">${esc(d.faction)}</span>` : ""}</div>
         ${d.badge.map(r => `<div class="brow"><span class="bk">${esc(r.k)}</span><span class="bv">${sp(r.v)}</span></div>`).join("")}
       </div>
     </div>`;

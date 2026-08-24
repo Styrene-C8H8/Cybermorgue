@@ -215,11 +215,11 @@ async function render() {
 function jump(id) { document.getElementById(id).scrollIntoView({ behavior: "smooth" }); }
 function openFile(p) {
   if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile(p);
-  else location.href = p;
+  else location.href = p.replace(/^project\//, "");
 }
 function goBack() {
   try { sessionStorage.setItem("cm-goto", "staff"); } catch (e) {}
-  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("Cybermorgue-档案主页.html");
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("project/Cybermorgue-档案主页.html");
   else location.href = "Cybermorgue-档案主页.html";
 }
 if (typeof spherse !== "undefined" && spherse.events) {
