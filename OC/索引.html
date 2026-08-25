@@ -73,6 +73,42 @@
   .fchip { font-size: 14px; }
   h1 { font-size: 23px; }
   input[type=text] { font-size: 15px; }
+  /* ===== 配色重做（taste-skill：森林冷调 + 骨白 + 低饱和琥珀） ===== */
+  :root {
+    --bg: #eef1ec; --fg: #262b26; --card: #fbfcf9; --card2: #e2e7df;
+    --border: #c9d0c5; --primary: #3d5c46; --primary-fg: #f2f5ef;
+    --muted: #6f7a6d; --danger: #9c3f2e; --gold: #a8873f;
+    --grad: linear-gradient(135deg, #5f7a52, #3d5c46);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0f0c; --fg: #dde3da; --card: #141813; --card2: #1c221b;
+      --border: #333b33; --primary: #8fa98d; --primary-fg: #131610;
+      --muted: #8b9688; --danger: #d07a5f; --gold: #c2a35e;
+      --grad: linear-gradient(135deg, #8fa98d, #5f7a52);
+    }
+  }
+  body { background: radial-gradient(1100px 480px at 50% -8%, color-mix(in srgb, var(--primary) 6%, transparent), transparent), var(--bg); }
+  .cl-yellow { background: #b08a45; }
+  /* ===== 视觉打磨层（redesign / taste skill） ===== */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--primary); outline-offset: 2px;
+  }
+  button { -webkit-tap-highlight-color: transparent; }
+  button:active { transform: scale(.97); }
+  .badge, .thread, .rec, .video, .mailcard, .recipe, .bubble-end, .entry, .loginbox, .manual-rest, .sysdlg, .toolbar {
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--primary) 10%, transparent), 0 10px 28px color-mix(in srgb, var(--primary) 7%, transparent);
+  }
+  .meta, .ip, .no, .count, .brow .bv { font-variant-numeric: tabular-nums; }
+  h1, h2, .ttitle, .ftitle { text-wrap: balance; }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; opacity: .045;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+  }
 </style>
 </head>
 <body>
@@ -89,7 +125,7 @@
   <div class="grid" id="grid"></div>
 </div>
 <script>
-const OC_FILES = ["./DyeOxide.data.json", "./Kameron.data.json", "./Valentina.data.json", "./Nyxstr.data.json", "./ZakeVacuma.data.json", "./TatyanaCrimson.data.json", "./MarcusVacarcel.data.json", "./BellerophusDessner.data.json", "./HowarSterling.data.json"];
+const OC_FILES = ["./DyeOxide.data.json", "./Kameron.data.json", "./Valentina.data.json", "./Nyxstr.data.json", "./ZakeVacuma.data.json", "./TatyanaCrimson.data.json", "./MarcusVacarcel.data.json", "./BellerophusDessner.data.json", "./HowarSterling.data.json", "./MerrofayeColotis.data.json"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 let OCS = [];
@@ -120,12 +156,10 @@ function buildFilters() {
       <button class="fchip sel" data-k="${key}" data-v="">全部</button>
       ${vals.map(v => `<button class="fchip" data-k="${key}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}
     </div>`;
-  const factionVals = uniq("faction");
   $("filters").innerHTML =
     group("性别", "gender", uniq("gender")) +
     group("所属区域", "zone", uniq("zone")) +
-    group("所属部门", "department", uniq("department")) +
-    (factionVals.length ? group("阵营", "faction", factionVals) : "");
+    group("所属部门", "department", uniq("department"));
   document.querySelectorAll(".fchip").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.k, v = b.dataset.v;
     st[k] = st[k] === v ? "" : v;
@@ -139,7 +173,6 @@ function apply() {
     (!st.gender || o.gender === st.gender) &&
     (!st.zone || o.zone === st.zone) &&
     (!st.department || o.department === st.department) &&
-    (!st.faction || o.faction === st.faction) &&
     (!q || [o.name, o.alias, o.fileNo, o.realName, o.realAlias, o.faction].join(" ").toLowerCase().includes(q))
   );
   $("count").textContent = `${list.length} 人`;

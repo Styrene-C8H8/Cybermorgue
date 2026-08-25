@@ -34,17 +34,13 @@
   .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
   .hidden { display: none !important; }
 
-  /* 视图过渡 */
-  .view.leaving { animation: viewOut .32s ease both; }
-  @keyframes viewOut { to { opacity: 0; transform: translateY(-18px); } }
-  .view.entering > * { animation: enterUp .55s cubic-bezier(.2,.7,.2,1) both; }
-  .view.entering > *:nth-child(2) { animation-delay: .1s; }
-  .view.entering > *:nth-child(3) { animation-delay: .2s; }
-  .view.entering > *:nth-child(4) { animation-delay: .3s; }
-  @keyframes enterUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
-
-  /* 开场 */
-  #view-splash.active { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; text-align: center; cursor: pointer; }
+  /* ===== 首屏 Hero（滚动式） ===== */
+  .hero {
+    position: relative; min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center;
+    overflow: hidden; cursor: pointer;
+  }
+  .splash-inner { will-change: transform; }
   .splash-title {
     font-family: "Melete-Bold", "Melete", "Times New Roman", serif;
     font-size: clamp(34px, 8vw, 68px);
@@ -54,13 +50,18 @@
     animation: rise 1.4s cubic-bezier(.2,.7,.2,1) both;
   }
   .splash-sub { margin-top: 14px; color: var(--muted); font-size: clamp(13px, 2.4vw, 17px); letter-spacing: .5em; animation: rise 1.4s .35s cubic-bezier(.2,.7,.2,1) both; }
-  .splash-tip { position: fixed; bottom: 22px; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 2px; animation: fadein 1s 3s both; }
   @keyframes rise { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
-  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .scroll-hint { position: absolute; left: 0; right: 0; bottom: 22px; margin: 0 auto; width: fit-content; background: none; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 11px; letter-spacing: 3px; cursor: pointer; font-family: inherit; }
+  .scroll-hint .chev { width: 13px; height: 13px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); animation: hintBob 2s ease-in-out infinite; }
+  @keyframes hintBob { 0%, 100% { transform: rotate(45deg) translateY(0); } 50% { transform: rotate(45deg) translateY(5px); } }
 
-  /* 欢迎页 */
-  .homewrap { max-width: 720px; margin: 0 auto; text-align: center; padding-top: 30px; }
+  /* ===== 欢迎区（滚动揭示） ===== */
+  .homewrap { max-width: 720px; margin: 0 auto; text-align: center; padding: 72px 0 96px; }
   .sentence { font-size: clamp(17px, 3vw, 21px); line-height: 1.9; letter-spacing: .06em; padding: 26px 10px; }
+  .sentence .rw { display: inline-block; opacity: 0; filter: blur(8px); transform: translateY(10px) rotate(3deg); transition: opacity .55s ease, filter .55s ease, transform .55s ease; transition-delay: var(--d, 0ms); will-change: opacity, filter, transform; }
+  .sentence.on .rw { opacity: 1; filter: blur(0); transform: none; }
+  .rise { opacity: 0; transform: translateY(28px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+  .rise.in { opacity: 1; transform: none; }
   .manual-box { margin: 10px auto 34px; max-width: 640px; text-align: left; }
   .manual-toggle { font-family: inherit; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; letter-spacing: 1px; padding: 6px 0; }
   .manual-toggle:hover { color: var(--primary); }
@@ -68,7 +69,6 @@
   .manual-rest p { font-size: 13px; margin-bottom: 12px; text-indent: 2em; }
   .manual-rest p:last-child { margin-bottom: 0; }
   .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 560px; margin: 0 auto; }
-  .copyright { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); letter-spacing: .5px; line-height: 1.9; }
   @media (max-width: 560px) { .paths { grid-template-columns: 1fr; } }
   .path { font-family: inherit; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 26px 18px; cursor: pointer; text-align: center; transition: transform .15s, border-color .15s, box-shadow .15s; }
   .path:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 18%, transparent); }
@@ -78,6 +78,16 @@
   .path span { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted); }
   .path.dead b { color: var(--primary); }
   .path.staff b { color: var(--gold); }
+  .copyright { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); letter-spacing: .5px; line-height: 1.9; }
+
+  /* 视图过渡 */
+  .view.leaving { animation: viewOut .32s ease both; }
+  @keyframes viewOut { to { opacity: 0; transform: translateY(-18px); } }
+  .view.entering > * { animation: enterUp .55s cubic-bezier(.2,.7,.2,1) both; }
+  .view.entering > *:nth-child(2) { animation-delay: .1s; }
+  .view.entering > *:nth-child(3) { animation-delay: .2s; }
+  .view.entering > *:nth-child(4) { animation-delay: .3s; }
+  @keyframes enterUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 
   /* 通用页头 */
   .pagehead { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-left: 76px; }
@@ -123,6 +133,32 @@
   .zone-link { display: inline-block; margin-top: 10px; font-size: 12.5px; color: var(--primary); background: none; border: 1px solid var(--primary); border-radius: 8px; padding: 5px 14px; cursor: pointer; font-family: inherit; }
   .zone-link:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); }
   .zone-link:active { background: var(--primary); color: var(--primary-fg); }
+
+  /* Stepper（申请入驻问卷） */
+  .stepper { margin-top: 2px; }
+  .step-indicator-row { display: flex; align-items: center; margin-bottom: 18px; overflow-x: auto; padding-bottom: 2px; }
+  .step-ind { width: 26px; height: 26px; border-radius: 999px; border: 1.5px solid var(--border); background: var(--card2); color: var(--muted); font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: all .2s; }
+  .step-ind.done { background: var(--grad); border-color: transparent; color: var(--primary-fg); }
+  .step-ind.cur { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); }
+  .step-ind .si-check { display: none; }
+  .step-ind.done .si-check { display: inline; }
+  .step-ind.done .si-num { display: none; }
+  .step-connector { flex: 1; height: 2px; background: var(--border); margin: 0 3px; min-width: 5px; border-radius: 2px; overflow: hidden; }
+  .sc-fill { display: block; height: 100%; width: 0; background: var(--primary); transition: width .3s ease; }
+  .step-connector.done .sc-fill { width: 100%; }
+  .step-panel { display: none; }
+  .step-panel.on { display: block; }
+  .step-panel.anim.from-r { animation: stepInR .38s cubic-bezier(.2,.7,.2,1) both; }
+  .step-panel.anim.from-l { animation: stepInL .38s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes stepInR { from { opacity: 0; transform: translateX(34px); } to { opacity: 1; transform: none; } }
+  @keyframes stepInL { from { opacity: 0; transform: translateX(-34px); } to { opacity: 1; transform: none; } }
+  .step-title { font-size: 14px; letter-spacing: 1px; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+  .step-footer { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+  .step-back { font-family: inherit; border: 1px solid var(--border); background: var(--card2); color: var(--muted); border-radius: 999px; padding: 8px 20px; font-size: 13px; cursor: pointer; transition: all .15s; }
+  .step-back:hover { color: var(--primary); border-color: var(--primary); }
+  .step-next { font-family: inherit; border: none; background: var(--grad); color: var(--primary-fg); border-radius: 999px; padding: 8px 26px; font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: filter .15s, transform .1s; }
+  .step-next:hover { filter: brightness(1.08); }
+  .step-next:active { transform: scale(.97); }
   .submit { margin-top: 20px; width: 100%; font-family: inherit; font-size: 14px; letter-spacing: 4px; padding: 12px; border-radius: 10px; border: none; background: radial-gradient(circle 130px at var(--mx, 50%) var(--my, 40%), rgba(255, 255, 255, .2), transparent 70%), var(--grad); color: var(--primary-fg); cursor: pointer; transition: filter .15s, transform .1s; }
   .submit:hover { filter: brightness(1.08); }
   .submit:active { transform: scale(.98); filter: brightness(.9); }
@@ -133,6 +169,7 @@
   #overlay .msg { color: #d6dfe2; font-size: clamp(16px, 3vw, 21px); letter-spacing: .12em; text-align: center; padding: 0 24px; animation: fadein 1.2s .4s both; }
   #overlay .again { font-family: inherit; background: none; border: 1px solid rgba(214,223,226,.4); color: rgba(214,223,226,.7); border-radius: 8px; padding: 6px 18px; font-size: 12.5px; cursor: pointer; animation: fadein 1s 1.6s both; }
   #overlay .again:hover { border-color: #2fd6c6; color: #2fd6c6; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
   /* 员工通道 */
   .loginbox { max-width: 380px; margin: 60px auto; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 30px 28px; }
@@ -166,6 +203,22 @@
   .entry.manual span { display: block; font-size: 12.5px; letter-spacing: 1px; color: color-mix(in srgb, var(--primary-fg) 82%, transparent); margin-top: 4px; }
   .entry.manual:hover { filter: brightness(1.06); }
   .entry.manual:active { transform: scale(.985); filter: brightness(.92); }
+
+  /* ===== 自定义瞄准光标（桌面端，视口定位） ===== */
+  body.has-cc, body.has-cc a, body.has-cc button, body.has-cc label { cursor: none !important; }
+  body.has-cc input, body.has-cc textarea, body.has-cc select { cursor: auto !important; }
+  body.no-cc, body.no-cc a, body.no-cc button, body.no-cc label { cursor: auto !important; }
+  body.no-cc .cc { display: none; }
+  .cc { position: fixed; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647; pointer-events: none; }
+  .cc-dot { position: fixed; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: var(--primary); transition: transform .25s ease; }
+  .cc-press .cc-dot { transform: scale(.6); }
+  .cc-c { position: fixed; width: 9px; height: 9px; border: 1.5px solid var(--primary); opacity: .85; transition: left .18s ease, top .18s ease, border-color .2s ease; }
+  .cc-tl { border-right: none; border-bottom: none; }
+  .cc-tr { border-left: none; border-bottom: none; }
+  .cc-bl { border-right: none; border-top: none; }
+  .cc-br { border-left: none; border-top: none; }
+  .cc.locked .cc-c { border-color: var(--gold); opacity: 1; }
+
   /* 字号：正文16px，标题等比放大 */
   .frow2, .flabel, .zone .zd, .manual-rest p, .chip { font-size: 16px; }
   .entry > span, .ocline, .path span, .zone-link, .more, .login-hint { font-size: 14px; }
@@ -176,20 +229,57 @@
   .zone .zn { font-size: 15px; }
   h1.page { font-size: 22px; }
   .greet { font-size: clamp(22px, 4vw, 28px); }
+
+  /* ===== 配色重做（taste-skill：森林冷调 + 骨白 + 低饱和琥珀） ===== */
+  :root {
+    --bg: #eef1ec; --fg: #262b26; --card: #fbfcf9; --card2: #e2e7df;
+    --border: #c9d0c5; --primary: #3d5c46; --primary-fg: #f2f5ef;
+    --muted: #6f7a6d; --danger: #9c3f2e; --gold: #a8873f;
+    --grad: linear-gradient(135deg, #5f7a52, #3d5c46);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0c0f0c; --fg: #dde3da; --card: #141813; --card2: #1c221b;
+      --border: #333b33; --primary: #8fa98d; --primary-fg: #131610;
+      --muted: #8b9688; --danger: #d07a5f; --gold: #c2a35e;
+      --grad: linear-gradient(135deg, #8fa98d, #5f7a52);
+    }
+  }
+  body { background: radial-gradient(1100px 480px at 50% -8%, color-mix(in srgb, var(--primary) 6%, transparent), transparent), var(--bg); }
+  /* ===== 视觉打磨层（redesign / taste skill） ===== */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--primary); outline-offset: 2px;
+  }
+  button { -webkit-tap-highlight-color: transparent; }
+  .badge, .thread, .rec, .video, .mailcard, .recipe, .bubble-end, .entry, .loginbox, .manual-rest, .sysdlg, .toolbar {
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--primary) 10%, transparent), 0 10px 28px color-mix(in srgb, var(--primary) 7%, transparent);
+  }
+  .meta, .ip, .no, .count, .brow .bv { font-variant-numeric: tabular-nums; }
+  h1, h2, .ttitle, .ftitle { text-wrap: balance; }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; opacity: .045;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
+  }
 </style>
 </head>
 <body>
 
-<div id="view-splash" class="view"></div>
-<button class="back" id="vback">← 返回</button>
+<div id="page-main">
+  <section id="hero" class="hero"></section>
+  <div class="wrap"><section id="welcome" class="welcome"></section></div>
+</div>
 
 <div class="wrap">
-  <div id="view-home" class="view"></div>
   <div id="view-zones" class="view"></div>
   <div id="view-form" class="view"></div>
   <div id="view-login" class="view"></div>
   <div id="view-staff" class="view"></div>
 </div>
+
+<button class="back" id="vback">← 返回</button>
 
 <div id="overlay">
   <div class="msg" id="overlay-msg"></div>
@@ -206,29 +296,112 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const sp = t => esc(t).replace(/\+\+([\s\S]+?)\+\+/g, '<span class="spoiler" tabindex="0" title="悬停查看">$1</span>');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const touchDevice = window.matchMedia && matchMedia("(hover: none)").matches;
+const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ---------- 视图渲染 ---------- */
-function splashHtml() {
-  return `<div class="splash-title">${esc(D.splash.title)}</div>
-    <div class="splash-sub">${esc(D.splash.titleEn)} · ${esc(D.splash.slogan)}</div>
-    <div class="splash-tip">点击或稍候进入</div>`;
+/* ---------- 首屏与欢迎区 ---------- */
+function heroHtml() {
+  return `<div class="splash-inner" id="splashInner">
+      <div class="splash-title">${esc(D.splash.title)}</div>
+      <div class="splash-sub">${esc(D.splash.titleEn)} · ${esc(D.splash.slogan)}</div>
+    </div>
+    <button class="scroll-hint" onclick="scrollToWelcome()"><i class="chev"></i><span>向下滚动</span></button>`;
 }
-function homeHtml() {
+function welcomeHtml() {
+  const sentence = Array.from(String(D.home.sentence)).map((c, i) => c === " " ? " " : `<span class="rw" style="--d:${i * 26}ms">${esc(c)}</span>`).join("");
   return `<div class="homewrap">
-      <div class="sentence">${esc(D.home.sentence)}</div>
-      <div class="manual-box">
+      <div class="sentence" id="revealSentence">${sentence}</div>
+      <div class="manual-box rise" style="transition-delay:.08s">
         <button class="manual-toggle" onclick="toggleManual()">${esc(D.home.manualTitle)} ▾</button>
         <div id="manual-rest" class="manual-rest hidden">
           ${D.home.manualRest.map(p => `<p>${esc(p)}</p>`).join("")}
         </div>
       </div>
-      <div class="paths">
-        <button class="path dead" onclick="show('form')"><b>${esc(D.home.paths[0].label)}</b><span>${esc(D.home.paths[0].desc)}</span></button>
-        <button class="path staff" onclick="show('login')"><b>${esc(D.home.paths[1].label)}</b><span>${esc(D.home.paths[1].desc)}</span></button>
+      <div class="paths rise" style="transition-delay:.16s">
+        <button class="path dead cursor-target" onclick="show('form')"><b>${esc(D.home.paths[0].label)}</b><span>${esc(D.home.paths[0].desc)}</span></button>
+        <button class="path staff cursor-target" onclick="show('login')"><b>${esc(D.home.paths[1].label)}</b><span>${esc(D.home.paths[1].desc)}</span></button>
       </div>
-      <div class="copyright">${esc(D.home.copyright)}</div>
+      <div class="copyright rise" style="transition-delay:.24s">${esc(D.home.copyright || "")}</div>
     </div>`;
 }
+function scrollToWelcome() {
+  const w = $("welcome");
+  if (w) w.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
+}
+function initHero() {
+  const hero = $("hero");
+  const inner = $("splashInner");
+  if (!hero || !inner || reduceMotion()) return;
+  hero.addEventListener("mousemove", e => {
+    const r = hero.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - .5;
+    const y = (e.clientY - r.top) / r.height - .5;
+    inner.style.transform = `translate(${x * -26}px, ${y * -16}px) rotate(${x * -1.4}deg)`;
+  });
+  hero.addEventListener("mouseleave", () => { inner.style.transform = ""; });
+}
+function initReveal() {
+  const targets = [document.getElementById("revealSentence"), ...document.querySelectorAll(".rise")].filter(Boolean);
+  if (reduceMotion()) {
+    document.querySelectorAll(".rw").forEach(el => el.classList.add("on"));
+    document.querySelectorAll(".rise").forEach(el => el.classList.add("in"));
+    return;
+  }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      if (en.target.id === "revealSentence") en.target.classList.add("on");
+      else en.target.classList.add("in");
+      io.unobserve(en.target);
+    });
+  }, { threshold: 0.25 });
+  targets.forEach(t => io.observe(t));
+}
+
+/* ---------- 自定义瞄准光标（vanilla TargetCursor，视口定位） ---------- */
+function initCursor() {
+  if (touchDevice || reduceMotion()) return;
+  const wrap = document.createElement("div");
+  wrap.className = "cc";
+  wrap.innerHTML = '<i class="cc-dot"></i><i class="cc-c cc-tl"></i><i class="cc-c cc-tr"></i><i class="cc-c cc-br"></i><i class="cc-c cc-bl"></i>';
+  document.body.appendChild(wrap);
+  const dot = wrap.querySelector(".cc-dot");
+  const corners = Array.from(wrap.querySelectorAll(".cc-c"));
+  const free = [[-15, -15], [6, -15], [6, 6], [-15, 6]];
+  let mx = innerWidth / 2, my = innerHeight / 2, cx = mx, cy = my;
+  let locked = null;
+  document.body.classList.add("has-cc");
+  const frame = () => {
+    cx += (mx - cx) * .2; cy += (my - cy) * .2;
+    dot.style.left = cx + "px"; dot.style.top = cy + "px";
+    if (!locked) {
+      corners.forEach((c, i) => { c.style.left = (cx + free[i][0]) + "px"; c.style.top = (cy + free[i][1]) + "px"; });
+    }
+    requestAnimationFrame(frame);
+  };
+  addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
+  addEventListener("mousedown", () => wrap.classList.add("cc-press"));
+  addEventListener("mouseup", () => wrap.classList.remove("cc-press"));
+  document.querySelectorAll(".cursor-target").forEach(t => {
+    t.addEventListener("mouseenter", () => {
+      locked = t;
+      wrap.classList.add("locked");
+      const r = t.getBoundingClientRect();
+      const p = [[r.left - 1, r.top - 1], [r.right - 7, r.top - 1], [r.right - 7, r.bottom - 7], [r.left - 1, r.bottom - 7]];
+      corners.forEach((c, i) => { c.style.left = p[i][0] + "px"; c.style.top = p[i][1] + "px"; });
+    });
+    t.addEventListener("mouseleave", () => {
+      locked = null;
+      wrap.classList.remove("locked");
+    });
+  });
+  requestAnimationFrame(frame);
+}
+function setNoCC(on) {
+  document.body.classList.toggle("no-cc", on);
+}
+
+/* ---------- 子视图渲染 ---------- */
 function zonesHtml() {
   return `<h1 class="ftitle">${esc(D.zonesTitle)}</h1>
     <div class="zgrid">${D.zones.map(z =>
@@ -236,37 +409,87 @@ function zonesHtml() {
     ).join("")}</div>`;
 }
 function formHtml() {
-  const checks = D.form.checks.map((c, i) =>
-    `<div class="frow2"><div class="flabel">${esc(c.q)}</div>
+  const radio = (q, i) => `<div class="frow2"><div class="flabel">${esc(q)}</div>
       <div class="fradio">
         <label><input type="radio" name="chk${i}" value="是"> 是</label>
         <label><input type="radio" name="chk${i}" value="否" checked> 否</label>
-      </div></div>`).join("");
-  const fields = D.form.fields.map(f =>
-    `<div class="frow2"><div class="flabel">${esc(f.label)}${f.required ? " *" : ""}</div>
+      </div></div>`;
+  const field = f => `<div class="frow2"><div class="flabel">${esc(f.label)}${f.required ? " *" : ""}</div>
       ${f.type === "textarea"
         ? `<textarea id="f-${esc(f.label)}" placeholder="${esc(f.placeholder)}"></textarea>`
         : `<input id="f-${esc(f.label)}" type="${esc(f.type)}" placeholder="${esc(f.placeholder)}">`}
-    </div>`).join("");
+    </div>`;
   const chips = D.zones.filter(z => z.selectable !== false).map(z =>
     `<button class="chip" data-zone="${esc(z.name)}" onclick="toggleZone(this.dataset.zone)">${esc(z.name)}<i>${esc(z.en)}</i></button>`).join("");
+  const steps = [];
+  D.form.checks.forEach((c, i) => steps.push(radio(c.q, i)));
+  nameStep = 0;
+  D.form.fields.forEach(f => { steps.push(field(f)); if (f.required) nameStep = steps.length; });
+  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.zonesTitle)}</div>
+      <div class="chips">${chips}
+        <button class="chip none" id="chip-none" onclick="toggleZone('${esc(D.form.noneOption)}')">${esc(D.form.noneOption)}</button>
+      </div>
+      <button class="zone-link" onclick="show('zones', 'form')">${esc(D.form.viewZones)}</button>
+    </div>`);
+  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.knowsDead)}</div>
+      <input type="text" placeholder="${esc(D.form.knowsDeadPlaceholder)}"></div>`);
+  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.confirm)}</div>
+      <input type="text" placeholder="${esc(D.form.signPlaceholder)}"></div>`);
+  stepTotal = steps.length;
+  const indRow = steps.map((s, i) => {
+    const n = i + 1;
+    return `${i > 0 ? `<div class="step-connector" id="sc-${n}"><i class="sc-fill"></i></div>` : ""}
+      <button class="step-ind" id="si-${n}" onclick="stepGo(${n})" aria-label="第${n}步"><span id="sic-${n}"></span></button>`;
+  }).join("");
   return `<h1 class="ftitle">${esc(D.form.title)}</h1>
     <div class="formcard">
-      ${checks}
-      ${fields}
-      <div class="frow2">
-        <div class="flabel">${esc(D.form.zonesTitle)}</div>
-        <div class="chips">${chips}
-          <button class="chip none" id="chip-none" onclick="toggleZone('${esc(D.form.noneOption)}')">${esc(D.form.noneOption)}</button>
+      <div class="stepper">
+        <div class="step-indicator-row">${indRow}</div>
+        <div class="step-content">${steps.map((s, i) => `<div class="step-panel" data-step="${i + 1}">${s}</div>`).join("")}</div>
+        <div class="step-footer">
+          <button class="step-back" id="step-back" onclick="stepBack()">上一步</button>
+          <button class="step-next" id="step-next" onclick="stepNext()">下一步</button>
         </div>
-        <button class="zone-link" onclick="show('zones', 'form')">${esc(D.form.viewZones)}</button>
       </div>
-      <div class="frow2"><div class="flabel">${esc(D.form.knowsDead)}</div>
-        <input type="text" placeholder="${esc(D.form.knowsDeadPlaceholder)}"></div>
-      <div class="frow2"><div class="flabel">${esc(D.form.confirm)}</div>
-        <input type="text" placeholder="${esc(D.form.signPlaceholder)}"></div>
-      <button class="submit" onclick="submitForm()">${esc(D.form.submit)}</button>
     </div>`;
+}
+let stepCur = 1, stepTotal = 10, nameStep = 0;
+function initStepper() {
+  stepCur = 1;
+  document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("on", "anim", "from-r", "from-l"));
+  const p1 = document.querySelector('.step-panel[data-step="1"]');
+  if (p1) p1.classList.add("on");
+  renderStepper();
+}
+function stepGo(n) {
+  if (n < 1 || n > stepTotal || n === stepCur) return;
+  const dir = n > stepCur ? 1 : -1;
+  stepCur = n;
+  document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("on", "anim", "from-r", "from-l"));
+  const neu = document.querySelector(`.step-panel[data-step="${n}"]`);
+  if (neu) {
+    neu.classList.add("on", "anim", dir > 0 ? "from-r" : "from-l");
+    void neu.offsetWidth;
+  }
+  renderStepper();
+}
+function stepNext() { if (stepCur < stepTotal) stepGo(stepCur + 1); else submitForm(); }
+function stepBack() { if (stepCur > 1) stepGo(stepCur - 1); }
+function renderStepper() {
+  for (let n = 1; n <= stepTotal; n++) {
+    const ind = document.getElementById("si-" + n);
+    if (!ind) continue;
+    ind.classList.toggle("done", stepCur > n);
+    ind.classList.toggle("cur", stepCur === n);
+    const ic = document.getElementById("sic-" + n);
+    if (ic) ic.innerHTML = stepCur > n ? '<span class="si-check">✓</span>' : `<span class="si-num">${n}</span>`;
+    const sc = document.getElementById("sc-" + n);
+    if (sc) sc.classList.toggle("done", stepCur > n);
+  }
+  const back = document.getElementById("step-back");
+  if (back) back.style.visibility = stepCur === 1 ? "hidden" : "visible";
+  const next = document.getElementById("step-next");
+  if (next) next.textContent = stepCur === stepTotal ? esc(D.form.submit) : "下一步";
 }
 function loginHtml() {
   return `<div class="loginbox">
@@ -298,6 +521,18 @@ function staffHtml() {
 async function show(v, from, anim = true) {
   if (v === "zones" && from) backTo = from;
   view = v;
+  const main = $("page-main");
+  const vb = $("vback");
+  if (v === "home" || v === "splash") {
+    main.classList.remove("hidden");
+    setNoCC(false);
+    document.querySelectorAll(".view").forEach(s => s.classList.remove("active", "leaving", "entering"));
+    vb.classList.remove("show");
+    window.scrollTo({ top: 0 });
+    return;
+  }
+  main.classList.add("hidden");
+  setNoCC(true);
   const cur = document.querySelector(".view.active");
   if (anim && cur && cur.id !== `view-${v}`) {
     cur.classList.add("leaving");
@@ -308,7 +543,6 @@ async function show(v, from, anim = true) {
   el.classList.add("active");
   if (anim) el.classList.add("entering");
   window.scrollTo({ top: 0 });
-  const vb = $("vback");
   if (v === "zones") { vb.classList.add("show"); vb.onclick = () => show(backTo); }
   else if (v === "form") { vb.classList.add("show"); vb.onclick = () => show("home"); }
   else vb.classList.remove("show");
@@ -330,9 +564,12 @@ function toggleZone(name) {
 }
 function submitForm() {
   const name = $("f-姓名");
-  if (!name.value.trim()) {
-    name.closest(".frow2").classList.add("err");
-    name.focus();
+  if (!name || !name.value.trim()) {
+    if (name) {
+      name.closest(".frow2").classList.add("err");
+      if (nameStep) stepGo(nameStep);
+      setTimeout(() => name.focus(), 60);
+    }
     return;
   }
   $("overlay-msg").textContent = D.form.after;
@@ -361,12 +598,16 @@ async function runLogin() {
 /* ---------- 启动 ---------- */
 async function init() {
   D = await fetch(DATA).then(r => r.json());
-  $("view-splash").innerHTML = splashHtml();
-  $("view-home").innerHTML = homeHtml();
+  $("hero").innerHTML = heroHtml();
+  $("welcome").innerHTML = welcomeHtml();
   $("view-zones").innerHTML = zonesHtml();
   $("view-form").innerHTML = formHtml();
   $("view-login").innerHTML = loginHtml();
   $("view-staff").innerHTML = staffHtml();
+  initStepper();
+  initHero();
+  initReveal();
+  initCursor();
   let goto = (location.hash || "").replace("#", "");
   try {
     const s = sessionStorage.getItem("cm-goto");
@@ -377,9 +618,9 @@ async function init() {
     return;
   }
   show("splash", null, false);
-  setTimeout(() => { if (view === "splash") show("home"); }, 2300);
+  window.scrollTo(0, 0);
 }
-$("view-splash").addEventListener("click", () => { if (view === "splash") show("home"); });
+$("hero").addEventListener("click", scrollToWelcome);
 document.addEventListener("mousemove", e => {
   const t = e.target.closest(".entry.manual, .submit");
   if (t) {
@@ -391,7 +632,7 @@ document.addEventListener("mousemove", e => {
 if (typeof spherse !== "undefined" && spherse.events) {
   spherse.events.on("file:update", { path: DATA }, () => init());
 }
-init().catch(e => { $("view-home").innerHTML = "加载失败：" + e.message; show("home"); });
+init().catch(e => { $("welcome").innerHTML = "加载失败：" + e.message; });
 </script>
 </body>
 </html>

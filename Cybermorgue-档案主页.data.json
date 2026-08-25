@@ -85,7 +85,8 @@
       { "name": "Tatyana · Crimson", "alias": "@TAT", "role": "方格厢门 · 区域代表总管", "path": "project/OC/TatyanaCrimson.html" },
       { "name": "THE MAGICIAN", "alias": "IT部门前无古人后无来者的传奇", "role": "激光停泊 · 区域网络管理员", "path": "project/OC/MarcusVacarcel.html" },
       { "name": "Bellerophus Dessner", "alias": "Belle", "role": "电子囚笼 · 区域交通管理局局长", "path": "project/OC/BellerophusDessner.html" },
-      { "name": "Howar Sterling", "alias": "Hax", "role": "浮点终端 · 安保一队副队长", "path": "project/OC/HowarSterling.html" }
+      { "name": "Howar Sterling", "alias": "Hax", "role": "浮点终端 · 安保一队副队长", "path": "project/OC/HowarSterling.html" },
+      { "name": "Merrofaye Colotis", "alias": "Merrie", "role": "突发事件处理部门 · 实习外勤处理员", "path": "project/OC/MerrofayeColotis.html" }
     ],
     "files": [
       
