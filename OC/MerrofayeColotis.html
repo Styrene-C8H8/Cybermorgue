@@ -44,7 +44,7 @@
   .alias { color: var(--muted); font-size: 13px; margin-top: 4px; letter-spacing: 1px; }
 
   /* 音乐播放器 */
-  .music { max-width: 480px; margin: 0 auto 24px; text-align: center; }
+  .music { max-width: 480px; margin: 18px auto 6px; padding-top: 14px; border-top: 1px dashed var(--border); text-align: center; }
   .music-title { font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
   .music-ui { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
   .mbtn { font-family: inherit; flex: 0 0 auto; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--border); background: var(--card2); color: var(--fg); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s, transform .1s; }
@@ -52,6 +52,9 @@
   .mbtn:active { transform: scale(.94); }
   .mseek { flex: 1; accent-color: var(--primary); min-width: 60px; }
   .mtime { flex: 0 0 auto; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .music-vol { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+  .vol-ico { font-size: 12px; color: var(--muted); }
+  .mvol { width: 90px; accent-color: var(--primary); }
 
   .badge { display: block; width: 100%; margin: 0 auto 26px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 18px 20px; }
   .bimg { position: relative; width: 100%; max-width: 180px; margin: 0 auto 16px; aspect-ratio: 3/4; border: 2px dashed var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; letter-spacing: 2px; text-align: center; background: color-mix(in srgb, var(--card) 60%, transparent); overflow: hidden; }
@@ -212,11 +215,11 @@ function recHtml(r) {
   </div>`;
 }
 let REC_T = { open: "＋点击查看录音记录", close: "－点击收起录音记录" };
-function recsHtml(recs, t) {
+function recsHtml(recs, t, extra) {
   REC_T = t;
   return `<div class="reclist">
     <span class="rec-toggle" onclick="toggleRecs(this)">${esc(t.open)}</span>
-    <div class="recs" style="display:none">${recs.map(recHtml).join("")}</div>
+    <div class="recs" style="display:none">${recs.map(recHtml).join("")}${extra || ""}</div>
   </div>`;
 }
 function toggleRecs(el) {
@@ -242,6 +245,10 @@ function mRestart() {
 function mSeek() {
   const a = $("mux"), s = $("mseek");
   if (a && s && a.duration) a.currentTime = a.duration * (s.value / 1000);
+}
+function mVol(v) {
+  const a = $("mux");
+  if (a) a.volume = Math.max(0, Math.min(1, v / 100));
 }
 function mTick() {
   const a = $("mux"), s = $("mseek"), t = $("mtime");
@@ -278,7 +285,7 @@ async function render() {
   const d = await fetch(DATA).then(r => r.json());
   D = d;
 
-  const music = d.music ? `
+  const playerHtml = d.music ? `
     <div class="music">
       <div class="music-title">${esc(d.music.title)}</div>
       <div class="music-ui">
@@ -286,6 +293,10 @@ async function render() {
         <button class="mbtn" onclick="mRestart()">↺</button>
         <input type="range" class="mseek" id="mseek" min="0" max="1000" value="0" oninput="mSeek()">
         <span class="mtime" id="mtime">00:00 / 00:00</span>
+      </div>
+      <div class="music-vol">
+        <span class="vol-ico">🔊</span>
+        <input type="range" class="mvol" id="mvol" min="0" max="100" value="80" oninput="mVol(this.value)">
       </div>
     </div>
     <audio id="mux" src="${attr(d.music.src)}" preload="metadata"></audio>` : "";
@@ -305,7 +316,7 @@ async function render() {
       `<div class="item">${i.label ? `<div class="ilabel">${esc(i.label)}</div>` : ""}<div class="itext">${paras(i.text)}</div></div>`
     ).join("");
     const forum = (s.forum || []).map(threadHtml).join("");
-    const recs = (s.recordings && s.recordings.length) ? recsHtml(s.recordings, s.recToggle || REC_T) : "";
+    const recs = (s.recordings && s.recordings.length) ? recsHtml(s.recordings, s.recToggle || REC_T, playerHtml) : "";
     return (items || forum || recs) ? `<section><h2>${esc(s.title)}</h2><div class="card">${items}${forum}${recs}</div></section>` : "";
   }).join("");
 
@@ -326,14 +337,13 @@ async function render() {
       <h1>${esc(d.name)}</h1>
       <div class="alias">${esc(d.alias)}</div>
     </header>
-    ${music}
     ${badge}
     ${sections}
     ${gallery}
     <footer>${fmt(d.notes)}</footer>`;
   alignPortrait();
   const a = $("mux");
-  if (a) { a.addEventListener("timeupdate", mTick); a.addEventListener("ended", () => { const b = $("mplay"); if (b) b.textContent = "▶"; }); }
+  if (a) { a.addEventListener("timeupdate", mTick); a.addEventListener("ended", () => { const b = $("mplay"); if (b) b.textContent = "▶"; }); const v = $("mvol"); if (v) a.volume = Math.max(0, Math.min(1, v.value / 100)); }
 }
 
 if (typeof spherse !== "undefined" && spherse.events) {
