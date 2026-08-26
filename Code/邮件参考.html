@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAIL // 内部信箱</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+
+.wrap{max-width:960px;margin:0 auto;padding:64px 26px 110px}
+.pagehead{text-align:center;margin-bottom:36px}
+.pagehead .en{color:var(--amd);font-size:13.5px;letter-spacing:.5em}
+.pagehead h1{font-size:clamp(30px,5vw,46px);color:var(--am);margin-top:6px;
+  letter-spacing:.15em;text-shadow:0 0 22px rgba(232,176,75,.4)}
+
+/* ===== 面板框架 ===== */
+.panel{border:1px solid var(--line);background:var(--panel);position:relative}
+.panel::before,.panel::after,.panel .c3,.panel .c4{
+  content:"";position:absolute;width:14px;height:14px;pointer-events:none;z-index:2}
+.panel::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.panel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.panel .c3{top:-1px;right:-1px;border-top:2px solid var(--am);border-right:2px solid var(--am)}
+.panel .c4{bottom:-1px;left:-1px;border-bottom:2px solid var(--am);border-left:2px solid var(--am)}
+
+/* ===== 信箱布局 ===== */
+.mailbox{display:grid;grid-template-columns:290px 1fr;min-height:480px}
+
+/* ---- 左：列表 ---- */
+.list-col{border-right:1px dashed var(--line);display:flex;flex-direction:column}
+.list-head{padding:8px 16px;border-bottom:1px dashed var(--line);
+  color:var(--am);font-size:16px;letter-spacing:.3em;background:var(--amf);
+  display:flex;justify-content:space-between;align-items:center}
+.list-head small{color:var(--red);font-size:12px;letter-spacing:.15em}
+.mlist{flex:1;overflow-y:auto}
+.mlist::-webkit-scrollbar{width:6px}
+.mlist::-webkit-scrollbar-thumb{background:rgba(138,106,47,.5)}
+.mitem{padding:11px 14px;border-bottom:1px dotted rgba(232,176,75,.12);
+  cursor:pointer;transition:background .15s;position:relative}
+.mitem:hover{background:var(--amf)}
+.mitem.cur{background:var(--amf);border-left:3px solid var(--am);padding-left:11px}
+.mi-top{display:flex;align-items:center;gap:8px;font-size:15.5px}
+.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--am);
+  box-shadow:0 0 6px var(--am);flex-shrink:0}
+.read-dot{width:7px;height:7px;border-radius:50%;background:transparent;flex-shrink:0}
+.mi-from{color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.mi-time{color:var(--amd);font-family:'VT323',monospace;font-size:13px}
+.mi-subj{font-size:14px;color:var(--amd);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;margin-top:1px;padding-left:15px}
+/* 密级标签 */
+.tag{font-size:10.5px;border:1px solid var(--line);color:var(--amd);
+  padding:0 5px;letter-spacing:.15em;flex-shrink:0}
+.tag.red{border-color:var(--red);color:var(--red)}
+/* 加密件样式 */
+.mitem.locked .mi-subj{color:transparent;text-shadow:0 0 5px rgba(200,90,74,.8)}
+.list-foot{padding:7px 16px;border-top:1px dashed var(--line);
+  color:var(--amd);font-size:12.5px;letter-spacing:.25em;display:flex;justify-content:space-between}
+
+/* ---- 右：阅读窗 ---- */
+.reader{display:flex;flex-direction:column}
+.rd-head{padding:14px 20px;border-bottom:1px dashed var(--line)}
+.rd-subj{font-size:21px;color:var(--am);letter-spacing:.08em;line-height:1.6}
+.rd-meta{display:flex;gap:18px;flex-wrap:wrap;color:var(--amd);font-size:13.5px;
+  margin-top:6px;letter-spacing:.1em}
+.rd-meta b{color:var(--txt);font-weight:400}
+.rd-body{flex:1;padding:20px 24px;font-size:16.5px;line-height:2.15;overflow-y:auto}
+.rd-body p{margin-bottom:12px}
+.rd-body .sig{margin-top:22px;color:var(--amd);font-size:14.5px;letter-spacing:.2em;
+  border-top:1px dashed rgba(232,176,75,.2);padding-top:10px}
+.rd-body em{font-style:normal;color:var(--am);border-bottom:1px dashed rgba(138,106,47,.6)}
+.rd-body .sysn{color:transparent;font-size:14px;border-bottom:1px dotted transparent;
+  transition:all .45s;cursor:help;user-select:none}
+.rd-body:hover .sysn{color:var(--red);text-shadow:0 0 8px rgba(200,90,74,.55);user-select:auto}
+.rd-body .fx{color:var(--gr);font-size:13.5px}
+.rd-empty{flex:1;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:8px;color:var(--amd);letter-spacing:.35em;font-size:15px}
+.rd-empty i{font-style:normal;font-size:40px;opacity:.4}
+
+/* 拦截件状态 */
+.rd-locked{display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;flex:1;text-align:center;padding:30px}
+.reader.locked-view .rd-locked{display:flex}
+.reader.locked-view .rd-body,.reader.locked-view .rd-head{visibility:hidden;height:0;padding:0;border:none}
+.lk-warn{color:var(--red);font-size:19px;letter-spacing:.3em;text-shadow:0 0 12px rgba(200,90,74,.6);
+  animation:pul 1.4s infinite}
+@keyframes pul{50%{opacity:.35}}
+.lk-code{color:var(--amd);font-size:13px;letter-spacing:.25em;line-height:2.2}
+.unlockbtn{font-family:inherit;font-size:15px;letter-spacing:.3em;color:var(--red);
+  background:none;border:1px solid var(--red);padding:9px 32px;cursor:pointer;
+  transition:all .2s;margin-top:4px}
+.unlockbtn:hover{background:rgba(200,90,74,.12);box-shadow:0 0 18px rgba(200,90,74,.4)}
+
+/* 解锁后的红色故障正文 */
+.reader.breach{animation:kick .3s steps(2) 2}
+@keyframes kick{25%{transform:translateX(-4px);filter:hue-rotate(-60deg)}
+  75%{transform:translateX(3px)}}
+.rd-body.breach-text *{color:var(--red)!important;text-shadow:0 0 8px rgba(255,60,40,.5)!important}
+
+footer{margin-top:28px;text-align:center;color:var(--amd);font-size:13.5px;
+  letter-spacing:.3em;border-top:1px solid var(--line);padding-top:16px}
+
+@media(max-width:700px){
+  .mailbox{grid-template-columns:1fr}
+  .list-col{border-right:none;border-bottom:1px dashed var(--line)}
+  .mlist{max-height:240px}
+}
+</style>
+</head>
+<body>
+
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+  <div class="pagehead">
+    <p class="en">INTERNAL MAIL SYSTEM · CM-NET</p>
+    <h1>内 部 信 箱</h1>
+  </div>
+
+  <section class="panel">
+    <i class="c3"></i><i class="c4"></i>
+    <div class="mailbox">
+
+      <!-- ===== 列表 ===== -->
+      <div class="list-col">
+        <div class="list-head"><span>收 件 箱</span><small>● 2 UNREAD</small></div>
+        <div class="mlist" id="mlist"></div>
+        <div class="list-foot"><span>STORAGE 68%</span><span>NODE : CM-07</span></div>
+      </div>
+
+      <!-- ===== 阅读窗 ===== -->
+      <div class="reader" id="reader">
+        <div class="rd-empty" id="rdEmpty">
+          <i>✉</i><span>SELECT A MESSAGE</span>
+        </div>
+        <div class="rd-head" id="rdHead" style="display:none">
+          <div class="rd-subj" id="rdSubj"></div>
+          <div class="rd-meta" id="rdMeta"></div>
+        </div>
+        <div class="rd-body" id="rdBody"></div>
+        <div class="rd-locked" id="rdLocked">
+          <div class="lk-warn">⚠ 内容已被系统拦截 ⚠</div>
+          <div class="lk-code">
+            ENCRYPTION : UNKNOWN<br>
+            SENDER VERIFICATION : FAILED<br>
+            该邮件的发送者不在任何员工名册之中。
+          </div>
+          <button class="unlockbtn" onclick="forceUnlock()">强 行 解 密</button>
+          <div class="lk-code" style="font-size:11.5px">// 不建议。真的。</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>CYBERMORGUE MAIL RELAY · 所有收发行为均被记录在案</footer>
+</div>
+
+<script>
+/* ============ 数据 ============ */
+var MAILS=[
+ {from:"O&M 人事部",subj:"关于本月排班调整的通知",time:"04-17",
+  tag:"普通",unread:true,body:
+   "<p>各位同事：</p>"+
+   "<p>因 C 区走廊照明系统检修，本周夜班巡检路线临时改为<em>B区—D区环线</em>，请勿途经 C 区东侧走廊。</p>"+
+   "<p>另：近期有员工反映夜间听到敲击声，经排查为管道热胀冷缩，<span class='sysn'>%%不是。我们没查过C区东侧。谁都没去过。%%</span>无需上报。</p>"+
+   "<p class='sig'>—— O&M 人事部 · 自动发送</p>"},
+ {from:"■■■",subj:"上周说的那个东西",time:"04-15",
+  tag:"内部",unread:true,body:
+   "<p>资料我放在老地方了。</p>"+
+   "<p>看之前先想清楚——<em>有些东西看过之后就不能当没看过了</em>。你上次已经越线一次了。</p>"+
+   "<p>还有，别再用工作邮箱给我发这种事。<span class='fx'>[本段末尾检测到 0.4 秒静默删除痕迹]</span></p>"+
+   "<p class='sig'>—— ■■■</p>"},
+ {from:"IT部门",subj:"【自动】密码将于 7 日后过期",time:"04-12",
+  tag:"系统",unread:false,body:
+   "<p>您的账户密码将于 7 日后过期。</p>"+
+   "<p>请前往终端重置。连续输错三次将锁定账户并通知安保科。</p>"+
+   "<p class='sig'>—— 本邮件由系统自动生成，请勿回复</p>"},
+ {from:"食堂",subj:"周五供应：炖菜（新配方）",time:"04-11",
+  tag:"普通",unread:false,body:
+   "<p>本周五午餐供应新配方炖菜，欢迎品尝。</p>"+
+   "<p>原料来源：<em>OAM 工地周边采购</em>。</p>"+
+   "<p class='sig'>—— 食堂窗口 2 号</p>"},
+ {from:"▓▒░█▄▓",subj:"[内容已加密]",time:"??-??",
+   tag:"拦截",locked:true,body:
+   "<p class='fx'>[信号源不明]</p>"+
+   "<p>你数过走廊的灯吗？</p>"+
+   "<p><em>三下，停顿，再三下。</em></p>"+
+   "<p>这次换你来开门了。</p>"+
+   "<p class='sig' style='color:var(--red)'>—— 你知道的我是谁</p>"}
+];
+
+var cur=-1;
+
+function renderList(){
+  document.getElementById("mlist").innerHTML=MAILS.map(function(m,i){
+    return '<div class="mitem'+(m.locked?" locked":"")+(i===cur?" cur":"")+'" onclick="openMail('+i+')">'+
+      '<div class="mi-top">'+
+        (m.unread?'<i class="unread-dot"></i>':'<i class="read-dot"></i>')+
+        '<span class="mi-from">'+m.from+'</span>'+
+        '<span class="tag'+(m.tag==="拦截"?" red":"")+'">'+m.tag+'</span>'+
+        '<span class="mi-time">'+m.time+'</span>'+
+      '</div>'+
+      '<div class="mi-subj">'+m.subj+'</div>'+
+    '</div>';
+  }).join("");
+}
+
+function openMail(i){
+  cur=i;
+  var m=MAILS[i];
+  m.unread=false;
+  renderList();
+
+  var rd=document.getElementById("reader");
+  document.getElementById("rdEmpty").style.display="none";
+  rd.classList.remove("locked-view","breach");
+  document.getElementById("rdBody").classList.remove("breach-text");
+
+  if(m.locked){
+    rd.classList.add("locked-view");
+    return;
+  }
+  /* 填充 */
+  document.getElementById("rdHead").style.display="";
+  document.getElementById("rdSubj").textContent=m.subj;
+  document.getElementById("rdMeta").innerHTML=
+    "<span>发件人 : <b>"+m.from+"</b></span>"+
+    "<span>日期 : <b>"+m.time+"</b></span>"+
+    "<span>密级 : <b>"+m.tag+"</b></span>";
+  document.getElementById("rdBody").innerHTML=m.body;
+}
+
+function forceUnlock(){
+  var m=MAILS[cur],rd=document.getElementById("reader");
+  rd.classList.add("breach");
+  setTimeout(function(){rd.classList.remove("breach");},650);
+  rd.classList.remove("locked-view");
+  document.getElementById("rdHead").style.display="";
+  document.getElementById("rdSubj").textContent="RE: 你知道的我是谁";
+  document.getElementById("rdMeta").innerHTML=
+    "<span>发件人 : <b style='color:var(--red)'>&#9617;&#9619;&#9618;&#9608;&#9604;&#9619;</b></span>"+
+    "<span>日期 : <b>今天</b></span>"+
+    "<span>密级 : <b style='color:var(--red)'>无 效</b></span>";
+  var b=document.getElementById("rdBody");
+  b.innerHTML=m.body;b.classList.add("breach-text");
+}
+
+renderList();
+</script>
+</body>
+</html>

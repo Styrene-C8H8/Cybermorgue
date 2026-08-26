@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYSTEM POPUP // 检测</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9}
+::selection{background:var(--am);color:#000}
+
+/* 背景示意内容 */
+.demo{text-align:center;padding-top:120px;color:var(--amd);letter-spacing:.3em;font-size:14px}
+
+/* ============ 弹窗 ============ */
+.overlay{
+  position:fixed;inset:0;z-index:990;display:flex;align-items:center;justify-content:center;
+  background:rgba(5,4,2,.72);backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+
+.syspop{
+  width:min(420px,92vw);background:var(--panel);position:relative;
+  border:1px solid var(--line);
+  box-shadow:0 24px 70px -16px rgba(232,176,75,.35),0 0 40px rgba(0,0,0,.8);
+  transform:translateY(14px) scale(.97);transition:transform .28s cubic-bezier(.2,.9,.3,1.2)}
+.overlay.show .syspop{transform:none}
+/* 四角框 */
+.syspop::before,.syspop::after,
+.syspop .c3,.syspop .c4{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+.syspop::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.syspop::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.syspop .c3{top:-1px;right:-1px;border-top:2px solid var(--am);border-right:2px solid var(--am)}
+.syspop .c4{bottom:-1px;left:-1px;border-bottom:2px solid var(--am);border-left:2px solid var(--am)}
+
+.sp-head{display:flex;align-items:center;gap:10px;padding:7px 16px;
+  border-bottom:1px dashed var(--line);color:var(--am);
+  font-size:15px;letter-spacing:.35em;background:var(--amf)}
+.sp-dot{width:8px;height:8px;border-radius:50%;background:var(--am);
+  box-shadow:0 0 8px var(--am);animation:pul 1.2s infinite}
+@keyframes pul{50%{opacity:.15}}
+.sp-head small{margin-left:auto;color:var(--amd);font-size:12px;letter-spacing:.2em}
+
+.sp-body{padding:20px 22px 6px;text-align:center}
+.sp-body p{font-size:17px;line-height:2}
+.sp-body .hl{color:var(--am);border-bottom:1px dashed rgba(138,106,47,.6);padding:0 2px}
+/* 扫描小字 */
+.sp-code{margin-top:8px;color:var(--amd);font-size:12.5px;letter-spacing:.25em;
+  font-family:'VT323',monospace;opacity:.75}
+
+.sp-btns{display:flex;border-top:1px dashed var(--line);margin-top:16px}
+.sp-btn{flex:1;padding:11px 0;font-family:inherit;font-size:15.5px;letter-spacing:.25em;
+  background:none;border:none;cursor:pointer;color:var(--amd);transition:all .18s}
+.sp-btn:hover{color:var(--am);background:var(--amf)}
+.sp-btn.main{color:var(--am)}
+.sp-btn.main:hover{background:var(--am);color:#000}
+/* 中间分隔竖线 */
+.sp-btn + .sp-btn{border-left:1px dashed var(--line)}
+
+/* 点击后的反馈状态 */
+.syspop.done .sp-btns{display:none}
+.sp-done{display:none;padding:14px 22px 18px;text-align:center;
+  color:var(--gr,#7fbf7f);font-size:15px;letter-spacing:.3em;
+  border-top:1px dashed var(--line)}
+.syspop.done .sp-done{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* 底部重开按钮（演示用） */
+.reopen{display:block;margin:30px auto 0;font-family:inherit;font-size:14px;
+  letter-spacing:.3em;color:var(--amd);background:none;border:1px solid var(--line);
+  padding:8px 26px;cursor:pointer}
+.reopen:hover{color:var(--am);border-color:var(--am)}
+</style>
+</head>
+<body>
+
+<p class="demo">— 档案界面背景 —</p>
+
+<div class="overlay show" id="ov">
+  <div class="syspop" id="pop">
+    <i class="c3"></i><i class="c4"></i>
+    <div class="sp-head">
+      <span class="sp-dot"></span>SYSTEM // 检测<small>CM-SYS</small>
+    </div>
+    <div class="sp-body">
+      <p>检测到本档案存在<span class="hl">更新版本</span>。</p>
+      <p class="sp-code">DIFF : +3 ENTRIES · LAST SYNC 04-17</p>
+    </div>
+    <div class="sp-btns">
+      <button class="sp-btn" onclick="closePop('已忽略本次同步')">忽 略</button>
+      <button class="sp-btn main" onclick="closePop('正在载入新版本……')">查 看</button>
+    </div>
+    <div class="sp-done" id="doneMsg"></div>
+  </div>
+</div>
+
+<button class="reopen" onclick="reopen()">◈ 再次唤出弹窗 ◈</button>
+
+<script>
+function closePop(msg){
+  document.getElementById("doneMsg").textContent=msg;
+  document.getElementById("pop").classList.add("done");
+  setTimeout(function(){document.getElementById("ov").classList.remove("show");},900);
+}
+function reopen(){
+  document.getElementById("pop").classList.remove("done");
+  document.getElementById("ov").classList.add("show");
+}
+</script>
+</body>
+</html>

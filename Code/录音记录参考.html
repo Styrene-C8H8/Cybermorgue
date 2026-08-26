@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RECORDINGS // Howar Sterling</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+
+.wrap{max-width:820px;margin:0 auto;padding:64px 26px 120px}
+.pagehead{text-align:center;margin-bottom:40px}
+.pagehead .en{color:var(--amd);font-size:13.5px;letter-spacing:.5em}
+.pagehead h1{font-size:clamp(30px,5vw,46px);color:var(--am);margin-top:6px;
+  letter-spacing:.12em;text-shadow:0 0 22px rgba(232,176,75,.4)}
+
+.panel{border:1px solid var(--line);background:var(--panel);margin-bottom:24px;position:relative}
+.panel::before,.panel::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.panel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.p-head{display:flex;justify-content:space-between;padding:8px 18px;
+  border-bottom:1px dashed var(--line);color:var(--am);font-size:19px;letter-spacing:.3em}
+.p-head small{color:var(--amd);font-size:13px;letter-spacing:.2em}
+.p-body{padding:16px 22px}
+
+/* ===== 单条录音 ===== */
+.rec{border:1px solid rgba(232,176,75,.18);margin:14px 0;background:rgba(232,176,75,.02)}
+.rec.playing{border-color:var(--am)}
+.rec-head{padding:8px 14px;font-size:14px;letter-spacing:.15em;color:var(--txt);
+  background:rgba(200,90,74,.08);border-bottom:1px solid rgba(232,176,75,.18);
+  display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.rec-dot{width:9px;height:9px;border-radius:50%;background:#3a2c12;transition:all .2s;flex-shrink:0}
+.rec.playing .rec-dot{background:var(--red);box-shadow:0 0 8px var(--red);
+  animation:recB 1s infinite}
+@keyframes recB{50%{opacity:.15}}
+.rec-dur{margin-left:auto;color:var(--amd);font-family:'VT323',monospace;letter-spacing:.1em}
+/* 播放时的迷你电平条 */
+.eqbars{display:none;gap:2px;align-items:flex-end;height:12px}
+.rec.playing .eqbars{display:flex}
+.eqbars i{width:3px;background:var(--am);height:20%}
+.rec.playing .eqbars i{animation:eq .5s ease-in-out infinite alternate}
+@keyframes eq{from{height:15%}to{height:100%}}
+.rec-body{padding:10px 14px;display:none}
+.rec.open .rec-body{display:block}
+.rec-hint{color:var(--amd);font-size:13px;letter-spacing:.2em;text-align:center;
+  padding:6px 0;border-top:1px dashed rgba(232,176,75,.14)}
+
+/* 转写行 */
+.rline{font-family:"Courier New",Consolas,"Noto Sans SC",monospace;
+  font-size:14.5px;line-height:2.1;padding:2px 0;
+  opacity:0;transform:translateX(-8px)}
+.rline.in{opacity:1;transform:none;transition:all .35s ease}
+/* 时间戳 */
+.ts{color:var(--amd);font-size:12.5px;margin-right:10px;user-select:none}
+/* 系统红字批注 */
+.sysn{color:transparent;font-size:13px;border-bottom:1px dotted transparent;
+  transition:all .45s;cursor:help;user-select:none}
+.rline:hover .sysn,body.reveal-all .sysn{
+  color:var(--red);text-shadow:0 0 9px rgba(200,90,74,.55);user-select:auto}
+/* 【杂音】等音效标记 */
+.fx{color:var(--gr);font-size:13px;letter-spacing:.05em}
+/* 关键特殊行：红色居中 */
+.rline.special{color:var(--red);text-align:center;letter-spacing:.15em;
+  text-shadow:0 0 10px rgba(200,90,74,.5);padding:8px 0}
+/* 特殊行触发时整个录音块故障抖一下 */
+@keyframes glitchKick{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-4px);filter:hue-rotate(-60deg)}
+  40%{transform:translateX(3px)}
+  60%{transform:translateX(-2px);filter:hue-rotate(-60deg) saturate(2)}}
+.rec.kick{animation:glitchKick .28s steps(2)}
+
+.revealbtn{display:block;margin:30px auto 0;font-family:inherit;font-size:15px;
+  letter-spacing:.3em;color:var(--amd);background:none;
+  border:1px solid var(--line);padding:9px 30px;cursor:pointer;transition:all .25s}
+.revealbtn:hover{color:var(--am);border-color:var(--am)}
+
+footer{margin-top:36px;text-align:center;color:var(--amd);font-size:13.5px;
+  letter-spacing:.3em;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+  <div class="pagehead">
+    <p class="en">AUDIO TRANSCRIPT · CM/SEC-1042E0</p>
+    <h1>录 音 记 录</h1>
+  </div>
+
+  <section class="panel">
+    <div class="p-head"><span>转 写 档 案</span><small>CLICK TO PLAY TRANSCRIPT</small></div>
+    <div class="p-body">
+
+      <!-- ====== 记录 01 ====== -->
+      <div class="rec" data-rec>
+        <div class="rec-head" onclick="toggleRec(this)">
+          <i class="rec-dot"></i>
+          <span>【偶然的对话记录 01】</span>
+          <span class="eqbars"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="rec-dur">00:41</span>
+        </div>
+        <div class="rec-body">
+          <div class="rline"><span class="ts">00:03</span>“你到底是精神分裂还是妄想症？”</div>
+          <div class="rline"><span class="ts">00:09</span>“谁知道呢？说不定我只是能看见你们看不见的东西而已！”</div>
+          <div class="rline" style="padding-left:26px"><span class="sysn">%%他说的是实话。这一条建议归入C级观测。%%</span></div>
+          <div class="rline"><span class="ts">00:17</span>“……疯子。”</div>
+          <div class="rline"><span class="ts">00:19</span><span class="fx">[笑声，来源不明]</span>“衷心感谢您！”</div>
+        </div>
+      </div>
+
+      <!-- ====== 记录 02 ====== -->
+      <div class="rec" data-rec>
+        <div class="rec-head" onclick="toggleRec(this)">
+          <i class="rec-dot"></i>
+          <span>【录音记录 032-6-37】</span>
+          <span class="eqbars"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="rec-dur">02:17</span>
+        </div>
+        <div class="rec-body">
+          <div class="rline"><span class="ts">00:11</span>“我建议您考虑我们的提议，Sterling先生。”</div>
+          <div class="rline"><span class="ts">00:14</span>“你怎么看？”<span class="fx">&nbsp;〔对左侧〕</span></div>
+          <div class="rline" style="padding-left:26px"><span class="sysn">%%反正又没什么坏处，但选择权在你。%%</span></div>
+          <div class="rline"><span class="ts">00:21</span>“不不，真抱歉，我并没有在和您说话。——您知道兆回廊盛产一种名为剥魂鸟的果子吗？”</div>
+          <div class="rline"><span class="ts01:02</span>“我愿意接受。”</div>
+           class="rline"><span class="ts">01:05>“真是太好了！那么恭喜您，Sterling先生。欢迎Wildcard。”</div>
+          <div class="rline"><span classts">01:09</span>“也恭喜您，■■■，左手先生很开心。”</div>
+          <div class="rline" style="padding-left:26px"><span class="sysn">%%我有吗？——算了。有的。今天有的。%%</span></div>
+          <div class="rline special" data-special>“时隙之间也是。”</div>
+          <div class="rec-hint">// 本段末尾检测到未注册声纹，已上报</div>
+        </div>
+      </div>
+
+      <!-- ====== 记录 03 ====== -->
+      <div class="rec" data-rec>
+        <div class="rec-head" onclick="toggleRec(this)">
+          <i class="rec-dot"></i>
+          <span>【录音记录 032-0-51】</span>
+         <span class="eqbars"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="rec-dur">01:33</span>
+        </div>
+        <div class="rec-body">
+ <div class="rline"><span class="ts">0002</span>“你们要了个精神病？？”</div>
+           class="rline"><span class="ts">00:05</span>“Well technically……他不是精神病。”</div>
+          <div="rline"><span class="ts">00:08</span“我看像。”</div>
+          <div class="rline"><span class="ts">00:11</span>“他只是语言系统……不那么正常而已，但他的潜力无限。”</div>
+           class="rline"><span class="ts">00:19</span>“你是说他的那把武器？”</div>
+          <div class="rline"><span class="ts">00:24</span>“必要之时，他能给我们带来的帮助远大于这把武器。”</div>
+          <div class="rline special" data-special>“……即使现在是它在掌控他。”</div>
+          <div class="rec-hint">// 本段之后音频损毁严重，仅存以上内容</div>
+        </div>
+      </div>
+
+    </div>
+  </section  <button class="revealbtn" onclick="document.body.classList('reveal-all')">
+    ◈ 显 形 全  系 统 标 注 ◈
+  </button>
+
+ <footer>CYBERMORGUE ARCHIVE SYSTEM · 写内容由机器生成，语气标注仅供参考</footer>
+</div>
+
+<script>
+/* ============ 展开 / 收起 + 逐行浮现 ============function toggleRec(head){
+  var rec=head.parentElement;
+  var open=rec.classList.toggle("open");
+  rec.classList.toggle("playing",);
+  if(open){
+    /* 首次展开时逐行浮现（带打字节奏） */
+    var lines=rec.querySelectorAll(".rline");
+    lines.forEach(function(l,i){setTimeout(function(){l.classList.add("in");},i*380);});
+    /* 特殊行出现时踢一下故障动画 */
+    var sp=rec.querySelector(".special");
+    if(sp&&!sp.dataset.done){
+      setTimeout(function(){
+        sp.classList.add("in");
+        rec.classList.add("kick");
+        setTimeout(function(){rec.classList.remove("kick");},320);
+      },lines.length?Array.from(lines).indexOf(sp)*380:400);
+      sp.dataset.done="1";
+    }
+  }
+}
+</script>
+</body>
+</html>

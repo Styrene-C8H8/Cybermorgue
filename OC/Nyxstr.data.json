@@ -90,6 +90,17 @@
     "但我知道前方有什么在等待着",
     "于是我选择继续前行"
   ],
+  "sysdlg": {
+    "title": "SYSTEM // 检测",
+    "tag": "CM-SYS",
+    "body": "检测到本档案存在更新版本。",
+    "hl": "更新版本",
+    "code": "DIFF : +3 ENTRIES · LAST SYNC 04-17",
+    "ignore": "忽 略",
+    "view": "查 看",
+    "ignored": "已忽略本次同步",
+    "loading": "正在载入新版本……"
+  },
   "anomaly": {
     "button": "你，便是那个死者。",
     "buttonAfter": "忏悔吧",

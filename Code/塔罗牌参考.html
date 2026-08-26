@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAROT // 档案塔罗组件</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+
+.wrap{max-width:960px;margin:0 auto;padding:64px 26px 110px}
+.pagehead{text-align:center;margin-bottom:44px}
+.pagehead .en{color:var(--amd);font-size:13.5px;letter-spacing:.5em}
+.pagehead h1{font-size:clamp(30px,5vw,46px);color:var(--am);margin-top:6px;
+  letter-spacing:.15em;text-shadow:0 0 22px rgba(232,176,75,.4)}
+.pagehead p{color:var(--amd);font-size:14px;letter-spacing:.2em;margin-top:4px}
+
+/* ===== 牌桌区 ===== */
+.table{
+  display:flex;gap:34px;justify-content:center;flex-wrap:wrap;
+  padding:30px 10px;
+  background:repeating-conic-gradient(from 45deg,#0e0b06 0 90deg,#100d08 90deg 180deg);
+  border:1px solid var(--line);position:relative;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.7)}
+.table::after{content:"TAP TO REVEAL · 点 击 翻 牌";
+  position:absolute;bottom:-1px;left:50%;transform:translate(-50%,50%);
+  background:var(--bg);color:var(--amd);padding:0 18px;
+  font-size:12.5px;letter-spacing:.4em;white-space:nowrap}
+
+/* ===== 卡片本体 ===== */
+.card{
+  width:190px;height:320px;perspective:900px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.card-inner{
+  position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transition:transform .8s cubic-bezier(.3,.7,.2,1)}
+.card.flip .card-inner{transform:rotateY(180deg)}
+
+/* 正反面共用 */
+.face{
+  position:absolute;inset:0;border-radius:8px;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border:1px solid var(--line);overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;
+  box-shadow:0 14px 40px -12px rgba(0,0,0,.85)}
+
+/* ---- 背面：神秘学纹样 ---- */
+.back{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(232,176,75,.13) 0 8%,transparent 42%),
+    radial-gradient(circle at 50% 50%,transparent 0 55%,rgba(138,106,47,.35) 56%,
+      transparent 57%,rgba(138,106,47,.35) 66%,transparent 67%),
+    radial-gradient(circle at 50% 50%,transparent 0 76%,rgba(138,106,47,.28) 77%,transparent 78%),
+    repeating-conic-gradient(rgba(232,176,75,.05) 0 5deg,transparent 5deg 15deg),
+    linear-gradient(165deg,#171208,#0f0c07);
+  justify-content:center}
+/* 内框 */
+.back::before{content:"";position:absolute;inset:9px;border-radius:5px;
+  border:1px solid rgba(232,176,75,.4);pointer-events:none}
+.back::after{content:"";position:absolute;inset:14px;border-radius:4px;
+  border:1px dashed rgba(138,106,47,.55);pointer-events:none}
+/* 中央眼睛符号 */
+.eye{width:64px;height:64px;position:relative;z-index:1}
+.eye svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(232,176,75,.6))}
+.card:hover .eye svg{animation:eyePul 1.6s ease-in-out infinite}
+@keyframes eyePul{0%,100%{filter:drop-shadow(0 0 6px rgba(232,176,75,.5))}
+  50%{filter:drop-shadow(0 0 16px rgba(232,176,75,.95))}}
+.bk-name{margin-top:16px;color:var(--am);font-size:15px;letter-spacing:.5em;z-index:1;
+  text-indent:.5em}
+.bk-sub{color:var(--amd);font-size:11px;letter-spacing:.3em;margin-top:2px;z-index:1}
+
+/* ---- 正面 ---- */
+.front{
+  transform:rotateY(180deg);
+  background:
+    radial-gradient(ellipse at 50% -10%,rgba(232,176,75,.09),transparent 65%),
+    linear-gradient(170deg,#181206,#100d08);
+  padding:14px 12px 12px;justify-content:space-between}
+.front::before{content:"";position:absolute;inset:7px;border-radius:4px;
+  border:1px solid rgba(232,176,75,.35);pointer-events:none}
+.f-num{font-family:'VT323',monospace;color:var(--amd);font-size:15px;
+  letter-spacing:.4em;text-indent:.4em;z-index:1}
+.f-title{color:var(--am);font-size:21px;letter-spacing:.3em;text-indent:.3em;
+  text-shadow:0 0 12px rgba(232,176,75,.45);z-index:1;line-height:1.5}
+.f-sym{flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:52px;color:var(--am);z-index:1;
+  text-shadow:0 0 22px rgba(232,176,75,.6);opacity:.9}
+.f-poem{font-family:'Noto Serif SC','STKaiti',serif;font-size:12.5px;line-height:1.9;
+  color:var(--txt);text-align:center;letter-spacing:.08em;z-index:1;
+  opacity:0;transition:opacity .6s .3s}
+.f-poem em{font-style:normal;color:var(--am)}
+.card.flip .f-poem{opacity:1}
+.f-owner{color:var(--amd);font-size:11.5px;letter-spacing:.25em;z-index:1;
+  border-top:1px dashed rgba(138,106,47,.5);width:100%;text-align:center;padding-top:6px}
+
+/* 悬浮 3D 由 JS 控制 transform；高光层 */
+.sheen{position:absolute;inset:0;border-radius:8px;pointer-events:none;z-index:5;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,235,200,.14) 48%,transparent 62%);
+  opacity:0;transition:opacity .3s}
+.card:hover .sheen{opacity:1}
+
+footer{margin-top:px;text-align:center;color:var(--amd);font-size:13.5px;
+  letter-spacing:.3em;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+  <div class="pagehead">
+    <p class="en">MAJOR ARCANA FILES · CM</p>
+    <h1>大 阿 卡 纳</h1>
+    <p>档案室收藏的几张牌 · 与它们的主人</p>
+  </div>
+
+  <!-- JS 渲染 -->
+  <div class="table" id="table"></div>
+
+  <footer>CYBERMORGUE ARCHIVE · 占卜结果不构成任何预测依据（大概）</footer>
+</div>
+
+<script>
+/* ============ 数据：加一张牌就往这里塞一项 ============ */
+var CARDS=[
+ {num:"0",title:"愚 者",sym:"🃏",
+  poem:"我是牌堆里<em>没有编号的那张</em>——<br>悬崖边上，站着的从来都是我。",
+  owner:"HOWAR STERLING"},
+ {num:"XVIII",title:"月 亮",sym:"☾",
+  poem:"潮水退去的地方<em>留下两行脚印</em>，<br>一行是我的，一行还湿着。",
+  owner:"■■■ ■■■"},
+ {num:"XXI",title:"世 界",sym:"◎",
+  poem:"圆环闭合之前，<br><em>请再让我绕最后一圈。</em>",
+  owner:"O&M · 未归档"}
+];
+
+function render(){
+  document.getElementById("table").innerHTML=CARDS.map(function(c,i){
+    return '<div class="card" data-i="'+i+'">'+
+      '<div class="card-inner">'+
+        '<div class="face back">'+
+          '<div class="eye"><svg viewBox="0 0 64 64" fill="none">'+
+            '<path d="M4 32 Q32 8 60 32 Q32 56 4 32 Z" stroke="#e8b04b" stroke-width="1.6"/>'+
+            '<circle cx="32" cy="32" r="11" stroke="#e8b04b" stroke-width="1.6"/>'+
+            '<circle cx="32" cy="32" r="4" fill="#e8b04b"/>'+
+          '</svg></div>'+
+          '<div class="bk-name">'+c.title+'</div>'+
+          '<div class="bk-sub">ARCANA · '+c.num+'</div>'+
+        '</div>'+
+        '<div class="face front">'+
+          '<div class="f-num">· '+c.num+' ·</div>'+
+          '<div class="f-title">'+c.title+'</div>'+
+          '<div class="f-sym">'+c.sym+'</div>'+
+          '<div class="f-poem">'+c.poem+'</div>'+
+          '<div class="f-owner">持有者 : '+c.owner+'</div>'+
+        '</div>'+
+        '<div class="sheen"></div>'+
+      '</div>'+
+    '</div>';
+  }).join("");
+
+  /* 交互绑定 */
+  document.querySelectorAll(".card").forEach(function(card){
+    var inner=card.querySelector(".card-inner");
+
+    /* 点击翻面 */
+    card.addEventListener("click",function(){card.classList.toggle("flip");});
+
+    /* 鼠标移动 → 3D 倾斜 */
+    var raf=null;
+    card.addEventListener("mousemove",function(e){
+      if(raf)return;
+      raf=requestAnimationFrame(function(){
+        var r=card.getBoundingClientRect();
+        var x=(e.clientX-r.left)/r.width-.5;   /* -0.5 ~ 0.5 */
+        var y=(e.clientY-r.top)/r.height-.5;
+        var flip=card.classList.contains("flip")?180:0;
+        inner.style.transform=
+          "rotateY("+(x*24+flip)+"deg) rotateX("+(-y*18)+"deg)";
+        /* 高光跟随 */
+        var sh=card.querySelector(".sheen");
+        sh.style.backgroundPosition=(x*100)+"% "+(y*100)+"%";
+        raf=null;
+      });
+    });
+    card.addEventListener("mouseleave",function(){
+      var flip=card.classList.contains("flip")?180:0;
+      inner.style.transform="rotateY("+flip+"deg)";
+    });
+  });
+}
+render();
+</script>
+</body>
+</html>

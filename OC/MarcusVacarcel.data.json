@@ -1,5 +1,6 @@
 {
   "name": "Marcus Varcarcel",
+  "nameSurface": "ALL_HAIL_THE_MAGICIAN",
   "alias": "马库斯·瓦尔坎赛尔 / Marco",
   "indexName": "THE MAGICIAN",
   "indexAlias": "IT部门前无古人后无来者的传奇",
@@ -7,7 +8,9 @@
   "indexNo": "CM/IT-AHTMGC",
   "level": "内部（Internal）",
   "levelSurface": "超级无敌重大机密（SUPER DUPER SECRET LEVEL）",
+  "levelReal": "机密（Confidential）",
   "clearance": "rainbow",
+  "clearanceReal": "yellow",
   "date": "＿＿＿＿＿＿",
   "portrait": "",
   "tags": { "gender": "男", "zone": "激光停泊", "department": "技术处理部门" },
@@ -148,9 +151,15 @@
     ]
   },
   "dialog": {
+    "title": "SYSTEM // 证书校验",
+    "tag": "AUTH-REV",
     "text": "检测到本档案上一次的改动未经官方证书授权。是否恢复到旧版本？",
+    "hl": "未经官方证书授权",
+    "code": "SIG : INVALID · LAST REVISION UNAUTHORIZED",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "restoring": "正在恢复旧版本……",
+    "dismissed": "已保持当前版本"
   },
   "notes": "本档案由 Cybermorgue 内部档案系统统一归档，所有关联行为记录均已留存备查。\n档案内容如需更正，请以书面形式提交至档案管理部门。"
 }

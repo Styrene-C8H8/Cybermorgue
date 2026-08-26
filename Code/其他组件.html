@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEDIA MODULES // 特殊媒体组件预览</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --grd:#4a6b4a; --red:#c85a4a; --cy:#6fb3b8;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;padding-bottom:80px}
+::selection{background:var(--am);color:#000}
+
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+body{text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+
+.wrap{max-width:960px;margin:0 auto;padding:56px 26px}
+
+.pagehead{text-align:center;margin-bottom:44px;border-bottom:1px solid var(--line);padding-bottom:30px}
+.pagehead .en{color:var(--amd);letter-spacing:.5em;font-size:14px}
+.pagehead h1{font-size:clamp(36px,6vw,64px);color:var(--am);margin-top:10px;
+  text-shadow:0 0 24px rgba(232,176,75,.4);letter-spacing:.05em}
+.pagehead p{color:var(--amd);font-size:15px;letter-spacing:.2em;margin-top:8px}
+
+/* 面板 */
+.panel{border:1px solid var(--line);background:var(--panel);margin-bottom:34px;position:relative}
+.panel::before,.panel::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.panel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.p-head{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 18px;border-bottom:1px dashed var(--line);
+  color:var(--am);font-size:19px;letter-spacing:.3em}
+.p-head small{color:var(--amd);font-size:13px;letter-spacing:.2em}
+.p-body{padding:20px 22px}
+
+/* ============ 1. 录音记录 ============ */
+.rec-item{border:1px solid rgba(232,176,75,.15);background:var(--bg);
+  padding:14px 16px;margin-bottom:14px}
+.rec-item:last-child{margin-bottom:0}
+.rec-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rec-play{width:40px;height:40px;flex-shrink:0;border:1px solid var(--am);background:none;
+  color:var(--am);font-family:inherit;font-size:17px;cursor:pointer;
+  transition:all .2s;position:relative}
+.rec-play:hover{background:var(--amf)}
+.rec-play.on{background:var(--am);color:#000;box-shadow:0 0 14px rgba(232,176,75,.5)}
+.rec-meta{flex:1;min-width:180px}
+.rec-title{font-size:17px;color:var(--txt);letter-spacing:.08em}
+.rec-sub{font-size:13.5px;color:var(--amd);letter-spacing:.12em}
+.rec-len{color:var(--gr);font-size:15px}
+.wave{display:flex;align-items:center;gap:2px;height:38px;margin-top:10px;cursor:pointer}
+.wave i{flex:1;background:rgba(138,106,47,.35);min-width:2px;transition:background .15s}
+.wave i.past{background:var(--am)}
+.wave i.head{box-shadow:0 0 8px var(--am)}
+.rec-note{margin-top:10px;font-size:14.5px;color:var(--amd);line-height:1.9;
+  border-left:2px solid var(--line);padding-left:12px}
+/* 播放时轻微抖动的 REC 指示 */
+.rec-ind{display:inline-flex;align-items:center;gap:6px;font-size:12px;
+  color:var(--red);letter-spacing:.2em;opacity:0;transition:opacity .3s}
+.rec-item.playing .rec-ind{opacity:1}
+.rec-ind::before{content:"";width:8px;height:8px;background:var(--red);
+  border-radius:50%;animation:pul 1s infinite}
+@keyframes pul{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ============ 2. 伪视频 ============ */
+.fvideo-wrap{max-width:560px;margin:0 auto}
+.fv-post{border:1px solid var(--line);background:var(--bg);padding:12px 14px;margin-bottom:16px}
+.fp-head2{display:flex;align-items:center;gap:10px;font-size:14.5px;margin-bottom:8px;flex-wrap:wrap}
+.uname{color:var(--am)}.lvtag{font-size:11px;border:1px solid var(--line);
+  color:var(--amd);padding:0 6px}.pmeta{margin-left:auto;color:var(--grd);font-size:12.5px}
+.fvideo{position:relative;background:#000;border:1px solid var(--line);cursor:pointer;
+  aspect-ratio:16/9;overflow:hidden}
+.fv-noise{position:absolute;inset:0;opacity:.14;
+  background:repeating-conic-gradient(#e8b04b 0 .001%,#0c0a06 0 .002%);
+  animation:nz .3s steps(4) infinite;mix-blend-mode:screen}
+@keyframes nz{to{transform:translate(2px,-1px)}}
+.fv-scanlines{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(0,0,0,.35) 3px 4px)}
+.fv-center{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;text-align:center;padding:20px;
+  transition:opacity .3s}
+.fvideo.playing .fv-center{opacity:.15}
+.fv-glyph{font-size:52px;color:var(--am);text-shadow:0 0 22px rgba(232,176,75,.55)}
+.fv-caption{font-family:'Noto Sans SC',sans-serif;font-size:16px;color:var(--txt);
+  letter-spacing:.15em;line-height:2}
+.fv-glitchcap{animation:gc 3.5s steps(1) infinite}
+@keyframes gc{0%,88%,100%{opacity:1}89%{opacity:.4;transform:translateX(-3px) skewX(4deg)}
+92%{opacity:1;transform:none}94%{opacity:.5;transform:translateX(3px)}}
+.fv-timestamp{position:absolute;top:10px;left:12px;font-size:13px;color:var(--cy);
+  letter-spacing:.2em;text-shadow:0 0 8px rgba(111,179,184,.6)}
+.fv-rec{position:absolute;top:10px;right:12px;display:flex;gap:6px;align-items:center;
+  font-size:12px;color:var(--red);letter-spacing:.2em}
+.fv-rec::before{content:"";width:8px;height:8px;background:var(--red);border-radius:50%;
+  animation:pul 1.2s infinite}
+.fv-ctrl{display:flex;align-items:center;gap:12px;padding:9px 12px;
+  border:1px solid var(--line);border-top:none;background:var(--panel)}
+.fv-btn{width:32px;height:32px;border:1px solid var(--am);background:none;color:var(--am);
+  font-family:inherit;font-size:14px;cursor:pointer;flex-shrink:0}
+.fv-btn:hover{background:var(--amf)}
+.fv-track{flex:1;height:8px;background:#1c170c;cursor:pointer;position:relative}
+.fv-fill{position:absolute;inset:0;right:auto;width:0;background:var(--am);
+  box-shadow:0 0 8px rgba(232,176,75,.4)}
+.fv-time{font-size:13px;color:var(--amd);white-space:nowrap}
+.fv-reply{font-size:15px;border-left:2px solid var(--line);padding-left:12px;
+  margin-top:10px;line-height:1.9}
+.fv-reply b{color:var(--am);font-weight:400;margin-right:8px}
+
+/* ============ 3. 乱码解码文本 ============ */
+.gl-text{font-family:'Noto Sans SC',sans-serif;font-weight:300;font-size:17px;
+  line-height:2.2;max-width:44em}
+.glx{color:var(--amd);cursor:help;border-bottom:1px dashed var(--amd);
+  padding:0 3px;transition:color .2s;white-space:normal}
+.glx:hover,.glx.open{color:var(--am)}
+.glx.done{border-bottom-style:solid;color:var(--gr);border-color:var(--grd);cursor:default}
+.gl-hint{margin-top:14px;font-size:13.5px;color:var(--amd);letter-spacing:.2em}
+.gl-hint b{color:var(--gr);font:400}
+
+/* ============ 4. 音乐播放器 ============ */
+.player{display:flex;flex-direction:column;gap:14px}
+.pl-top{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.disc{width:84px;height:84px;border-radius:50%;border:2px solid var(--line);
+  position:relative;flex-shrink:0;background:
+  repeating-radial-gradient(circle at center,#181307 0 2px,#100d08 2px 4px)}
+.disc::before{content:"";position:absolute;inset:28px;border-radius:50%;
+  background:conic-gradient(var(--amd) 0 25%,transparent 25% 50%,var(--amd) 50% 75%,transparent 75%);
+  opacity:.85}
+.disc.spin::before{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pl-info{flex:1;min-width:200px}
+.pl-title{font-size:21px;color:var(--am);letter-spacing:.1em}
+.pl-artist{font-size:14.5px;color:var(--amd);letter-spacing:.2em}
+.eq-big{display:flex;align-items:flex-end;gap:3px;height:42px;margin-top:8px}
+.eq-big i{width:6px;background:linear-gradient(to top,var(--amd),var(--am));height:12%}
+.player.playing .eq-big i{animation:eq .6s ease-in-out infinite alternate}
+@keyframes eq{from{height:8%}to{height:100%}}
+.pl-track{height:8px;background:#1c170c;cursor:pointer;position:relative}
+.pl-fill{position:absolute;inset:0;right:auto;width:0;background:var(--am);
+  box-shadow:0 0 10px rgba(232,176,75,.45)}
+.pl-mid{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pl-btn{width:46px;height:46px;border:1px solid var(--am);background:none;color:var(--am);
+  font-family:inherit;font-size:19px;cursor:pointer;transition:all .2s}
+.pl-btn.main{width:56px;height:56px;font-size:23px}
+.pl-btn:hover{background:var(--amf)}
+.pl-btn.main.on{background:var(--am);color:#000;box-shadow:0 0 18px rgba(232,176,75,.5)}
+.pl-time{font-size:14px;color:var(--amd);letter-spacing:.1em}
+/* 音量 */
+.vol{display:flex;align-items:center;gap:10px;margin-left:auto}
+.vol-ico{color:var(--am);font-size:19px;width:24px;text-align:center}
+input[type=range].vol-slider{-webkit-appearance:none;appearance:none;width:130px;height:8px;
+  background:linear-gradient(90deg,var(--am) var(--p,70%),#1c170c var(--p,70%));
+  cursor:pointer;outline:none}
+input[type=range].vol-slider::-webkit-slider-thumb{-webkit-appearance:none;
+  width:14px;height:14px;background:var(--am);border:1px solid #000;
+  box-shadow:0 0 8px rgba(232,176,75,.6);cursor:grab}
+input[type=range].vol-slider::-moz-range-thumb{width:14px;height:14px;background:var(--am);
+  border:1px solid #000;cursor:grab;border-radius:0}
+.vol-num{font-size:14px;color:var(--amd);width:44px;text-align:right}
+.pl-list{border:1px solid rgba(232,176,75,.15)}
+.pl-row{display:flex;align-items:center;gap:14px;padding:9px 16px;cursor:pointer;
+  border-bottom:1px dashed rgba(232,176,75,.12);font-size:16px;transition:all .15s}
+.pl-row:last-child{border-bottom:none}
+.pl-row:hover{background:var(--amf)}
+.pl-row.cur{color:var(--am);background:var(--amf)}
+.pl-row .no{color:var(--amd);font-size:13.5px}
+.pl-row .dur{margin-left:auto;color:var(--grd);font-size:14px}
+footer{text-align:center;color:var(--amd);font-size:13.5px;letter-spacing:.3em;margin-top:20px}
+@media(max-width:600px){.vol{margin-left:0}}
+</style>
+</head>
+<body>
+
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+  <div class="pagehead">
+    <p class="en">Media Module Preview · Archive Components</p>
+    <h1>特殊媒体组件</h1>
+    <p>录音记录 / 伪视频 / 解码文本 / 音乐终端 —— 四件套联调预览</p>
+  </div>
+
+  <!-- ===== 1. 录音记录 ===== -->
+  <section class="panel">
+    <div class="p-head"><span>录音记录</span><small>AUDIO LOG // TAPE ARCHIVE</small></div>
+    <div class="p-body" id="recBox"></div>
+  </section>
+
+  <!-- ===== 2. 伪视频 ===== -->
+  <section class="panel">
+    <div class="p-head"><span>影像记录（论坛转载）</span><small>VIDEO RELAY // 「亡语之声」BBS</small></div>
+    <div class="p-body">
+      <div class="fvideo-wrap">
+
+        <div class="fv-post">
+          <div class="fp-head2">
+            <span class="uname">匿名搬运工</span><span class="lvtag">LV3</span>
+            <span class="pmeta">IP:192.168.■■.■■ · 昨天 23:47</span>
+          </div>
+          <div style="font-size:15px;margin-bottom:10px">
+            在 C 区旧走廊拍到的，设备是捡的，画质别嫌差。放慢看 0:04 有东西。
+          </div>
+
+          <div class="fvideo" id="fv1">
+            <div class="fv-noise"></div>
+            <div class="fv-scanlines"></div>
+            <div class="fv-timestamp" id="fvTs">REC 00:00</div>
+            <div class="fv-rec">REC</div>
+            <div class="fv-center">
+              <span class="fv-glyph">▶</span>
+              <span class="fv-caption fv-glitchcap">C 区走廊监控片段_0417.mp4<br><small style="opacity:.65">信号不稳定 · 建议调低亮度观看</small></span>
+            </div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+              <div class="fv-caption" id="fvScene" style="font-size:26px;color:var(--am);text-shadow:0 0 18px rgba(232,176,75,.5);opacity:.9"></div>
+            </div>
+          </div>
+          <div class="fv-ctrl">
+            <button class="fv-btn" onclick="fvToggle()">▶</button>
+            <div class="fv-track" onclick="fvSeek(event)"><div class="fv-fill" id="fvFill"></div></div>
+            <span class="fv-time" id="fvTime">00:00 / 00:12</span>
+          </div>
+
+          <div class="fv-reply"><b>[2F] 走廊清洁工：</b>我每天扫那段路，什么都没有。你们少看点。</div>
+          <div class="fv-reply"><b>[5F] 匿名：</b>楼主别删，等一个放大截图。</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. 乱码解码文本 ===== -->
+  <section class="panel">
+    <div class="p-head"><span>损坏文本文档</span><small>CORRUPTED TEXT // DECODE ON HOVER</small></div>
+    <div class="p-body">
+      <div class="gl-text" id="glText"></div>
+      <p class="gl-hint">// 文档部分扇区受损。<b>将光标悬停在乱码上</b>可尝试恢复原始内容；点击可永久锁定恢复结果。</p>
+    </div>
+  </section>
+
+  <!-- ===== 4. 音乐播放器 ===== -->
+  <section class="panel">
+    <div class="p-head"><span>音频终端</span><small>SOUND TERMINAL // VOL ADJUSTABLE</small></div>
+    <div class="p-body">
+      <div class="player" id="player">
+
+        <div class="pl-top">
+          <div class="disc" id="disc"></div>
+          <div class="pl-info">
+            <div class="pl-title" id="plTitle">— 未选择曲目 —</div>
+            <div class="pl-artist" id="plArtist">STANDBY</div>
+            <div class="eq-big" id="eqBig"></div>
+          </div>
+        </div>
+
+        <div class="pl-track" onclick="plSeek(event)"><div class="pl-fill" id="plFill"></div></div>
+
+        <div class="pl-mid">
+          <button class="pl-btn" onclick="plPrev()">⏮</button>
+          <button class="pl-btn main" id="plBtn" onclick="plToggle()">▶</button>
+          <button class="pl-btn" onclick="plNext()">⏭</button>
+          <span class="pl-time" id="plTime">00:00 / 00:00</span>
+          <div class="vol">
+            <span class="vol-ico" id="volIco">🔊</span>
+            <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="70"
+              oninput="setVol(this.value)">
+            <span class="vol-num" id="volNum">70%</span>
+          </div>
+        </div>
+
+        <div class="pl-list" id="plList"></div>
+      </div>
+    </div  </section>
+
+  <footer>CYBERMORGUE SUBSYSTEM — ALL PLAYBACK IS LOGGED</footer>
+</div>
+
+>
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"lt;");}
+function pad(n){return n<10?"0"+n"+n;}
+function fmt(t){t=Math.max(0,t|);return pad((t/60)|0)+":"+pad(t%60);}
+
+/* ============================================================
+   1. 录音记录
+   真实使用：把 url 换成你的 mp3/wav；没有真音频也能跑（模拟模式）
+============================================================ */
+var RECS=[
+ {title:"录音记录 A-117",sub:"来源 : D区走廊 · 便携录音笔",dur:47,
+  note:"背景有规律的水滴声。经比对，D 区当月无任何供水管道故障报告。",
+  peaks:null},
+ {title:"录音记录 B-033",sub:"来源 : OAM 工地 · 安全帽记录仪",dur:63,
+  note:"第 41 秒起出现的低频嗡鸣无法溯源。OAM 拒绝就此作出解释。",
+  peaks:null},
+ {title:"录音记录 X-001",sub:"来源 : 未知 · 于意见箱夹层发现",dur:31,
+  note:"##内容已加密。重复收听可能造成不适。##",
+  peaks:true /* 手绘不规则波形示例 */}
+];
+
+var recState={};
+function renderRecs(){
+  document.getElementById("recBox").innerHTML=RECS.map(function(r,i){
+    var n=48,peaks=[];
+    if(r.peaks){ /* 不规则波形 */
+      for(var k=0;k<n;k++)peaks.push(k<6?8:(k<10?90:k<14?20:k<20?95:k===26?100:k<34?30:60));
+    }else{
+      for(var k=0;k<n;k++){var e=Math.abs(Math.sin(k*1.7+i))*70+15+(Math.random()*15);peaks.push(Math.min(100,e));}
+    }
+    return '<div class="rec-item" id="rec'+i+'">'+
+      '<div class="rec-top">'+
+        '<button class="rec-play" onclick="recToggle('+i+')">▶</button>'+
+        '<div class="rec-meta">'+
+          '<div class="rec-title">'+esc(r.title)+' <span class="rec-ind">LOGGING</span></div>'+
+          '<div class="rec-sub">'+esc(r.sub)+' · 时长 '+fmt(r.dur)+'</div>'+
+        '</div>'+
+        '<span class="rec-len" id="recT'+i+'">00:00</span>'+
+      '</div>'+
+      '<div class="wave" onclick="recSeek(event,'+i+')">'+peaks.map(function(p){
+        return '<i data-p="'+p+'" style="height:'+p+'%"></i>';}).join("")+'</div>'+
+      '<div class="rec-note">'+r.note.replace(/##([\s\S]+?)##/g,'<span style="color:var(--red)">$1</span>')+'</div>'+
+    '</div>';
+  }).join("");
+  RECS.forEach(function(_,i){recState[i]={t:0,timer:null,on:false};});
+}
+renderRecs();
+
+/* 没有真实音频文件 → 用定时器模拟走带；接真音频时把 tick 换成 audio.currentTime 即可 */
+function recToggle(i){
+  var s=recState[i],el=document.getElementById("rec"+i),btn=el.querySelector(".rec-play");
+  if(s.on){ stopRec(i); return; }
+  Object.keys(recState).forEach(stopRec);
+  s.on=true; el.classList.add("playing"); btn.textContent="■"; btn.classList.add("on");
+  s.timer=setInterval(function(){
+    s.t+=.25;
+    if(s.t>=RECS[i].dur){stopRec(i);return;}
+    paintRec(i);
+  },250);
+  paintRec(i);
+}
+function stopRec(i){
+  var s=recState[i]; if(!s||!s.on)return;
+  clearInterval(s.timer); s.on=false;
+  var el=document.getElementById("rec"+i);
+  el.classList.remove("playing");
+  var b=el.querySelector(".rec-play"); b.textContent="▶"; b.classList.remove("on");
+  paintRec(i);
+}
+function paintRec(i){
+  var r=RECS[i],s=recState[i],bars=document.querySelectorAll("#rec"+i+" .wave i"),n=bars.length;
+  bars.forEach(function(b,k){
+    b.className=(k/n)<(s.t/r.dur)?"past":(Math.abs(k/n-s.t/r.dur)<1.5/n?"head":"");
+  });
+  document.getElementById("recT"+i).textContent=fmt(s.t)+" / "+fmt(r.dur);
+}
+function recSeek(e,i){
+  var w=e.currentTarget.getBoundingClientRect();
+  recState[i].t=Math.min(RECS[i].dur-.5,(e.clientX-w.left)/w.width*RECS[i].dur);
+  paintRec(i);
+}
+
+/* ============================================================
+   2. 伪视频
+   场景字幕按时间轴切换；接真视频时可叠加到 <video> 上层
+============================================================ */
+var FV_DUR=12;
+var FV_SCENES=[
+ [0,"[ 走廊尽头 ]"],[3,"……灯在闪。"],[6,"[ 什么东西动了 ]"],
+ [8.5,"■ ■ ■"],[10,"信号丢失"]
+];
+var fv={t:0,on:false,timer:null};
+function fvToggle(){ fv.on=!fv.on;
+  document.getElementById("fv1").classList.toggle("playing",fv.on);
+  if(fv.on){
+    fv.timer=setInterval(function(){
+      fv.t+=.1; if(fv.t>=FV_DUR){fv.t=0;/*循环*/}
+      fvPaint();
+    },100);
+  } else clearInterval(fv.timer);
+  document.querySelector("#fv1 ~ * , #fv1").closest(".fv-ctrl").querySelector(".fv-btn").textContent=fv.on?"■":"▶";
+}
+function fvPaint(){
+  var pct=fv.t/FV_DUR*100;
+  document.getElementById("fvFill").style.width=pct+"%";
+  document.getElementById("fvTime").textContent=fmt(fv.t)+" / "+fmt(FV_DUR);
+  document.getElementById("fvTs").textContent="REC "+fmt(fv.t);
+  var cap="";
+  FV_SCENES.forEach(function(s){ if(fv.t>=s[0])cap=s[1]; });
+  document.getElementById("fvScene").textContent=cap;
+}
+function fvSeek(e){
+  var w=e.currentTarget.getBoundingClientRect();
+  fv.t=Math.min(FV_DUR-.2,(e.clientX-w.left)/w.width*FV_DUR);
+  fvPaint();
+}
+
+/* ============================================================
+   3. 乱码解码文本
+   用法：<span class="glx" data-real="真实文字">乱码</span>
+============================================================ */
+var GLYPH="▓▒░█▄▀◆◇■□▲△※Ø×¤§ΩΔЖФ";
+function garble(txt,n){ /* 把真实文字变成乱码 */
+  var out=[];
+  for(var i=0;i<txt.length;i++)
+    out.push(txt[i]==="\u3000"?txt[i]:GLYPH[Math.floor(Math.random()*GLYPH.length)]);
+  return out.join("");
+}
+var GL_TEXT=[
+ {real:"那天晚上我在档案室加班，",gl:false},
+ {real:"听见通风管里有敲击声。",gl:true},
+ {real:"三下，停顿，再三下。",gl:false},
+ {real:"像某种约定的暗号。",gl:true},
+ {real:"我没有开门。",gl:false},
+ {real:"第二天，我的桌上多了一杯还温着的咖啡。",gl:true}
+];
+(function(){
+  var box=document.getElementById("glText");
+  GL_TEXT.forEach(function(seg,i){
+    if(!seg.gl){
+      var sp=document.createElement("span"); sp.textContent=seg.real;
+      box.appendChild(sp); return;
+    }
+    var el=document.createElement("span");
+    el.className="glx";
+    el.dataset.real=seg.real;
+    el.textContent=garble(seg.real);
+    /* 悬浮开始解码，离开回滚 */
+    el.addEventListener("mouseenter",function(){ decode(el,false); });
+    el.addEventListener("mouseleave",function(){
+      if(el.dataset.locked!=="1") scramble(el);
+    });
+    /* 点击永久锁定 */
+    el.addEventListener("click",function(){
+      decode(el,true);
+    });
+    box.appendChild(el);
+  });
+})();
+var DEC_CH="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#/\\<>_■□";
+function decode(el,lock){
+  clearInterval(el._iv);
+  var real=el.dataset.real,i=0;
+  el._iv=setInterval(function(){
+    i++;
+    var out="";
+    for(var k=0;k<real.length;k++){
+      out+= k<i?real[k] : DEC_CH[Math.floor(Math.random()*DEC_CH.length)];
+    }
+    el.textContent=out;
+    if(i>=real.length){
+      clearInterval(el._iv);
+      el.textContent=real;
+      el.classList.add("done");
+      if(lock)el.dataset.locked="1";
+    }
+  },45);
+}
+function scramble(el){
+  clearInterval(el._iv);
+  el.classList.remove("done");
+  el.textContent=garble(el.dataset.real);
+}
+
+/* ============================================================
+   4. 音乐播放器（含音量）
+   真实使用：tracks 里填 src 指向 mp3；下面代码已写好 Audio 接线，
+   没有文件时会退回“静默模拟”模式，界面照常演示。
+============================================================ */
+var TRACKS=[
+ {name:"亡语之声电台 · 片头曲",artist:「亡语之声」制作组,dur:154,src:null},
+ {name:"走廊白噪音 (Extended)",artist:IT部门 音频组,dur:201,src:null},
+ {name:"D 区雨夜",artist:匿名投稿,dur:187,src:null}
+];
+var pl={cur:0,on:false,t:0,volume:.7,timer:null,audio:new Audio()};
+pl.audio.volume=.7;
+
+function renderList(){
+  document.getElementById("plList").innerHTML=TRACKS.map(function(t,i){
+    return '<div class="pl-row'+(i===pl.cur?" cur":"")+'" onclick="pickTrack('+i+')">'+
+      '<span class="no">'+pad(i+1)+'</span><span>'+esc(t.name)+'</span>'+
+      '<span class="dur">'+fmt(t.dur)+'</span></div>';
+  }).join("");
+}
+function pickTrack(i){
+  pl.cur=i; pl.t=0;
+  document.getElementById("plTitle").textContent=TRACKS[i].name;
+  document.getElementById("plArtist").textContent=TRACKS[i].artist;
+  renderList(); plPaintTime();
+}
+function plToggle(){
+  pl.on=!pl.on;
+  var btn=document.getElementById("plBtn");
+  btn.textContent=pl.on?"■":"▶"; btn.classList.toggle("on",pl.on);
+  document.getElementById("player").classList.toggle("playing",pl.on);
+  document.getElementById("disc").classList.toggle("spin",pl.on);
+  if(pl.on){
+    if(TRACKS[pl.cur].src){ /* 有真实文件就走真音频 */
+      try{
+        pl.audio.src=TRACKS[pl.cur].src;
+        pl.audio.currentTime=pl.t; pl.audio.play();
+      }catch(e){}
+    }
+    pl.timer=setInterval(plTick,250);
+  }else{
+    clearInterval(pl.timer); pl.audio.pause();
+  }
+}
+function plTick(){
+  if(TRACKS[pl.cur].src&&!pl.audio.paused){
+    pl.t=pl.audio.currentTime;
+  }else{
+    pl.t+=.25;
+  }
+  if(pl.t>=TRACKS[pl.cur].dur){ plNext(true); return; }
+  plPaintTime();
+}
+function plPaintTime(){
+  var d=TRACKS[pl.cur];
+  document.getElementById("plFill").style.width=(pl.t/d.dur*100)+"%";
+  document.getElementById("plTime").textContent=fmt(pl.t)+" / "+fmt(d.dur);
+}
+function plSeek(e){
+  var w=e.currentTarget.getBoundingClientRect();
+  pl.t=Math.min(TRACKS[pl.cur].dur-.5,(e.clientX-w.left)/w.width*TRACKS[pl.cur].dur);
+  if(TRACKS[pl.cur].src)try{pl.audio.currentTime=pl.t;}catch(err){}
+  plPaintTime();
+}
+function plNext(auto){
+  pickTrack((pl.cur+1)%TRACKS.length);
+  if(pl.on&&auto){ /* 自动连播保持播放态 */ }
+}
+function plPrev(){ pickTrack((pl.cur-1+TRACKS.length)%TRACKS.length); }
+function setVol(v){
+  v=+v; pl.audio.volume=v/100;
+  document.getElementById("volNum").textContent=v+"%";
+  var sl=document.getElementById("volSlider");
+  sl.style.setProperty("--p",v+"%");
+  document.getElementById("volIco").textContent=v==0?"🔇":v<40?"🔉":"🔊";
+}
+
+/* 初始化 */
+for(var i=0;i<16;i++){
+  var b=document.createElement("i");
+  b.style.animationDelay=(Math.random()*.6)+"s";
+  b.style.animationDuration=(.45+Math.random()*.4)+"s";
+  document.getElementById("eqBig").appendChild(b);
+}
+pickTrack(0); setVol70); fvPaint();
+</script>
+</body>
+</html>

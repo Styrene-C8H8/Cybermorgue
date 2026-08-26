@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANOMALY // 异象演示</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --red:#c85a4a; --bg:#0c0a06; --panel:#121008;
+  --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh}
+::selection{background:var(--am);color:#000}
+
+/* 基础 CRT 层 */
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+
+/* ============ 异象模式：一个类名控制全局 ============ */
+/* 全局色调 → 红 */
+body.anomaly{
+  animation:shake .12s infinite;
+}
+body.anomaly ::selection{background:var(--red);color:#fff}
+
+/* 红色滤镜罩 */
+.redveil{position:fixed;inset:0;z-index:905;pointer-events:none;opacity:0;
+  transition:opacity .25s;
+  background:
+    radial-gradient(ellipse at center,rgba(200,40,30,.10) 40%,rgba(120,10,5,.35) 100%);
+  mix-blend-mode:multiply}
+body.anomaly .redveil{opacity:1;animation:veilPul 1.6s ease-in-out infinite}
+@keyframes veilPul{0%,100%{opacity:.85}50%{opacity:.55}}
+
+/* 文字全部染红 + 辉光 */
+body.anomaly *{color:#ff6b5a!important;text-shadow:0 0 10px rgba(255,60,40,.7)!important}
+body.anomaly .p-head,body.anomaly h1{color:#ff3b28!important;
+  text-shadow:0 0 22px rgba(255,50,30,.9)!important}
+
+/* 边框/线条染红 */
+body.anomaly .panel{border-color:rgba(255,70,50,.45)!important}
+body.anomaly .panel::before{border-color:#ff3b28!important;border-left-color:#ff3b28!important}
+body.anomaly .panel::after{border-color:#ff3b28!important;border-right-color:#ff3b28!important}
+body.anomaly .p-head{border-bottom-color:rgba(255,70,50,.4)!important}
+
+/* 故障撕条：随机横切错位 */
+.glitchbars{position:fixed;inset:0;z-index:902;pointer-events:none;display:none}
+body.anomaly .glitchbars{display:block}
+.glitchbars i{position:absolute;left:0;right:0;height:14px;display:none;
+  background:rgba(255,60,40,.08);
+  backdrop-filter:hue-rotate(-140deg) saturate(2)}
+.glitchbars i.on{display:block;
+  animation:tear .35s steps(2) infinite}
+@keyframes tear{
+  0%{transform:translateX(-14px)}
+  50%{transform:translateX(20px);opacity:.7}
+  100%{transform:translateX(-8px)}}
+
+/* RGB 撕裂文字抖动（作用于标题） */
+body.anomaly h1{animation:rgbsplit .18s steps(2) infinite}
+@keyframes rgbsplit{
+  0%{transform:translate(0);clip-path:inset(0 0 0 0)}
+  25%{transform:translate(-2px,1px);text-shadow:-3px 0 #00e5ff,3px 0 #ff0022!important}
+  50%{transform:translate(2px,-1px)}
+  75%{transform:translate(-1px,-1px);text-shadow:3px 0 #00e5ff,-3px 0 #ff0022!important}}
+
+/* 页面整体轻微位移 */
+@keyframes shake{
+  0%,100%{transform:translate(0)}
+  25%{transform:translate(1px,-1px)}
+  50%{transform:translate(-1px,1px)}
+  75%{transform:translate(1px,0)}}
+
+/* 异象警告横幅 */
+.warnbar{position:fixed;top:0;left:0;right:0;z-index:910;padding:7px 0;
+  text-align:center;font-size:15px;letter-spacing:.4em;color:#ffd9d4;
+  background:linear-gradient(90deg,#3a0d08,#611510,#3a0d08);
+  border-bottom:1px solid rgba(255,80,60,.5);
+  display:none;animation:pulW 1.2s steps(1) infinite}
+@keyframes pulW{0%,100%{opacity:1}50%{opacity:.55}}
+body.anomaly .warnbar{display:block}
+
+/* ====== 页面内容（示意用，替换成真实档案内容即可）====== */
+.wrap{max-width:900px;margin:0 auto;padding:70px 26px 100px}
+.fmeta{font-size:14px;color:var(--amd);letter-spacing:.2em;margin-bottom:10px}
+h1{font-size:clamp(44px,7vw,76px);color:var(--am);line-height:1.1;
+  text-shadow:0 0 24px rgba(232,176,75,.4);margin-bottom:8px}
+.alias{color:var(--amd);letter-spacing:.3em;margin-bottom:26px}
+.panel{border:1px solid var(--line);background:var(--panel);margin-bottom:20px;
+  position:relative;transition:border-color .3s}
+.panel::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
+  border-top:2px solid var(--am);border-left:2px solid var(--am);transition:border-color .3s}
+.panel::after{content:"";position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;
+  border-bottom:2px solid var(--am);border-right:2px solid var(--am);transition:border-color .3s}
+.p-head{padding:8px 18px;border-bottom:1px dashed var(--line);color:var(--am);
+  font-size:18px;letter-spacing:.3em;transition:all .3s}
+.p-body{padding:16px 22px;font-size:16.5px}
+
+/* 触发按钮 */
+.trigger-zone{text-align:center;margin-top:36px}
+.trig-btn{
+  font-family:inherit;font-size:19px;letter-spacing:.35em;
+  color:var(--am);background:none;border:1px solid var(--line);
+  padding:13px 44px;cursor:pointer;transition:all .25s;position:relative}
+.trig-btn:hover{border-color:var(--am);box-shadow:0 0 24px rgba(232,176,75,.35)}
+.hint{margin-top:12px;font-size:13.5px;color:var(--amd);letter-spacing:.15em}
+
+/* 恢复按钮（异象中出现） */
+.restore{position:fixed;bottom:34px;left:50%;transform:translateX(-50%);z-index:910;
+  font-family:inherit;font-size:17px;letter-spacing:.3em;color:#ffd9d4;
+  background:rgba(60,10,6,.85);border:1px solid rgba(255,80,60,.6);
+  padding:10px 38px;cursor:pointer;display:none;backdrop-filter:blur(2px)}
+.restore:hover{background:rgba(110,20,12,.9)}
+body.anomaly .restore{display:block;animation:pulW 2s steps(1) infinite}
+</style>
+</head>
+<body>
+
+<div class="glitchbars" id="gbars">
+  <i style="top:12%"></i><i style="top:31%"></i><i style="top:47%;height:8px"></i>
+  <i style="top:58%"></i><i style="top:73%;height:22px"></i><i style="top:88%"></i>
+</div>
+<div class="redveil"></div>
+<div class="warnbar">⚠ ANOMALY DETECTED — 请勿注视超过三秒 — ⚠</div>
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+
+  <p class="fmeta">FILE NO : CM-■■-077 · CLEARANCE : ■■■</p>
+  <h1>示 例 档 案</h1>
+  <p class="alias">AKA · DEMO SUBJECT</p>
+
+  <section class="panel">
+    <div class="p-head">基本信息</div>
+    <div class="p-body">这里是普通的档案正文。点击下方按钮触发异象，观察整个界面如何被污染。所有面板、标题、边框都会被红色接管。</div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head">观测记录</div>
+    <div class="p-body">
+      记录一：对象在无人时仍会移动。<br>
+      记录二：走廊的灯在她经过时会熄灭。<br>
+      记录三：不要回应她的提问。
+    </div>
+  </section>
+
+  <!-- 触发区 -->
+  <div class="trigger-zone">
+    <button class="trig-btn" id="trig" onclick="toggleAnomaly()">◈ 接触异象 ◈</button>
+    <p class="hint">// 警告：该操作将被记录在案</p>
+  </div>
+</div>
+
+<button class="restore" onclick="toggleAnomaly()">[ 断开连接 · RESTORE ]</button>
+
+<script>
+/* ============ 异象开关：一行类名切换全局 ============ */
+function toggleAnomaly(){
+  document.body.classList.toggle("anomaly");
+  syncGlitch();
+}
+
+/* 故障撕条随机点亮 */
+var bars=document.querySelectorAll("#gbars i");
+var glitchIv=null;
+
+function syncGlitch(){
+  if(document.body.classList.contains("anomaly")){
+    if(glitchIv)return;
+    glitchIv=setInterval(function(){
+      bars.forEach(function(b){
+        /* 随机让某几条出现/消失 */
+        b.classList.toggle("on",Math.random()<(Math.random()<.3?.7:.25));
+        if(b.classList.contains("on"))
+          b.style.top=(Math.random()*95)+"%";
+      });
+    },180);
+  }else{
+    clearInterval(glitchIv);glitchIv=null;
+    bars.forEach(function(b){b.classList.remove("on");});
+  }
+}
+syncGlitch();
+</script>
+</body>
+</html>

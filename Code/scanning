@@ -1,0 +1,54 @@
+/* CRT 屏幕核心样式（包含色彩滤镜） */
+.crt-screen {
+  position: relative;
+  background: #0f1c0f; /* 深磷光绿背景 */
+  color: #38fff8;      /* 高亮青/绿色文本 */
+  
+  /* 色彩与发光滤镜：让文字和图片产生类似电子束扩散的“泛光”效果 */
+  text-shadow: 0 0 4px rgba(56, 255, 248, 0.6), 0 0 10px rgba(56, 255, 248, 0.4);
+  filter: contrast(1.2) brightness(1.1);
+}
+
+/* 扫描线与闪烁叠加层 */
+.crt-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.35) 50%
+  );
+  /* 调整缩放：控制扫描线的粗细，3px 代表每行像素的高度 */
+  background-size: 100% 3px; 
+  z-index: 20;
+  pointer-events: none; /* 确保鼠标可以穿透，不影响网页点击 */
+  
+  /* 引入屏幕同步闪烁与微弱滚动条纹动画 */
+  animation: crt-flicker 0.15s infinite, crt-roll 10s linear infinite;
+}
+
+/* 动画 1：模拟老式显像管高频、随机的亮度闪烁（Flicker） */
+@keyframes crt-flicker {
+  0%   { opacity: 0.98; }
+  50%  { opacity: 1.0;  }
+  100% { opacity: 0.99; }
+}
+
+/* 动画 2：模拟电信号不稳定导致的缓慢下落暗条纹（可选，增加动态感） */
+@keyframes crt-roll {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100%; }
+}
+
+/* 如果想要更硬核的像素网格，可以用这个代替上面的 background */
+.crt-screen::before {
+  /* ... 保留其他定位样式 ... */
+  background: 
+    /* 横向扫描线 */
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%),
+    /* 纵向 RGB 栅格 */
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.03), rgba(0, 0, 255, 0.05));
+  background-size: 100% 4px, 6px 100%; /* 横向 4px 高，纵向 6px 宽 */
+}
+

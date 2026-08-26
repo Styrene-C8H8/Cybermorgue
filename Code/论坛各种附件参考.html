@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORUM PARTS // 附件·引用·音频</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+.wrap{max-width:760px;margin:0 auto;padding:60px 24px 110px}
+
+/* 模拟一个帖子 */
+.post{border:1px solid var(--line);background:var(--panel);padding:16px 20px;margin-bottom:30px}
+.pu{display:flex;align-items:center;gap:10px;font-size:14.5px;margin-bottom:8px}
+.pu b{color:var(--am);font-weight:400}
+.lv{font-size:11px;border:1px solid var(--line);color:var(--amd);padding:0 6px}
+.pt{margin-left:auto;color:var(--grd,#4a6b4a);font-size:12.5px;color:var(--amd)}
+.post p{font-size:15.5px;margin-bottom:12px}
+
+/* ============ 1. 引用块 quote ============ */
+.quote{
+  border-left:3px solid var(--am);
+  background:var(--amf);
+  padding:10px 16px;margin:12px 0;font-size:14.5px;color:var(--amd);position:relative}
+.quote .q-from{color:var(--am);font-size:13px;letter-spacing:.15em;display:block;margin-bottom:2px}
+.quote .q-from::before{content:"↳ "}
+/* 嵌套引用 */
+.quote .quote{margin:8px 0 2px;border-left-color:var(--amd)}
+
+/* ============ 2. 附件卡 ============ */
+.attach{
+  display:flex;align-items:center;gap:14px;
+  border:1px dashed var(--line);background:rgba(232,176,75,.02);
+  padding:10px 14px;margin:12px 0;max-width:420px;cursor:pointer;transition:all .2s}
+.attach:hover{border-color:var(--am);background:var(--amf)}
+.at-ico{width:38px;height:38px;flex-shrink:0;border:1px solid var(--am);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;color:var(--am);background:var(--bg)}
+.at-info{flex:1;min-width:0}
+.at-name{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.at-meta{font-size:12px;color:var(--amd);letter-spacing:.15em}
+.at-dl{font-family:'VT323',monospace;font-size:14px;color:var(--gr);
+  border:1px solid rgba(127,191,127,.35);padding:2px 12px;flex-shrink:0;transition:all .2s}
+.attach:hover .at-dl{background:rgba(127,191,127,.12)}
+/* 已损坏附件 */
+.attach.dead{opacity:.55;cursor:not-allowed}
+.attach.dead:hover{border-color:var(--red);background:none}
+.attach.dead .at-ico{border-color:var(--red);color:var(--red)}
+.attach.dead .at-dl{color:var(--red);border-color:rgba(200,90,74,.4)}
+
+/* ============ 3. 帖内音频 ============ */
+.faudio{
+  border:1px solid var(--line);background:var(--bg);
+  padding:10px 14px;margin:12px 0;max-width:440px}
+.fa-top{display:flex;align-items:center;gap:12px}
+.fa-btn{width:36px;height:36px;flex-shrink:0;border:1px solid var(--am);
+  background:none;color:var(--am);font-family:inherit;font-size:15px;cursor:pointer}
+.fa-btn.on{background:var(--am);color:#000}
+.fa-title{font-size:14.5px;line-height:1.5}
+.fa-sub{font-size:11.5px;color:var(--amd);letter-spacing:.15em}
+.fa-wave{display:flex;align-items:center;gap:2px;height:28px;margin-top:8px;cursor:pointer}
+.fa-wave i{flex:1;background:rgba(138,106,47,.3);min-width:2px;transition:background .15s}
+.fa-wave i.past{background:var(--am)}
+</style>
+</head>
+<body>
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="wrap">
+
+  <!-- ====== 示例帖：包含三种组件 ====== -->
+  <div class="post">
+    <div class="pu"><b>匿名搬运工</b><span class="lv">LV3</span><span class="pt">#1024 · 昨天 23:47</span></div>
+    <p>整理旧硬盘翻出来的东西，都放这了。</p>
+
+    <!-- 引用：别人回复被引用进来 -->
+    <blockquote class="quote">
+      <span class="q-from">走廊清洁工 发表于 #1017</span>
+      我每天扫那段路，什么都没有。你们少看点。
+      <!-- 嵌套引用 -->
+      <blockquote class="quote">
+        <span class="q-from">匿名搬运工 发表于 #1015</span>
+        那你解释下为什么你的排班表上 C 区东侧是空的？
+      </blockquote>
+    </blockquote>
+    <p>↑ 这位老哥现在不回私信了。</p>
+
+    <!-- 音频附件 -->
+    <div class="faudio" id="fa1">
+      <div class="fa-top">
+        <button class="fa-btn" onclick="faToggle()">▶</button>
+        <div class="fa-title">C区走廊_0417_凌晨.mp3
+          <div class="fa-sub">00:41 · 128KBPS · 上传者已匿名</div>
+        </div>
+      </div>
+      <div class="fa-wave" onclick="faSeek(event)"></div>
+    </div>
+
+    <!-- 正常附件 -->
+    <div class="attach" onclick="dl(this)">
+      <div class="at-ico">📄</div>
+      <div class="at-info">
+        <div class="at-name">巡检记录_C区_03月.pdf</div>
+        <div class="at-meta">PDF · 2.4 MB · 下载 37 次</div>
+      </div>
+      <span class="at-dl">↓ DOWN</span>
+    </div>
+
+    <!-- 图片附件 -->
+    <div class="attach" onclick="dl(this)">
+      <div class="at-ico">🖼</div>
+      <div class="at-info">
+        <div class="at-name">IMG_0417_[已删除].png</div>
+        <div class="at-meta">PNG · 8.1 MB · 下载 112 次 · 已被编辑</div>
+      </div>
+      <span class="at-dl">↓ DOWN</span>
+    </div>
+
+    <!-- 损坏附件 -->
+    <div class="attach dead" title="文件已失效">
+      <div class="at-ico">⚠</div>
+      <div class="at-info">
+        <div class="at-name" style="text-decoration:line-through">原始视频_完整版.mp4</div>
+        <div class="at-meta" style="color:var(--red)">文件已被管理员移除 · 违规原因：[数据缺失]</div>
+      </div>
+      <span class="at-dl">× DEAD</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---- 音频模拟播放 ---- */
+(function(){
+  var wave=document.querySelector("#fa1 .fa-wave"),n=40,html="";
+  for(var i=0;i<n;i++)
+    html+='<i style="height:'+ (Math.abs(Math.sin(i*1.3))*70+18) +'%"></i>';
+  wave.innerHTML=html;
+})();
+var fa={t:0,dur:41,on:false,timer:null};
+function faToggle(){
+  var btn=document.querySelector("#fa1 .fa-btn");
+  fa.on=!fa.on;btn.textContent=fa.on?"■":"▶";btn.classList.toggle("on",fa.on);
+  if(fa.on)fa.timer=setInterval(function(){
+    fa.t+=.25;if(fa.t>=fa.dur){fa.t=0;}
+    paint();
+  },250);
+  else clearInterval(fa.timer);
+}
+function paint(){
+  document.querySelectorAll("#fa1 .fa-wave i").forEach(function(b,i,arr){
+    b.className=(i/arr.length)<(fa.t/fa.dur)?"past":"";
+  });
+}
+function faSeek(e){
+  var w=e.currentTarget.getBoundingClientRect();
+  fa.t=(e.clientX-w.left)/w.width*fa.dur;paint();
+}
+/* ---- 附件点击反馈 ---- */
+function dl(el){
+  if(el.classList.contains("dead"))return;
+  var tag=el.querySelector(".at-dl");
+  tag.textContent="✓ OK";
+  setTimeout(function(){tag.textContent="↓ DOWN";},900);
+}
+</script>
+</body>
+</html>
