@@ -1090,6 +1090,13 @@ function quizPreloadAudio(){
     if(!QUIZ_AUDIO_CACHE[o.src])QUIZ_AUDIO_CACHE[o.src]={};
   }));
 }
+/* 离开题目页时停掉所有缓存的音频（防"上一题还在响/切走就没声"） */
+function quizStopAllAudio(){
+  Object.keys(QUIZ_AUDIO_CACHE).forEach(src=>{
+    const c=QUIZ_AUDIO_CACHE[src];
+    if(c&&c.audio){try{c.audio.pause();c.audio.currentTime=0;}catch(e){}}
+  });
+}
 function formHtml(){
   QUIZ_LIST=quizSorted();
   QUIZ_ANSWERS=[];QUIZ_NAME="";QUIZ_EGG=null;QUIZ_FORCE=null;QUIZ_SPECIAL=false;
@@ -1138,6 +1145,7 @@ function quizShow(anim=true){
   const app=$("quizApp");if(!app)return;
   const old=app.querySelector(".qcard");
   const done=()=>{
+    quizStopAllAudio();  /* 离开当前卡时停掉所有缓存音频 */
     if(old)old.remove();
     const n=QUIZ_LIST.length;
     if(QUIZ_STEP===-1)renderGate();
@@ -1313,6 +1321,7 @@ function renderQAudio(c,q,back,i){
       const a=c2.audio;p.audio=a;
       a.onloadedmetadata=()=>{const d=el.querySelector(".a-dur");if(d&&isFinite(a.duration))d.textContent=fmtQ(a.duration);};
       try{
+        try{if(!a.paused){a.pause();a.currentTime=0;}}catch(e){}  /* 同一元素先停再播，防叠音 */
         a.src=c2.url;
         await a.play();
         if(current===p&&el.isConnected){
@@ -2306,7 +2315,13 @@ async function init() {
     setInterval(pushLog, 1800);
     let booted = false;
     try { booted = sessionStorage.getItem("cm-booted") === "1"; } catch (e) {}
-    if (booted) skipBoot(); else nextBootLine();
+    /* 每次加载（含 file:update 重跑）都完整重播 boot 动画：
+       清空旧日志/重置进度/清零 li，避免"闪一下就消失" */
+    bootLog.innerHTML = "";
+    bootBar.style.width = "0%";
+    bootEnter.classList.remove("show");
+    li = 0;
+    nextBootLine();
     let goto = (location.hash || "").replace("#", "");
     try { const s = sessionStorage.getItem("cm-goto"); if (s) { goto = s; sessionStorage.removeItem("cm-goto"); } } catch (e) {}
     if (goto && $("view-" + goto)) show(goto, null, false);
