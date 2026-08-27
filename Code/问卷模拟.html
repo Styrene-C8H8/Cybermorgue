@@ -55,13 +55,36 @@ function computeResult(questions,answers){
   if(force)return {name:force,special:false};
   if(special)return {name:null,special:true};
   const scifiPick=z=>z==="激光停泊"||z==="电子囚笼";
+  const FANT=["术法阵列","缸中之魂","浮点终端"],SCIF=["电子囚笼","激光停泊"];
   const order=[];for(const z in scores){if(excludes[z])continue;order.push([z,scores[z]]);}
   order.sort((a,b)=>b[1]-a[1]);
   const top=order[0];
   if(!top||top[1]<=0)return {name:null,special:true};
+  /* 方向锁定（与主页一致） */
+  const votes={};
+  list.forEach((q,idx)=>{
+    const a=answers[idx];if(a==null||a<0)return;
+    const o=q.opts&&q.opts[a];if(!o)return;
+    const vals=Object.values(o.s||{});if(!vals.length)return;
+    const ms=Math.max(...vals);if(ms<2)return;
+    for(const z in (o.s||{})){if(o.s[z]===ms&&!excludes[z])votes[z]=(votes[z]||0)+1;}
+  });
+  const vMax=Math.max(0,...Object.values(votes));
+  if(vMax>=3){
+    const locked=order.filter(([z])=>votes[z]>=vMax-1);
+    if(locked.length){
+      const lt=locked[0],l2=locked[1];
+      if(locked.length===1||(l2&&lt[1]>l2[1]))return {name:lt[0],special:false};
+      if(l2&&lt[1]===l2[1]){
+        if(scifiPick(lt[0])&&scifiPick(l2[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+        if((FANT.includes(lt[0])&&SCIF.includes(l2[0]))||(FANT.includes(l2[0])&&SCIF.includes(lt[0])))
+          return {name:"浮点终端",special:false};
+        return {name:null,special:true};
+      }
+    }
+  }
   if(order.length>1&&order[1][1]===top[1]&&top[1]>0){
     if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
-    const FANT=["术法阵列","缸中之魂","浮点终端"],SCIF=["电子囚笼","激光停泊"];
     if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
       return {name:"浮点终端",special:false};
     return {name:null,special:true};
