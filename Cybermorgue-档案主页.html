@@ -1080,14 +1080,14 @@ function quizSorted(){
       return aw-bw || a._i-b._i;
     });
 }
-/* 全局预加载音频题素材（防卡顿：进页面就开始缓冲，对象存入缓存保持下载不中断） */
+/* 全局预加载音频题素材：对象存入缓存保持引用，浏览器按 preload=auto 自然调度
+   （不手动 load()，避免 4 个大文件同时抢带宽拖慢页面本身） */
 function quizPreloadAudio(){
   (D.quiz.questions||[]).forEach(q=>(q.opts||[]).forEach(o=>{
     if(!o.src||QUIZ_AUDIO_CACHE[o.src])return;
     try{
       const a=new Audio(o.src);
       a.preload="auto";
-      a.load();
       QUIZ_AUDIO_CACHE[o.src]=a;
     }catch(e){}
   }));
