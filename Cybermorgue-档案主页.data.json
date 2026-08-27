@@ -143,10 +143,10 @@
       { "type": "audio", "w": 2, "q": "若用一段音乐形容您的来时之地，以下哪种音乐更符合？",
         "hint": "// 点击 ▶ 试听。注意——系统只允许试听其中一段。",
         "opts": [
-          { "t": "Blue Ridge Saga 选段", "src": "OC/otherresources/选项1.mp3", "s": { "江河世年": 2, "黄金计时": 3 } },
-          { "t": "Star of the County Down 选段", "src": "OC/otherresources/选项2.mp3", "s": { "术法阵列": 3, "浮点终端": 2, "江河世年": 3 } },
-          { "t": "After the Last Light 选段", "src": "OC/otherresources/选项3.mp3", "s": { "电子囚笼": 4, "激光停泊": 4, "边界架构": 3, "浮点终端": 1 } },
-          { "t": "Apathy (Slowed + Reverb) 选段", "src": "OC/otherresources/选项4.mp3", "s": { "噩兆回廊": 3, "浮点终端": 2 } }
+          { "t": "Blue Ridge Saga 选段", "d": "一首悠扬的管弦乐，令听者仿佛置身于蓝色的山脊之上", "src": "OC/otherresources/选项1.mp3", "s": { "江河世年": 2, "黄金计时": 3 } },
+          { "t": "Star of the County Down 选段", "d": "带有魔法气息的婉转民谣", "src": "OC/otherresources/选项2.mp3", "s": { "术法阵列": 3, "浮点终端": 2, "江河世年": 3 } },
+          { "t": "After the Last Light 选段", "d": "充满电子氛围的合成器，使人感觉好像身处一座不夜城中", "src": "OC/otherresources/选项3.mp3", "s": { "电子囚笼": 4, "激光停泊": 4, "边界架构": 3, "浮点终端": 1 } },
+          { "t": "Apathy (Slowed + Reverb) 选段", "d": "安静的氛围音乐，能同时让人感受到不安和平静", "src": "OC/otherresources/选项4.mp3", "s": { "噩兆回廊": 3, "浮点终端": 2 } }
         ] },
       { "type": "single", "w": 1, "q": "假如你必须要面对一个敌人，你觉得这个敌人最可能是：",
         "opts": [

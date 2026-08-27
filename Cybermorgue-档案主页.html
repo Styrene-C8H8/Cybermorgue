@@ -688,7 +688,11 @@ textarea{resize:vertical;min-height:64px}
 .aopt:not(.playing) .a-play{text-indent:2px}
 .aopt.playing .a-play{animation:pBreath 1.2s ease-in-out infinite}
 @keyframes pBreath{50%{box-shadow:0 0 14px rgba(217,164,74,.6)}}
-.wave{flex:1;display:flex;align-items:flex-end;gap:3px;height:28px;min-width:80px;max-width:170px}
+.a-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.a-title{font-size:15px;color:var(--txt)}
+.a-desc{font-size:12px;color:var(--ph-dim);margin-top:2px;letter-spacing:.03em;line-height:1.5}
+.aopt.playing .a-title{color:var(--amber)}
+.wave{flex:0 0 auto;display:flex;align-items:flex-end;gap:3px;height:28px;min-width:70px;max-width:130px}
 .wave i{flex:1;height:15%;background:var(--ph-dim);opacity:.5;transition:height .12s}
 .aopt.playing .wave i{background:var(--ph);opacity:.95}
 .aopt.chosen .wave i{background:var(--ok);height:20%!important;transition:height .6s}
@@ -1248,6 +1252,7 @@ function renderQAudio(c,q,back,i){
     <div class="q-text"></div>
     <div class="aopts"></div>
     <div class="kbd-hint">${esc(q.hint||"// 点击 ▶ 试听")}</div>
+    <div class="kbd-hint" style="opacity:.45">// 初次加载可能需要 1-2 分钟，可先根据下方描述直接作答</div>
     <div class="nav-row"><button class="nbtn" id="qb">◀ 回退</button>
       <button class="nbtn primary" id="qa-ok" disabled>确认此段 ▶</button></div>`;
   typeInto(c.querySelector(".q-text"),q.q,40).then(()=>{
@@ -1266,7 +1271,9 @@ function renderQAudio(c,q,back,i){
     }
     q.opts.forEach((o,k)=>{
       const el=document.createElement("button");el.className="aopt";
-      el.innerHTML=`<span class="a-play">▶</span><span class="wave"></span>
+      el.innerHTML=`<span class="a-play">▶</span>
+        <span class="a-main"><span class="a-title">${esc(o.t)}</span>${o.d?`<span class="a-desc">${esc(o.d)}</span>`:""}</span>
+        <span class="wave"></span>
         <span class="a-meta"><span class="a-state"></span><span class="a-no">CH-0${k+1}</span><span class="a-dur">--:--</span></span>`;
       const w=el.querySelector(".wave");
       for(let j=0;j<16;j++){const b=document.createElement("i");b.style.height=(10+Math.random()*15)+"%";w.appendChild(b);}
@@ -1275,10 +1282,11 @@ function renderQAudio(c,q,back,i){
         audio=QUIZ_AUDIO_CACHE[o.src]||new Audio(o.src);
         audio.preload="auto";
         if(!QUIZ_AUDIO_CACHE[o.src]){QUIZ_AUDIO_CACHE[o.src]=audio;audio.load();}
-        const upd=()=>{const d=el.querySelector(".a-dur");if(d&&isFinite(audio.duration))d.textContent=fmtQ(audio.duration);};
-        audio.addEventListener("loadedmetadata",upd);
-        audio.addEventListener("error",()=>{const s=el.querySelector(".a-state");if(s)s.textContent="✕ 加载失败";});
-        upd(); /* 已缓存且元数据就绪时直接显示时长 */
+        audio.onloadedmetadata=()=>{const d=el.querySelector(".a-dur");if(d&&isFinite(audio.duration))d.textContent=fmtQ(audio.duration);};
+        audio.onerror=()=>{const s=el.querySelector(".a-state");if(s)s.textContent="✕ 加载失败";};
+        audio.oncanplaythrough=null; /* 每渲染清一次，防旧监听 */
+        audio.onended=null;
+        if(audio.readyState>=1&&isFinite(audio.duration)){const d=el.querySelector(".a-dur");if(d)d.textContent=fmtQ(audio.duration);}
       }
       const p={el,audio,timer:null};
       players.push(p);
@@ -1287,24 +1295,29 @@ function renderQAudio(c,q,back,i){
         if(current===p){stopAll();$("qa-ok").disabled=true;return;}  /* 再点 = 暂停 */
         stopAll();current=p;
         el.classList.add("playing");el.querySelector(".a-play").textContent="■";
-        const st=el.querySelector(".a-state");st.textContent="◉ PLAYING";
+        const st=el.querySelector(".a-state");
         if(audio){
-          const tryPlay=()=>audio.play().catch(()=>{
-            /* 移动端常见：数据未就绪/被限制预加载 → 手势内重新加载再播 */
+          if(audio.readyState>=3){  /* 已缓冲到可播放：直接播 */
+            st.textContent="◉ PLAYING";
+            audio.play().catch(()=>{});
+          }else{  /* 数据未就绪：等待缓冲完成自动续播，绝不重复 load() */
             st.textContent="◉ LOADING…";
-            audio.load();
-            audio.addEventListener("canplay",function h(){
-              audio.removeEventListener("canplay",h);
-              if(current===p&&el.classList.contains("playing"))audio.play().catch(()=>{});
-            },{once:true});
-          });
-          tryPlay();
+            audio.play().catch(()=>{
+              audio.oncanplaythrough=function h(){
+                audio.oncanplaythrough=null;
+                if(current===p&&el.classList.contains("playing")){
+                  st.textContent="◉ PLAYING";
+                  audio.play().catch(()=>{});
+                }
+              };
+            });
+          }
+          audio.onended=()=>{if(current===p)stopAll();};
         }
         p.timer=setInterval(()=>{
           if(!el.isConnected){clearInterval(p.timer);p.timer=null;return;}
           el.querySelectorAll(".wave i").forEach(b=>{if(Math.random()<.85)b.style.height=(12+Math.random()*82)+"%";});
         },110);
-        if(audio)audio.onended=()=>{if(current===p)stopAll();};
         $("qa-ok").disabled=false;
       };
       box.appendChild(el);
