@@ -754,6 +754,13 @@ textarea{resize:vertical;min-height:64px}
   .qmeta{font-size:11px;letter-spacing:.15em}
   .nav-row{margin-top:32px}
 }
+/* 触屏设备：禁用粘性 hover（防止"没点就亮"） */
+@media (hover: none), (pointer: coarse){
+  .opt:hover,.opt.kbf{border-left-color:transparent;color:var(--txt);background:none;padding-left:18px}
+  .opt:hover .idx,.opt.kbf .idx{color:var(--ph-dim)}
+  .opt:hover .arr,.opt.kbf .arr{opacity:0;transform:translateX(-6px)}
+  .aopt:hover:not(.locked){border-color:var(--line);background:var(--ph-faint)}
+}
 @media(prefers-reduced-motion:reduce){
   .qcard.enter,.qcard.leave,.stamp,.opt{animation:none!important}
   .opt{opacity:1!important;transform:none!important}
@@ -1258,7 +1265,12 @@ function renderQAudio(c,q,back,i){
       const w=el.querySelector(".wave");
       for(let j=0;j<16;j++){const b=document.createElement("i");b.style.height=(10+Math.random()*15)+"%";w.appendChild(b);}
       let audio=null;
-      if(o.src){audio=new Audio(o.src);audio.preload="auto";audio.addEventListener("loadedmetadata",()=>{const d=el.querySelector(".a-dur");if(d)d.textContent=fmtQ(audio.duration);});}
+      if(o.src){
+        audio=new Audio(o.src);
+        audio.preload="auto";
+        audio.addEventListener("loadedmetadata",()=>{const d=el.querySelector(".a-dur");if(d)d.textContent=fmtQ(audio.duration);});
+        audio.addEventListener("error",()=>{const s=el.querySelector(".a-state");if(s)s.textContent="✕ 加载失败";});
+      }
       const p={el,audio,timer:null};
       players.push(p);
       el.onclick=()=>{
@@ -1266,8 +1278,19 @@ function renderQAudio(c,q,back,i){
         if(current===p){stopAll();$("qa-ok").disabled=true;return;}  /* 再点 = 暂停 */
         stopAll();current=p;
         el.classList.add("playing");el.querySelector(".a-play").textContent="■";
-        el.querySelector(".a-state").textContent="◉ PLAYING";
-        if(audio)audio.play().catch(()=>{});
+        const st=el.querySelector(".a-state");st.textContent="◉ PLAYING";
+        if(audio){
+          const tryPlay=()=>audio.play().catch(()=>{
+            /* 移动端常见：数据未就绪/被限制预加载 → 手势内重新加载再播 */
+            st.textContent="◉ LOADING…";
+            audio.load();
+            audio.addEventListener("canplay",function h(){
+              audio.removeEventListener("canplay",h);
+              if(current===p&&el.classList.contains("playing"))audio.play().catch(()=>{});
+            },{once:true});
+          });
+          tryPlay();
+        }
         p.timer=setInterval(()=>{
           if(!el.isConnected){clearInterval(p.timer);p.timer=null;return;}
           el.querySelectorAll(".wave i").forEach(b=>{if(Math.random()<.85)b.style.height=(12+Math.random()*82)+"%";});
@@ -1358,53 +1381,72 @@ function renderJudging(){
   c.querySelector("#qsig").innerHTML=sigHtml;
   const bars=[...c.querySelectorAll("#qsig i")];let sk=0;
   const sigT=setInterval(()=>{bars.forEach(b=>b.classList.remove("on"));for(let j=0;j<=sk%9;j++)bars[(sk-j+9)%9].classList.add("on");sk++;},110);
-  const LOG=[
-    [["> 载入答卷数据 ......... OK","lok"],["> 作答时长总计 00:0█:██","lo"]],
-    [["> 提取语义特征 ██████████ 100%","lok"],["> 匹配历史档案库 ....... 2 条相似记录","lo"]],
-    [["> 分析中…","lo"],["> 分析中……","lo"],["> 分析中………","lo"]],
-    [["> 分析中… 分析中… 分析中…","lam"],["> 冲突项：部分作答呈逆向倾向","lo"]],
-    [["> ⚠ 检测到非典型应答模式","lwarn"],["> 正在与『时隙之间』核对参照系 ……","lo"]],
-    [["> 无响应（预期之内）","ler"],["> 改用备用基准继续计算","lo"]],
-    [["> 分析中………………","lam"],["> 分析中……………………","lam"]],
-    [["> 权重收敛完毕","lok"],["> 归属阈值突破 —— 唯一分区确定","lok"]],
-  ];
-  const special=computeResult();
+  const res=computeResult();
+  const reason=res.special?(res.reason||"tie"):"ok";
+  /* 四种结局各自的日志脚本 */
+  const SCRIPTS={
+    ok:[
+      [["> 载入答卷数据 ......... OK","lok"],["> 作答时长总计 00:0█:██","lo"]],
+      [["> 提取语义特征 ██████████ 100%","lok"],["> 匹配历史档案库 ....... 2 条相似记录","lo"]],
+      [["> 分析中…","lo"],["> 分析中……","lo"],["> 分析中………","lo"]],
+      [["> 冲突项：无  全部作答一致收敛","lok"]],
+      [["> 权重分析完毕","lok"],["> 唯一分区确定","lok"]],
+    ],
+    god:[
+      [["> 载入答卷数据 ......... OK","lok"],["> 提取语义特征 ██████████ 100%","lok"]],
+      [["> 分析中………………","lam"],["> 分析中……………………","lam"]],
+      [["> ⚠ 检测到超出定义域的信号源","lwarn"],["> 无法解析该应答的语义结构","ler"]],
+      [["> 该回答不属于本系统可处理的范围","ler"],["> 正在移交前台部门……","lam"]],
+      [["> 移交完成 —— 此案例将由前台员工单独处理","lam"]],
+    ],
+    fast:[
+      [["> 载入答卷数据 ......... OK","lok"],["> 作答时长 00:0█:██ —— 低于正常区间","lwarn"]],
+      [["> ⚠ 检测到作答速度异常","lwarn"],["> 采样不足以形成有效特征","ler"]],
+      [["> 建议重新填写问卷后再行判定","lo"],["> 移交人工队列 …… 已受理","lam"]],
+    ],
+    tie:[
+      [["> 载入答卷数据 ......... OK","lok"],["> 提取语义特征 ██████████ 100%","lok"]],
+      [["> 分析中… 分析中… 分析中…","lam"]],
+      [["> ⚠ 检测到非典型应答模式","lwarn"],["> 正在核对参照系 ……","lo"]],
+      [["> 无响应（预期之内）","ler"],["> 警告：置信度不足 (31% < 60%)","lwarn"]],
+      [["> 特征组合超出已知分区定义域","lwarn"],["> 移交人工队列 …… 已受理","lam"]],
+    ],
+  };
   (async()=>{
-    for(const lines of LOG){
+    for(const lines of (SCRIPTS[reason]||SCRIPTS.tie)){
       lines.forEach(([t,c2])=>{const d=document.createElement("div");d.className=c2;d.textContent=t;box.appendChild(d);while(box.children.length>10)box.removeChild(box.firstChild);});
       await sleep(lines.length*260+120);
     }
-    if(special.special){
-      const extra=[];
-      if(QUIZ_TOOFAST)extra.push(["> ⚠ 检测到作答速度异常 —— 系统无法采信该结果","lwarn"]);
-      extra.push(
-        ["> 警告：置信度不足 (31% < 60%)","lwarn"],
-        ["> 尝试强制收敛 …… 失败","ler"],
-        ["> 再次尝试强制收敛 …… 失败","ler"],
-        ["> 特征组合超出已知分区定义域","lwarn"],
-        ["> 移交人工队列 …… 已受理","lam"]
-      );
-      for(const [t,c2] of extra){
-        const d=document.createElement("div");d.className=c2;d.textContent=t;box.appendChild(d);
-        while(box.children.length>10)box.removeChild(box.firstChild);
-        await sleep(420);
-      }
-      pulseFlash("rgba(200,90,74,.16)",260);
-      await sleep(800);
+    clearInterval(sigT);
+    bars.forEach(b=>b.classList.remove("on"));
+    /* 各结局不同的收尾爆闪 */
+    if(reason==="ok"){
       document.body.style.filter="brightness(.15)";
-      await sleep(650);
-      document.body.style.filter="";
-    }else{
-      clearInterval(sigT);
-      bars.forEach(b=>b.classList.remove("on"));
-      document.body.style.filter="brightness(.15)";
-      await sleep(500);
+      await sleep(480);
       document.body.style.filter="";
       pulseFlash("rgba(255,240,200,.85)",70);
       try{document.body.animate([{transform:"translateX(0)"},{transform:"translateX(-9px)"},{transform:"translateX(7px)"},{transform:"translateX(0)"}],{duration:200});}catch(e){}
+    }else if(reason==="god"){
+      pulseFlash("rgba(200,90,74,.18)",340);
+      await sleep(420);
+      document.body.style.filter="brightness(.15)";
+      await sleep(760);
+      document.body.style.filter="";
+      pulseFlash("rgba(232,176,75,.2)",240);
+    }else if(reason==="fast"){
+      pulseFlash("rgba(232,176,75,.18)",130);
+      await sleep(150);
+      pulseFlash("rgba(232,176,75,.14)",110);
+      await sleep(300);
+      pulseFlash("rgba(200,90,74,.12)",160);
+    }else{ /* tie */
+      pulseFlash("rgba(200,90,74,.16)",260);
+      await sleep(700);
+      document.body.style.filter="brightness(.15)";
+      await sleep(620);
+      document.body.style.filter="";
     }
-    clearInterval(sigT);
-    QUIZ_RESULT=special;
+    QUIZ_RESULT=res;
     QUIZ_STEP++;
     quizShow(false);
   })();
@@ -1414,7 +1456,6 @@ function computeResult(){
   /* 隐藏规则：作答总时长 < 30 秒 = 全程瞎点 → 无结果 */
   const elapsed = QUIZ_T0 ? Date.now() - QUIZ_T0 : -1;
   QUIZ_TOOFAST = elapsed >= 0 && elapsed < 30000;
-  if (QUIZ_TOOFAST) return { name: null, special: true };
   const scores={};D.zones.forEach(z=>scores[z.name]=0);
   let space=0;   /* 太空选项计数：夜空与星辰之间 / 坐上飞船 / 浮空巨构 */
   QUIZ_LIST.forEach((q,idx)=>{
@@ -1426,8 +1467,10 @@ function computeResult(){
     (o.x||[]).forEach(z=>{QUIZ_EXCLUDES[z]=true;});
     for(const z in (o.s||{}))scores[z]=(scores[z]||0)+o.s[z];
   });
+  /* reason 优先级：force > 我是神 > 作答过快 > 并列/零分 */
   if(QUIZ_FORCE)return {name:QUIZ_FORCE,special:false};
-  if(QUIZ_SPECIAL)return {name:null,special:true};
+  if(QUIZ_SPECIAL)return {name:null,special:true,reason:"god"};
+  if(QUIZ_TOOFAST)return {name:null,special:true,reason:"fast"};
   /* 科幻双区判定：科幻区总分最高（冠军落在电子囚笼/激光停泊）时，
      太空选项选≥2个=激光停泊，≤1个=电子囚笼 */
   const scifiPick=z=>z==="激光停泊"||z==="电子囚笼";
@@ -1435,14 +1478,14 @@ function computeResult(){
   for(const z in scores){if(QUIZ_EXCLUDES[z])continue;order.push([z,scores[z]]);}
   order.sort((a,b)=>b[1]-a[1]);
   const top=order[0];
-  if(!top||top[1]<=0)return {name:null,special:true};
+  if(!top||top[1]<=0)return {name:null,special:true,reason:"tie"};
   /* 并列：科幻对并列由太空选项定夺；魔法×科幻对位→浮点终端；其余待分配 */
   if(order.length>1&&order[1][1]===top[1]&&top[1]>0){
     if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
     const FANT=["术法阵列","缸中之魂","浮点终端"],SCIF=["电子囚笼","激光停泊"];
     if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
       return {name:"浮点终端",special:false};
-    return {name:null,special:true};
+    return {name:null,special:true,reason:"tie"};
   }
   /* 单冠军：落在科幻双区则用太空选项数定夺 */
   if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
