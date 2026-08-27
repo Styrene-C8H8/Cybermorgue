@@ -66,7 +66,7 @@ body{
   31%{opacity:.03} 32%{opacity:.012} 64%{opacity:.045} 65%{opacity:.015}
 }
 @media (prefers-reduced-motion: reduce) {
-  .crt-flicker, .ticker-track, .hero-scroll, #boot-enter { animation: none !important; }
+  .crt-flicker, .hero-scroll, #boot-enter { animation: none !important; }
   .radar .sweep, .compass-ring, .radar .blip { animation: none !important; }
   * { scroll-behavior: auto !important; }
 }
@@ -367,9 +367,11 @@ textarea{resize:vertical;min-height:64px}
 
 /* ===== 员工终端 ===== */
 .term{max-width:1200px;margin:0 auto;padding:10px 0 60px}
-.statbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
-  border:1px solid var(--line);padding:5px 14px;font-size:14px;
-  color:var(--ph-dim);letter-spacing:.15em;background:var(--panel);margin-bottom:18px}
+.statbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;gap:10px;
+  border:1px solid var(--line);padding:4px 12px;font-size:11.5px;
+  color:var(--ph-dim);letter-spacing:.08em;background:var(--panel);margin-bottom:18px;
+  white-space:nowrap;overflow:hidden}
+.statbar span{flex:0 0 auto}
 .statbar b{color:var(--ph);font-weight:400}
 .statbar i{font-style:normal;color:var(--cy)}
 .statbar .logout{color:var(--red);cursor:pointer}
@@ -608,6 +610,180 @@ textarea{resize:vertical;min-height:64px}
 }
 @media(max-width:700px){.coordbox,.radar-tag{display:none}.map3d{min-height:360px}}
 
+/* ================= 深度登记问卷（参考 Code/问卷参考.html + 音频选项格式参考 + 结果动画.html） ================= */
+#quizApp{min-height:56vh;display:flex;flex-direction:column;justify-content:center;padding-top:26px}
+.gauge{margin-top:14px}
+.qmeta{display:flex;justify-content:space-between;font-size:14px;color:var(--ph-dim);
+  letter-spacing:.3em;margin-bottom:10px;font-family:var(--disp)}
+.pbar{position:absolute;top:-26px;left:0;height:2px;background:var(--ph);
+  box-shadow:0 0 12px var(--ph);width:0;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.qcard{position:relative;display:flex;flex-direction:column;justify-content:center}
+.qcard.enter{animation:qIn .6s cubic-bezier(.2,.7,.25,1) both}
+.qcard.leave{animation:qOut .4s steps(6) both;pointer-events:none}
+@keyframes qIn{0%{opacity:0;transform:translateY(30px) scale(.985);filter:brightness(2.2) blur(4px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes qOut{0%{opacity:1}22%{opacity:.9;transform:translateX(-10px) skewX(-6deg)}24%{transform:translateX(8px) skewX(4deg)}100%{opacity:0;transform:translateX(-40px) skewX(-10deg);filter:brightness(.4)}}
+.q-no{font-family:var(--disp);font-size:19px;color:var(--cy);letter-spacing:.35em;margin-bottom:14px}
+.q-text{font-family:'Noto Sans SC',sans-serif;font-weight:300;font-size:clamp(21px,3.2vw,32px);
+  line-height:1.55;color:var(--amber);letter-spacing:.06em;margin-bottom:40px;white-space:pre-line;
+  text-shadow:0 0 22px rgba(232,180,94,.25)}
+.q-text .caret{display:inline-block;width:.55em;height:1.05em;background:var(--ph);
+  vertical-align:-4px;margin-left:4px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.opts{display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .4s .1s}
+.opts.ready{opacity:1}
+.opt{display:flex;align-items:center;gap:16px;text-align:left;width:100%;
+  background:none;border:none;border-left:2px solid transparent;color:var(--txt);
+  font-family:var(--mono);font-size:clamp(14.5px,1.8vw,17.5px);line-height:1.6;
+  padding:12px 18px;cursor:pointer;opacity:0;transform:translateY(10px);
+  transition:border-color .18s,color .18s,padding .18s,background .18s}
+.opt.show{opacity:1;transform:none;transition:opacity .4s,transform .4s,border-color .18s,color .18s,padding .18s,background .18s}
+.opt .idx{font-family:var(--disp);font-size:18px;color:var(--ph-dim);flex-shrink:0;letter-spacing:.1em}
+.opt .arr{margin-left:auto;color:var(--ph);opacity:0;transform:translateX(-6px);transition:all .22s}
+.opt:hover,.opt.kbf{border-left-color:var(--ph);color:var(--amber);
+  background:linear-gradient(90deg,var(--ph-faint),transparent 70%);padding-left:26px}
+.opt:hover .idx,.opt.kbf .idx{color:var(--ph)}
+.opt:hover .arr,.opt.kbf .arr{opacity:1;transform:none}
+.kbd-hint{margin-top:26px;font-size:12px;color:var(--ph-dim);letter-spacing:.25em;opacity:0;transition:opacity .6s .6s}
+.kbd-hint.ready{opacity:.7}
+.blank-wrap{display:flex;flex-direction:column;gap:20px}
+.blank-input{align-self:flex-start;width:min(520px,82vw);font-family:var(--mono);
+  font-size:clamp(18px,2.3vw,23px);color:var(--amber);background:none;border:none;
+  border-bottom:1px solid var(--line);padding:6px 4px;outline:none;line-height:2}
+.blank-input:focus{border-bottom-color:var(--ph);box-shadow:0 14px 26px -18px rgba(217,164,74,.6)}
+.blank-input::placeholder{color:var(--ph-dim);opacity:.55}
+.blank-note{font-size:13px;color:var(--ph-dim);letter-spacing:.15em}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:40px;gap:14px}
+.nbtn{font-family:var(--mono);font-size:15px;letter-spacing:.25em;background:none;
+  border:1px solid var(--line);color:var(--ph-dim);padding:9px 24px;cursor:pointer;transition:all .2s}
+.nbtn:hover:not(:disabled){border-color:var(--ph);color:var(--ph)}
+.nbtn:disabled{opacity:.25;cursor:default}
+.nbtn.primary{border-color:var(--ph);color:var(--ph);background:var(--ph-faint)}
+.nbtn.primary:hover:not(:disabled){background:var(--ph);color:#000;box-shadow:0 0 24px rgba(217,164,74,.4)}
+.gate-card{text-align:center;display:flex;flex-direction:column;align-items:center}
+.gate-card .en{color:var(--ph-dim);font-size:13px;letter-spacing:.55em;margin-bottom:22px}
+.gate-card h1{font-family:var(--disp);font-size:clamp(34px,6.8vw,72px);color:var(--ph);
+  line-height:1.05;letter-spacing:.12em;text-shadow:0 0 30px rgba(217,164,74,.4);margin-bottom:24px;
+  min-height:1em;transform-style:preserve-3d;transition:transform .18s ease-out}
+.gate-card h1 .ch{display:inline-block;opacity:0;transition:opacity .4s ease}
+.gate-card p{max-width:36em;color:var(--txt);line-height:2.1;font-family:'Noto Sans SC',sans-serif;
+  font-weight:300;white-space:pre-line}
+.bigbtn{margin-top:44px;font-family:var(--disp);font-size:22px;letter-spacing:.3em;background:none;
+  border:1px solid var(--ph);color:var(--ph);padding:14px 54px;cursor:pointer;transition:all .25s}
+.bigbtn:hover{background:var(--ph);color:#000;box-shadow:0 0 40px rgba(217,164,74,.5)}
+/* ---- 音频题（参考 音频选项格式参考） ---- */
+.aopts{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.aopt{display:flex;align-items:center;gap:16px;background:var(--ph-faint);
+  border:1px solid var(--line);padding:11px 18px;cursor:pointer;text-align:left;width:100%;
+  color:var(--txt);font-family:var(--mono);font-size:15px;opacity:0;transform:translateY(10px);
+  transition:border-color .2s,background .2s,opacity .4s,transform .4s}
+.aopt.show{opacity:1;transform:none}
+.aopt:hover:not(.locked){border-color:var(--ph-dim);background:rgba(217,164,74,.1)}
+.aopt.playing{border-color:var(--ph);box-shadow:0 0 22px rgba(217,164,74,.25),inset 0 0 18px rgba(217,164,74,.06)}
+.aopt.chosen{border-color:var(--ok);background:rgba(127,191,127,.05)}
+.aopt.chosen .a-play{color:var(--ok)}
+.aopt.locked:not(.playing):not(.chosen){opacity:.28}
+.a-play{flex-shrink:0;width:38px;height:38px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--ph);
+  font-size:15px;background:none;border-radius:50%;transition:all .2s;line-height:1;padding:0}
+.aopt:not(.playing) .a-play{text-indent:2px}
+.aopt.playing .a-play{animation:pBreath 1.2s ease-in-out infinite}
+@keyframes pBreath{50%{box-shadow:0 0 14px rgba(217,164,74,.6)}}
+.wave{flex:1;display:flex;align-items:flex-end;gap:3px;height:28px;min-width:80px;max-width:170px}
+.wave i{flex:1;height:15%;background:var(--ph-dim);opacity:.5;transition:height .12s}
+.aopt.playing .wave i{background:var(--ph);opacity:.95}
+.aopt.chosen .wave i{background:var(--ok);height:20%!important;transition:height .6s}
+.a-meta{display:flex;flex-direction:column;align-items:flex-end;line-height:1.4;min-width:80px}
+.a-no{color:var(--ph-dim);font-size:13px;letter-spacing:.25em}
+.a-dur{font-size:13px;color:var(--txt);opacity:.65}
+.a-state{font-size:11.5px;letter-spacing:.3em;color:var(--ph);height:1.2em}
+/* ---- 判定仪表（参考 结果动画.html） ---- */
+.judging .en-lab,.judging .gate-card,.judging .bigbtn{display:none}
+.gauge{display:none;flex-direction:column;align-items:center;gap:22px;width:min(620px,94vw)}
+.j-status{font-size:24px;letter-spacing:.35em;color:var(--ph)}
+.j-status i{font-style:normal;animation:jblink .5s steps(1) infinite}
+@keyframes jblink{50%{opacity:.15}}
+.signalbars{display:flex;gap:7px;align-items:flex-end;height:26px}
+.signalbars i{width:9px;background:var(--ph-dim);opacity:.5;transition:all .12s}
+.signalbars i.on{background:var(--ph);opacity:1;box-shadow:0 0 9px var(--ph)}
+.logwin{width:100%;height:210px;border:1px solid var(--line);background:var(--panel);
+  text-align:left;overflow:hidden;padding:10px 16px;position:relative}
+.logwin::before,.logwin::after{content:"";position:absolute;width:12px;height:12px}
+.logwin::before{top:-1px;left:-1px;border-top:2px solid var(--ph);border-left:2px solid var(--ph)}
+.logwin::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--ph);border-right:2px solid var(--ph)}
+.logwin .lw-head{color:var(--ph-dim);font-size:12px;letter-spacing:.3em;
+  border-bottom:1px dashed var(--line);padding-bottom:5px;margin-bottom:6px}
+#jlog div{font-size:14.5px;line-height:1.9;letter-spacing:.05em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+#jlog .lo{color:var(--txt)} #jlog .lok{color:var(--ok)}
+#jlog .ler{color:var(--red)} #jlog .lam{color:var(--ph)}
+#jlog .lwarn{color:var(--red);text-shadow:0 0 8px rgba(200,90,74,.5)}
+#flicker{position:fixed;inset:0;z-index:800;pointer-events:none;background:none}
+/* ---- 宣判结果卡 ---- */
+.verdict{display:none;flex-direction:column;align-items:center;animation:vIn .5s cubic-bezier(.2,.8,.3,1) both}
+.verdict.show{display:flex}
+@keyframes vIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}
+.stamp{padding:6px 24px;border:2px solid var(--red);color:var(--red);font-size:22px;
+  letter-spacing:.3em;transform:rotate(-4deg);animation:stampIn .32s cubic-bezier(.3,1.6,.6,1) both .55s}
+@keyframes stampIn{from{opacity:0;transform:rotate(-4deg) scale(2.6)}to{opacity:.92;transform:rotate(-4deg) scale(1)}}
+.z-en{color:var(--ph-dim);font-size:14px;letter-spacing:.6em;margin-top:28px;text-indent:.6em}
+.z-name{font-size:clamp(42px,8.5vw,88px);color:var(--ph);letter-spacing:.18em;line-height:1.1;
+  text-shadow:0 0 34px rgba(217,164,74,.5);margin:8px 0 4px;font-family:var(--disp)}
+.z-tag{color:var(--txt);opacity:.65;font-family:'Noto Sans SC',sans-serif;font-weight:300;
+  font-size:16px;letter-spacing:.35em}
+.z-card{width:min(600px,94vw);margin-top:32px;border:1px solid var(--line);
+  background:var(--panel);padding:18px 24px;text-align:left;position:relative}
+.z-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ph)}
+.z-card .zc-h{display:flex;justify-content:space-between;color:var(--ph-dim);
+  font-size:12.5px;letter-spacing:.25em;border-bottom:1px dashed var(--line);padding-bottom:7px;margin-bottom:10px}
+.z-card .zc-h b{color:var(--ph);font-weight:400}
+.z-card p{font-size:15.5px;line-height:2.05;color:var(--txt);font-family:'Noto Sans SC',sans-serif;font-weight:300}
+.z-card em{font-style:normal;color:var(--ph)}
+.decree{margin-top:30px;font-size:clamp(17px,2.4vw,21px);color:var(--txt);
+  letter-spacing:.14em;font-family:var(--mono);line-height:2.1;text-align:center}
+.decree b{color:var(--ph);font-weight:400;text-shadow:0 0 16px rgba(217,164,74,.6);padding:0 4px}
+.decree .dec-hl{color:var(--red);font-weight:400;text-shadow:0 0 14px rgba(200,90,74,.5)}
+.verdict-btns{display:flex;gap:16px;margin-top:44px;flex-wrap:wrap;justify-content:center}
+.verdict-btns .bigbtn{margin-top:0}
+/* 特殊结局（待分配）：红虚线挂起单 */
+.verdict.special .stamp{border-color:var(--red);content:"PENDING"}
+.verdict.special .z-card{border-style:dashed;border-color:rgba(200,90,74,.5)}
+.verdict.special .z-card::before{background:var(--red)}
+.verdict.special .zc-h b{color:var(--red)}
+.verdict.special .z-name{text-shadow:0 0 34px rgba(200,90,74,.45)}
+@media(max-width:600px){
+  .qmeta{font-size:11px;letter-spacing:.15em}
+  .nav-row{margin-top:32px}
+}
+@media(prefers-reduced-motion:reduce){
+  .qcard.enter,.qcard.leave,.stamp,.opt{animation:none!important}
+  .opt{opacity:1!important;transform:none!important}
+}
+
+/* ---- 系统弹窗（参考档案页 syspop，感谢提交用） ---- */
+.syspop{width:min(420px,92vw);margin:44px auto 0;background:var(--panel);position:relative;
+  border:1px solid var(--line);box-shadow:0 24px 70px -16px rgba(217,164,74,.35),0 0 40px rgba(0,0,0,.8);
+  animation:spFadeUp .5s cubic-bezier(.2,.7,.2,1) both}
+.syspop::before,.syspop::after,.syspop .c3,.syspop .c4{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+.syspop::before{top:-1px;left:-1px;border-top:2px solid var(--ph);border-left:2px solid var(--ph)}
+.syspop::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--ph);border-right:2px solid var(--ph)}
+.syspop .c3{top:-1px;right:-1px;border-top:2px solid var(--ph);border-right:2px solid var(--ph)}
+.syspop .c4{bottom:-1px;left:-1px;border-bottom:2px solid var(--ph);border-left:2px solid var(--ph)}
+.sp-head{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px dashed var(--line);
+  color:var(--ph);font-size:15px;letter-spacing:.35em;background:var(--ph-faint)}
+.sp-dot{width:8px;height:8px;border-radius:50%;background:var(--ph);box-shadow:0 0 8px var(--ph);animation:spPul 1.2s infinite}
+@keyframes spPul{50%{opacity:.35}}
+.sp-head small{margin-left:auto;color:var(--ph-dim);font-size:12px;letter-spacing:.2em}
+.sp-body{padding:20px 22px 6px;text-align:center}
+.sp-body p{font-size:17px;line-height:2}
+.sp-code{margin-top:10px;color:var(--ph-dim);font-size:12.5px;letter-spacing:.25em;font-family:var(--disp);opacity:.75}
+.sp-btns{display:flex;border-top:1px dashed var(--line);margin-top:16px}
+.sp-btn{flex:1;padding:11px 0;font-family:var(--mono);font-size:15.5px;letter-spacing:.25em;
+  background:none;border:none;cursor:pointer;color:var(--ph-dim);transition:all .18s}
+.sp-btn:hover{color:var(--ph);background:var(--ph-faint)}
+.sp-btn.main{color:var(--ph)}
+.sp-btn.main:hover{background:var(--ph);color:#000}
+@keyframes spFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
 /* 瞄准光标（桌面端） */
 body.has-cc, body.has-cc * { cursor: none !important; }
 body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc input[type="email"], body.has-cc input[type="password"], body.has-cc textarea { cursor: text !important; }
@@ -630,7 +806,7 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
   .hello{justify-content:center;text-align:center;flex-direction:column}
   .mi .desc{display:none}
   .hello .sysinfo{display:none}
-  .statbar{font-size:12.5px;gap:4px}
+  .statbar{font-size:10px;gap:5px;letter-spacing:.04em;padding:3px 8px}
   .cs-sub{gap:14px;letter-spacing:.18em}
   .term{padding:6px 0 46px}
 }
@@ -642,8 +818,8 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
   .hello h1{font-size:26px}
 }
 
-/* ---------- 大标题 hover：向鼠标倾斜（3D） ---------- */
-.hero h1 { transition: transform .18s ease-out; transform-style: preserve-3d; }
+/* ---------- 大标题 hover：向鼠标倾斜（3D，分层景深） ---------- */
+.hero h1, .hero-tag, .hero-sub { transition: transform .18s ease-out; transform-style: preserve-3d; }
 
 /* 返回键（页眉下方） */
 #vback{
@@ -705,7 +881,14 @@ footer .cp{max-width:640px;margin:6px auto 0;opacity:.75}
 .thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
 .thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
 .thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
 </style>
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/base.js"></script>
 </head>
 <body>
 
@@ -792,6 +975,26 @@ footer .cp{max-width:640px;margin:6px auto 0;opacity:.75}
 <footer id="footer"></footer>
 
 <script>
+/* 启动诊断：页面脚本若有未捕获错误（含语法错误），显示在 boot 屏上便于排查 */
+window.addEventListener("error", function (ev) {
+  try {
+    var b = document.getElementById("boot");
+    if (b && !b.dataset.err) {
+      b.dataset.err = "1";
+      b.style.cursor = "pointer";
+      b.innerHTML = '<div style="color:var(--red);font-size:15px;white-space:pre-wrap">SCRIPT ERROR<br>' + String(ev.message || ev.error || "unknown") + '</div>' +
+        '<div style="color:var(--ph-dim);margin-top:10px">— 点击任意处继续 —</div>';
+      b.onclick = function () {
+        try { sessionStorage.setItem("cm-booted", "1"); } catch (e) {}
+        b.remove();
+        document.body.classList.add("powering");
+        if (typeof startHero === "function") startHero();
+      };
+    }
+  } catch (e) {}
+});
+</script>
+<script>
 const DATA = "./Cybermorgue-档案主页.data.json";
 let D = null, view = "home", backTo = "home";
 const zonesSel = new Set();
@@ -843,49 +1046,469 @@ function renderMain() {
     ${D.home.copyright ? `<div class="cp">${esc(D.home.copyright)}</div>` : ""}`;
 }
 
-function formHtml() {
-  const radio = (q, i) => `<div class="frow2"><div class="flabel">${esc(q)}</div>
-      <div class="fradio">
-        <label><input type="radio" name="chk${i}" value="是"> 是</label>
-        <label><input type="radio" name="chk${i}" value="否" checked> 否</label>
-      </div></div>`;
-  const field = f => `<div class="frow2"><div class="flabel">${esc(f.label)}${f.required ? " *" : ""}</div>
-      ${f.type === "textarea"
-        ? `<textarea id="f-${esc(f.label)}" placeholder="${esc(f.placeholder)}"></textarea>`
-        : `<input id="f-${esc(f.label)}" type="${esc(f.type)}" placeholder="${esc(f.placeholder)}">`}
-    </div>`;
-  const chips = D.zones.filter(z => z.selectable !== false).map(z =>
-    `<button class="chip" data-zone="${esc(z.name)}" onclick="toggleZone(this.dataset.zone)">${esc(z.name)}<i> ${esc(z.en)}</i></button>`).join("");
-  const steps = [];
-  D.form.checks.forEach((c, i) => steps.push(radio(c.q, i)));
-  nameStep = 0;
-  D.form.fields.forEach(f => { steps.push(field(f)); if (f.required) nameStep = steps.length; });
-  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.zonesTitle)}</div>
-      <div class="chips">${chips}
-        <button class="chip none" id="chip-none" onclick="toggleZone('${esc(D.form.noneOption)}')">${esc(D.form.noneOption)}</button>
-      </div>
-      <button class="zone-link" onclick="show('zones','form')">${esc(D.form.viewZones)}</button>
-    </div>`);
-  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.knowsDead)}</div>
-      <input type="text" placeholder="${esc(D.form.knowsDeadPlaceholder)}"></div>`);
-  steps.push(`<div class="frow2"><div class="flabel">${esc(D.form.confirm)}</div>
-      <input type="text" placeholder="${esc(D.form.signPlaceholder)}"></div>`);
-  stepTotal = steps.length;
-  const indRow = steps.map((s, i) => {
-    const n = i + 1;
-    return `${i > 0 ? `<div class="step-connector" id="sc-${n}"><i class="sc-fill"></i></div>` : ""}
-      <button class="step-ind" id="si-${n}" onclick="stepGo(${n})" aria-label="Step ${n}"><span id="sic-${n}"></span></button>`;
-  }).join("");
-  return `<h1 class="ftitle">${esc(D.form.title)}</h1>
-    <div class="panel"><div class="stepper">
-      <div class="step-indicator-row">${indRow}</div>
-      <div class="step-content">${steps.map((s, i) => `<div class="step-panel" data-step="${i + 1}">${s}</div>`).join("")}</div>
-      <div class="step-footer">
-        <button class="step-back" id="step-back" onclick="stepBack()">◀ 上一步</button>
-        <button class="step-next" id="step-next" onclick="stepNext()">下一步</button>
-      </div>
-    </div></div>`;
+/* ================= 深度登记问卷（参考 Code/问卷参考.html + 音频选项格式参考 + 结果动画.html） ================= */
+let QUIZ_LIST = [];         /* 排序后的题目 */
+let QUIZ_ANSWERS = [];      /* 每题答案索引 */
+let QUIZ_NAME = "";         /* 姓名 */
+let QUIZ_EGG = null;        /* 姓名彩蛋命中 */
+let QUIZ_FORCE = null;      /* 直判分区 */
+let QUIZ_SPECIAL = false;   /* 特殊结局 */
+let QUIZ_EXCLUDES = {};     /* 剔除分区 */
+let QUIZ_STEP = -1;         /* -1 开场 → 0..n-1 题目 → n 判定 → n+1 结果 → n+2 签字 */
+let QUIZ_KEY = null;        /* 键盘监听（防叠） */
+let QUIZ_RESULT = null;     /* {name, special} */
+let QUIZ_T0 = 0;            /* 问卷开始时间（隐藏规则：作答过快=瞎点） */
+let QUIZ_TOOFAST = false;   /* 作答过快标记 */
+
+function quizSorted(){
+  return (D.quiz.questions||[]).map((x,i)=>({ ...x, _i:i }))
+    .sort((a,b)=>{
+      const aw=a.type==="scare"||a.type==="name"?999:(a.w||1);
+      const bw=b.type==="scare"||b.type==="name"?999:(b.w||1);
+      return aw-bw || a._i-b._i;
+    });
 }
+/* 全局预加载音频题素材（防卡顿：进页面就开始缓冲） */
+function quizPreloadAudio(){
+  (D.quiz.questions||[]).forEach(q=>(q.opts||[]).forEach(o=>{
+    if(!o.src)return;
+    try{const a=new Audio(o.src);a.preload="auto";if(a.load)a.load();}catch(e){}
+  }));
+}
+function formHtml(){
+  QUIZ_LIST=quizSorted();
+  QUIZ_ANSWERS=[];QUIZ_NAME="";QUIZ_EGG=null;QUIZ_FORCE=null;QUIZ_SPECIAL=false;
+  QUIZ_EXCLUDES={};QUIZ_STEP=-1;QUIZ_RESULT=null;QUIZ_T0=0;QUIZ_TOOFAST=false;
+  return `<div class="qmeta">
+      <span>DEEP REGISTRATION // 深度登记程序</span>
+      <span id="qcount">STANDBY</span>
+    </div>
+    <div id="quizApp" style="position:relative">
+      <div class="pbar" id="pbar" style="top:0"></div>
+    </div>`;
+}
+
+/* ---------- 工具 ---------- */
+function typeInto(el,text,speed){
+  return new Promise(res=>{
+    el.textContent="";
+    let i=0;
+    (function step(){
+      el.textContent=text.slice(0,++i);
+      const ca=document.createElement("span");ca.className="caret";
+      el.appendChild(ca);
+      if(i<text.length)setTimeout(step,speed+Math.random()*speed*.7);
+      else{el.removeChild(ca);res();}
+    })();
+  });
+}
+function pulseFlash(color,ms){
+  let fl=$("flicker");
+  if(!fl){fl=document.createElement("div");fl.id="flicker";document.body.appendChild(fl);}
+  fl.style.transition="background .1s";fl.style.background=color;
+  setTimeout(()=>fl.style.background="none",ms);
+}
+function fmtQ(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");}
+function quizMeta(){
+  const n=QUIZ_LIST.length;
+  if(QUIZ_STEP<0){$("qcount").textContent="STANDBY";}
+  else if(QUIZ_STEP<n){$("qcount").textContent=String(QUIZ_STEP+1).padStart(2,"0")+" / "+String(n).padStart(2,"0");}
+  else if(QUIZ_STEP===n){$("qcount").textContent="JUDGING 判定中";}
+  else if(QUIZ_STEP===n+1){$("qcount").textContent="DONE 已归档";}
+  const pb=$("pbar");if(pb)pb.style.width=Math.min((QUIZ_STEP+1)/Math.max(1,n)*100,100)+"%";
+}
+
+/* ---------- 切换引擎 ---------- */
+function quizShow(anim=true){
+  const app=$("quizApp");if(!app)return;
+  const old=app.querySelector(".qcard");
+  const done=()=>{
+    if(old)old.remove();
+    const n=QUIZ_LIST.length;
+    if(QUIZ_STEP===-1)renderGate();
+    else if(QUIZ_STEP<n)renderQuestion(QUIZ_STEP);
+    else if(QUIZ_STEP===n)renderJudging();
+    else if(QUIZ_STEP===n+1)renderVerdict();
+    else renderSign();
+  };
+  quizMeta();
+  if(anim&&old){old.classList.add("leave");setTimeout(done,400);}else done();
+}
+function pickAnswer(i,k){
+  QUIZ_ANSWERS[i]=k;
+  QUIZ_STEP++;
+  quizShow();
+}
+
+/* ---------- 开场 ---------- */
+function renderGate(){
+  const g=D.quiz.gate;
+  const c=document.createElement("div");
+  c.className="qcard enter gate-card";
+  c.innerHTML=`<p class="en">${esc(g.en)}</p>
+    <h1 id="gate-title">${esc(g.title)}</h1>
+    <p>${esc(g.text)}</p>
+    <button class="bigbtn" id="gostart">${esc(g.start)}</button>`;
+  $("quizApp").appendChild(c);
+  /* 大标题：乱码解码动画（同主页/手册/索引） */
+  (function(){
+    const h=$("gate-title");if(!h)return;
+    const txt=h.textContent,chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#/*-+_";
+    h.textContent="";
+    const spans=[];
+    for(let i=0;i<txt.length;i++){
+      const s=document.createElement("span");s.className="ch";
+      s.style.transitionDelay=(i*40)+"ms";
+      s.textContent=txt[i]===" "?"\u00A0":txt[i];
+      h.appendChild(s);spans.push(s);
+    }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      spans.forEach(s=>{s.style.opacity=1;s.style.transition="opacity .3s";});
+    }));
+    const iv=setInterval(()=>{
+      const prog=Math.floor(performance.now()/40)-2;let all=true;
+      spans.forEach((s,i)=>{
+        if(i>=prog)return;
+        if(Math.random()<.25&&s.dataset.locked!=="1"){s.textContent=chars[Math.floor(Math.random()*chars.length)];all=false;}
+        else{s.dataset.locked="1";s.textContent=txt[i]===" "?"\u00A0":txt[i];}
+      });
+      if(all&&prog>txt.length){clearInterval(iv);spans.forEach((s,i)=>{s.textContent=txt[i]===" "?"\u00A0":txt[i];});}
+    },50);
+  })();
+  /* 3D 景深倾斜（同主页大标题） */
+  const ht=c.querySelector("#gate-title");
+  if(ht&&(!matchMedia("(hover: none)").matches)&&(!matchMedia("(prefers-reduced-motion: reduce)").matches)){
+    c.addEventListener("mousemove",e=>{
+      const r=c.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
+      ht.style.transform=`perspective(900px) rotateX(${(-py*5).toFixed(2)}deg) rotateY(${(px*5).toFixed(2)}deg)`;
+    });
+    c.addEventListener("mouseleave",()=>{ht.style.transform="";});
+  }
+  $("gostart").onclick=()=>{QUIZ_T0=Date.now();QUIZ_STEP=0;quizShow();};
+}
+
+/* ---------- 题目 ---------- */
+function renderQuestion(i){
+  const q=QUIZ_LIST[i];
+  const c=document.createElement("div");c.className="qcard enter";
+  $("quizApp").appendChild(c);
+  const back=`<div class="nav-row"><button class="nbtn" id="qb">◀ 回退</button><span style="flex:1"></span></div>`;
+  if(q.type==="audio")renderQAudio(c,q,back,i);
+  else if(q.type==="scare")renderQScare(c,q,back,i);
+  else if(q.type==="name")renderQName(c,q,back,i);
+  else renderQSingle(c,q,back,i);
+  const bk=c.querySelector("#qb");
+  if(bk)bk.onclick=()=>{ if(QUIZ_STEP<=0)return; QUIZ_ANSWERS[QUIZ_STEP]=undefined; QUIZ_STEP--; quizShow(); };
+}
+function bindKeys(c,opts,i){
+  let kf=0;
+  const paint=()=>opts.forEach((o,k)=>o.classList.toggle("kbf",k===kf));
+  /* 初始不高亮，按键后才显示 */
+  if(QUIZ_KEY){document.removeEventListener("keydown",QUIZ_KEY);QUIZ_KEY=null;}
+  const handler=e=>{
+    if(!document.body.contains(c)){document.removeEventListener("keydown",handler);QUIZ_KEY=null;return;}
+    if(e.key==="ArrowDown"){kf=(kf+1)%opts.length;paint();}
+    else if(e.key==="ArrowUp"){kf=(kf-1+opts.length)%opts.length;paint();}
+    else if(/^[1-9]$/.test(e.key)&&opts[+e.key-1]){kf=+e.key-1;paint();}
+    else if(e.key==="Enter"&&opts[kf])pickAnswer(i,kf);
+  };
+  QUIZ_KEY=handler;document.addEventListener("keydown",handler);
+}
+function renderQSingle(c,q,back,i){
+  c.innerHTML=`<div class="q-no">${esc("Q."+String(i+1).padStart(2,"0"))}</div>
+    <div class="q-text"></div>
+    <div class="opts">${q.opts.map((o,k)=>
+      `<button class="opt" data-k="${k}"><span class="idx">[${String(k+1).padStart(2,"0")}]</span><span>${esc(o.t)}</span><span class="arr">&gt;&gt;</span></button>`).join("")}</div>
+    <div class="kbd-hint">↑↓ 或数字键选择 · ENTER 确认</div>${back}`;
+  typeInto(c.querySelector(".q-text"),q.q,40).then(()=>{
+    const opts=[...c.querySelectorAll(".opt")];
+    c.querySelector(".opts").classList.add("ready");
+    opts.forEach((o,k)=>{o.classList.add("show");o.onclick=()=>pickAnswer(i,k);});
+    c.querySelector(".kbd-hint").classList.add("ready");
+    bindKeys(c,opts,i);
+  });
+}
+/* ---- 音频题（参考 音频选项格式参考） ---- */
+function renderQAudio(c,q,back,i){
+  c.innerHTML=`<div class="q-no">${esc("Q."+String(i+1).padStart(2,"0"))} · AUDITORY</div>
+    <div class="q-text"></div>
+    <div class="aopts"></div>
+    <div class="kbd-hint">${esc(q.hint||"// 点击 ▶ 试听")}</div>
+    <div class="nav-row"><button class="nbtn" id="qb">◀ 回退</button>
+      <button class="nbtn primary" id="qa-ok" disabled>确认此段 ▶</button></div>`;
+  typeInto(c.querySelector(".q-text"),q.q,40).then(()=>{
+    const box=c.querySelector(".aopts");
+    const players=[];let current=null,chosenK=-1;
+    function stopAll(){
+      players.forEach(p=>{
+        if(p.timer){clearInterval(p.timer);p.timer=null;}
+        try{if(p.audio){p.audio.pause();p.audio.currentTime=0;}}catch(e){}
+        p.el.classList.remove("playing");
+        p.el.querySelector(".a-play").textContent="▶";
+        p.el.querySelector(".a-state").textContent="";
+        p.el.querySelectorAll(".wave i").forEach(b=>b.style.height=(10+Math.random()*15)+"%");
+      });
+      current=null;
+    }
+    q.opts.forEach((o,k)=>{
+      const el=document.createElement("button");el.className="aopt";
+      el.innerHTML=`<span class="a-play">▶</span><span class="wave"></span>
+        <span class="a-meta"><span class="a-state"></span><span class="a-no">CH-0${k+1}</span><span class="a-dur">--:--</span></span>`;
+      const w=el.querySelector(".wave");
+      for(let j=0;j<16;j++){const b=document.createElement("i");b.style.height=(10+Math.random()*15)+"%";w.appendChild(b);}
+      let audio=null;
+      if(o.src){audio=new Audio(o.src);audio.preload="auto";audio.addEventListener("loadedmetadata",()=>{const d=el.querySelector(".a-dur");if(d)d.textContent=fmtQ(audio.duration);});}
+      const p={el,audio,timer:null};
+      players.push(p);
+      el.onclick=()=>{
+        if(el.classList.contains("locked")||chosenK>-1)return;
+        if(current===p){stopAll();$("qa-ok").disabled=true;return;}  /* 再点 = 暂停 */
+        stopAll();current=p;
+        el.classList.add("playing");el.querySelector(".a-play").textContent="■";
+        el.querySelector(".a-state").textContent="◉ PLAYING";
+        if(audio)audio.play().catch(()=>{});
+        p.timer=setInterval(()=>{
+          if(!el.isConnected){clearInterval(p.timer);p.timer=null;return;}
+          el.querySelectorAll(".wave i").forEach(b=>{if(Math.random()<.85)b.style.height=(12+Math.random()*82)+"%";});
+        },110);
+        if(audio)audio.onended=()=>{if(current===p)stopAll();};
+        $("qa-ok").disabled=false;
+      };
+      box.appendChild(el);
+      setTimeout(()=>el.classList.add("show"),120*k+300);
+    });
+    c.querySelector("#qa-ok").onclick=()=>{
+      if(!current||chosenK>-1)return;
+      chosenK=players.indexOf(current);
+      players.forEach(p=>{
+        if(p.timer){clearInterval(p.timer);p.timer=null;}
+        try{if(p.audio){p.audio.pause();p.audio.currentTime=0;}}catch(e){}
+        p.el.classList.remove("playing");
+        p.el.querySelector(".a-play").textContent="▶";
+        p.el.querySelector(".a-state").textContent=p.el===current?"✓ SELECTED":"MUTED";
+        p.el.classList.toggle("chosen",p.el===current);
+        p.el.classList.toggle("locked",p.el!==current);
+      });
+      pickAnswer(i,chosenK);
+    };
+  });
+}
+/* ---- 压轴题（无分值，纯气氛） ---- */
+function renderQScare(c,q,back,i){
+  c.innerHTML=`<div class="q-no">${esc("Q."+String(i+1).padStart(2,"0"))} · FINAL CHECK</div>
+    <div class="q-text"></div>
+    <div class="opts">${q.opts.map((o,k)=>
+      `<button class="opt" data-k="${k}"><span class="idx">[${String(k+1).padStart(2,"0")}]</span><span>${esc(o.t)}</span><span class="arr">&gt;&gt;</span></button>`).join("")}</div>
+    <div class="kbd-hint">// 请如实回答</div>${back}`;
+  typeInto(c.querySelector(".q-text"),q.q,46).then(()=>{
+    const opts=[...c.querySelectorAll(".opt")];
+    c.querySelector(".opts").classList.add("ready");
+    opts.forEach((o,k)=>{
+      o.classList.add("show");
+      o.onclick=()=>{
+        opts.forEach(x=>{x.disabled=true;x.style.opacity=.5;});
+        QUIZ_ANSWERS[i]=k;
+        pulseFlash("rgba(200,90,74,.14)",300);
+        setTimeout(()=>{QUIZ_STEP++;quizShow();},1100);
+      };
+    });
+  });
+}
+/* ---- 姓名题 ---- */
+function renderQName(c,q,back,i){
+  c.innerHTML=`<div class="q-no">${esc("Q."+String(i+1).padStart(2,"0"))} · IDENTIFICATION</div>
+    <div class="q-text" style="white-space:pre-line"></div>
+    <div class="blank-wrap">
+      <input class="blank-input" id="qn-inp" placeholder="${esc(q.ph||"")}" maxlength="30" autocomplete="off">
+      <button class="nbtn" id="qn-forget" style="align-self:flex-start">${esc(q.forget||"我记不清了")}</button>
+      <span class="blank-note">// 输入内容将直接进入档案，不可涂改</span>
+    </div>
+    <div class="nav-row">
+      <button class="nbtn" id="qb">◀ 回退</button>
+      <button class="nbtn primary" id="qn-ok" disabled>确认归档 ▶</button>
+    </div>`;
+  typeInto(c.querySelector(".q-text"),q.q,36).then(()=>{
+    const inp=c.querySelector("#qn-inp"),ok=c.querySelector("#qn-ok");
+    setTimeout(()=>inp.focus(),150);
+    inp.oninput=()=>ok.disabled=!inp.value.trim();
+    const next=()=>{QUIZ_STEP++;quizShow();};
+    ok.onclick=()=>{QUIZ_NAME=inp.value.trim();pickName();};
+    inp.onkeydown=e=>{if(e.key==="Enter"&&inp.value.trim()){QUIZ_NAME=inp.value.trim();pickName();}};
+    c.querySelector("#qn-forget").onclick=()=>{QUIZ_NAME="";QUIZ_ANSWERS[i]=0;next();};
+    function pickName(){
+      QUIZ_ANSWERS[i]=0;
+      const eggs=D.quiz.nameEggs||{};
+      const hit=Object.keys(eggs).find(k=>k.toUpperCase()===QUIZ_NAME.toUpperCase());
+      QUIZ_EGG=hit?{key:hit,text:eggs[hit]}:null;
+      next();
+    }
+  });
+}
+
+/* ---------- 判定（参考 结果动画.html） ---------- */
+function renderJudging(){
+  const c=document.createElement("div");c.className="qcard enter";
+  c.innerHTML=`<div class="j-status">分 区 判 定 中<i> ▮</i></div>
+    <div class="signalbars" id="qsig"></div>
+    <div class="logwin"><div class="lw-head">ALLOCATION ENGINE · 实时输出</div><div id="jlog"></div></div>`;
+  $("quizApp").appendChild(c);
+  const box=c.querySelector("#jlog");
+  let sigHtml="";for(let k=0;k<9;k++)sigHtml+=`<i style="height:${6+k*2.5}px"></i>`;
+  c.querySelector("#qsig").innerHTML=sigHtml;
+  const bars=[...c.querySelectorAll("#qsig i")];let sk=0;
+  const sigT=setInterval(()=>{bars.forEach(b=>b.classList.remove("on"));for(let j=0;j<=sk%9;j++)bars[(sk-j+9)%9].classList.add("on");sk++;},110);
+  const LOG=[
+    [["> 载入答卷数据 ......... OK","lok"],["> 作答时长总计 00:0█:██","lo"]],
+    [["> 提取语义特征 ██████████ 100%","lok"],["> 匹配历史档案库 ....... 2 条相似记录","lo"]],
+    [["> 分析中…","lo"],["> 分析中……","lo"],["> 分析中………","lo"]],
+    [["> 分析中… 分析中… 分析中…","lam"],["> 冲突项：部分作答呈逆向倾向","lo"]],
+    [["> ⚠ 检测到非典型应答模式","lwarn"],["> 正在与『时隙之间』核对参照系 ……","lo"]],
+    [["> 无响应（预期之内）","ler"],["> 改用备用基准继续计算","lo"]],
+    [["> 分析中………………","lam"],["> 分析中……………………","lam"]],
+    [["> 权重收敛完毕","lok"],["> 归属阈值突破 —— 唯一分区确定","lok"]],
+  ];
+  const special=computeResult();
+  (async()=>{
+    for(const lines of LOG){
+      lines.forEach(([t,c2])=>{const d=document.createElement("div");d.className=c2;d.textContent=t;box.appendChild(d);while(box.children.length>10)box.removeChild(box.firstChild);});
+      await sleep(lines.length*260+120);
+    }
+    if(special.special){
+      const extra=[];
+      if(QUIZ_TOOFAST)extra.push(["> ⚠ 检测到作答速度异常 —— 系统无法采信该结果","lwarn"]);
+      extra.push(
+        ["> 警告：置信度不足 (31% < 60%)","lwarn"],
+        ["> 尝试强制收敛 …… 失败","ler"],
+        ["> 再次尝试强制收敛 …… 失败","ler"],
+        ["> 特征组合超出已知分区定义域","lwarn"],
+        ["> 移交人工队列 …… 已受理","lam"]
+      );
+      for(const [t,c2] of extra){
+        const d=document.createElement("div");d.className=c2;d.textContent=t;box.appendChild(d);
+        while(box.children.length>10)box.removeChild(box.firstChild);
+        await sleep(420);
+      }
+      pulseFlash("rgba(200,90,74,.16)",260);
+      await sleep(800);
+      document.body.style.filter="brightness(.15)";
+      await sleep(650);
+      document.body.style.filter="";
+    }else{
+      clearInterval(sigT);
+      bars.forEach(b=>b.classList.remove("on"));
+      document.body.style.filter="brightness(.15)";
+      await sleep(500);
+      document.body.style.filter="";
+      pulseFlash("rgba(255,240,200,.85)",70);
+      try{document.body.animate([{transform:"translateX(0)"},{transform:"translateX(-9px)"},{transform:"translateX(7px)"},{transform:"translateX(0)"}],{duration:200});}catch(e){}
+    }
+    clearInterval(sigT);
+    QUIZ_RESULT=special;
+    QUIZ_STEP++;
+    quizShow(false);
+  })();
+}
+/* ---------- 计分 ---------- */
+function computeResult(){
+  /* 隐藏规则：作答总时长 < 30 秒 = 全程瞎点 → 无结果 */
+  const elapsed = QUIZ_T0 ? Date.now() - QUIZ_T0 : -1;
+  QUIZ_TOOFAST = elapsed >= 0 && elapsed < 30000;
+  if (QUIZ_TOOFAST) return { name: null, special: true };
+  const scores={};D.zones.forEach(z=>scores[z.name]=0);
+  let space=0;   /* 太空选项计数：夜空与星辰之间 / 坐上飞船 / 浮空巨构 */
+  QUIZ_LIST.forEach((q,idx)=>{
+    const a=QUIZ_ANSWERS[idx];if(a==null||a<0)return;
+    const o=q.opts&&q.opts[a];if(!o)return;
+    if(o.special)QUIZ_SPECIAL=true;
+    if(o.force)QUIZ_FORCE=o.force;
+    if(o.space)space++;
+    (o.x||[]).forEach(z=>{QUIZ_EXCLUDES[z]=true;});
+    for(const z in (o.s||{}))scores[z]=(scores[z]||0)+o.s[z];
+  });
+  if(QUIZ_FORCE)return {name:QUIZ_FORCE,special:false};
+  if(QUIZ_SPECIAL)return {name:null,special:true};
+  /* 科幻双区判定：科幻区总分最高（冠军落在电子囚笼/激光停泊）时，
+     太空选项选≥2个=激光停泊，≤1个=电子囚笼 */
+  const scifiPick=z=>z==="激光停泊"||z==="电子囚笼";
+  const order=[];
+  for(const z in scores){if(QUIZ_EXCLUDES[z])continue;order.push([z,scores[z]]);}
+  order.sort((a,b)=>b[1]-a[1]);
+  const top=order[0];
+  if(!top||top[1]<=0)return {name:null,special:true};
+  /* 并列：科幻对并列由太空选项定夺；魔法×科幻对位→浮点终端；其余待分配 */
+  if(order.length>1&&order[1][1]===top[1]&&top[1]>0){
+    if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+    const FANT=["术法阵列","缸中之魂","浮点终端"],SCIF=["电子囚笼","激光停泊"];
+    if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
+      return {name:"浮点终端",special:false};
+    return {name:null,special:true};
+  }
+  /* 单冠军：落在科幻双区则用太空选项数定夺 */
+  if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  return {name:top[0],special:false};
+}
+/* ---------- 宣判 ---------- */
+function renderVerdict(){
+  const c=document.createElement("div");c.className="qcard enter verdict"+(QUIZ_RESULT.special?" special":"");
+  const z=QUIZ_RESULT.special?null:(D.zones.find(x=>x.name===QUIZ_RESULT.name)||null);
+  const hl=s=>esc(s).replace(/#([^#]+)#/g,'<b class="dec-hl">$1</b>');
+  const SPEC_DESC="经分析，您的选择未出现明显区域指向，或您的作答过快。请确认您已认真对待本问卷，并选择重新填写问卷或提交问卷。如若选择重新填写，请再次核对您的答案，确保其符合您的判断；若提交本次问卷，您将失去重新填写的机会，赛博停尸间工作人员将在调查后为您分配区域。#尊重他人是每名居民的基本素养。赛博停尸间有权拒绝您的申请，请三思而后行。#";
+  c.innerHTML=`<div class="stamp">${QUIZ_RESULT.special?"PENDING":"RECORD SEALED"}</div>
+    <div class="z-en">${esc(QUIZ_RESULT.special?"PENDING // MANUAL REVIEW":(z?z.en:""))}</div>
+    <div class="z-name">${esc(QUIZ_RESULT.special?"待 分 配":(z?z.name:"未知"))}</div>
+    <div class="z-tag">${esc(QUIZ_RESULT.special?"异常 / 挂起 / 人工复核":"官方分区 · 分配完成")}</div>
+    <div class="z-card">
+      <div class="zc-h"><b>${esc(QUIZ_RESULT.special?"ZONE-??":(z?("ZONE-"+String(D.zones.indexOf(z)+1).padStart(2,"0")):""))}</b>
+        <span>${esc(QUIZ_RESULT.special?"状态：提交FR部门复核":"判定完成 · 归档")}</span></div>
+      <p>${QUIZ_RESULT.special?hl(SPEC_DESC):(z?esc(z.desc):"")}</p>
+    </div>
+    ${QUIZ_RESULT.special?"":`<div class="decree" id="vdecree"></div>`}
+    ${QUIZ_EGG?`<div class="decree" style="color:var(--red)">${esc(QUIZ_EGG.text)}</div>`:""}
+    ${QUIZ_RESULT.special
+      ? `<div class="verdict-btns">
+          <button class="bigbtn" id="vredo">↺ 重新填写问卷</button>
+          <button class="bigbtn" id="vnext">提交问卷 ▶</button>
+        </div>`
+      : `<button class="bigbtn" id="vnext">▶ SIGN &amp; CONTINUE</button>`}`;
+  $("quizApp").appendChild(c);
+  if(!QUIZ_RESULT.special){
+    const txt="感谢您的支持与时间，赛博停尸间将再次核对您的信息，为您分配最匹配您的区域。请在工作人员的指引下前往「待命区」，等待您的分配结果。";
+    const decree=c.querySelector("#vdecree");
+    let i=0;
+    (function type(){
+      i++;
+      decree.innerHTML=esc(txt.slice(0,i));
+      if(i<txt.length)setTimeout(type,55);
+    })();
+  }
+  const rb=c.querySelector("#vredo");
+  if(rb)rb.onclick=()=>{$("view-form").innerHTML=formHtml();quizShow(false);};
+  c.querySelector("#vnext").onclick=()=>{QUIZ_STEP++;quizShow(false);};
+  setTimeout(()=>c.classList.add("show"),50);
+}
+/* ---------- 确认 + 签字 ---------- */
+function renderSign(){
+  const c=document.createElement("div");c.className="qcard enter";
+  c.innerHTML=`<div class="q-no">SIGNATURE // 签署确认</div>
+    <div class="q-text" style="font-size:clamp(17px,2.3vw,22px);color:var(--txt);margin-bottom:26px;line-height:2">${esc(D.form.confirm)}</div>
+    <div class="blank-wrap">
+      <input class="blank-input" id="qsign" placeholder="${esc(D.form.signPlaceholder||"请您在空白处进行签字确认")}" maxlength="40" autocomplete="off">
+      <span class="blank-note">// 签字即视为同意入驻条款。此记录不可撤销。</span>
+    </div>
+    <div class="nav-row">
+      <button class="nbtn" id="qb">◀ 返回结果</button>
+      <button class="nbtn primary" id="qsubmit">提交申请</button>
+    </div>`;
+  $("quizApp").appendChild(c);
+  const inp=c.querySelector("#qsign");
+  setTimeout(()=>inp.focus(),150);
+  c.querySelector("#qsubmit").onclick=()=>submitForm();
+  inp.onkeydown=e=>{if(e.key==="Enter")submitForm();};
+  const bk=c.querySelector("#qb");
+  if(bk)bk.onclick=()=>{QUIZ_STEP--;quizShow(false);};
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 let stepCur = 1, stepTotal = 10, nameStep = 0;
 function initStepper() {
   stepCur = 1;
@@ -1346,6 +1969,7 @@ async function show(v, from, anim = true) {
   else vb.classList.remove("show");
   if (v === "login") initGate();
   if (v === "staff") initTerm();
+  if (v === "form") { $("view-form").innerHTML = formHtml(); quizShow(false); }
 }
 function scrollTopPage() { window.scrollTo({ top: 0, behavior: "smooth" }); }
 function scrollToId(id) { const el = $(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
@@ -1364,18 +1988,28 @@ function toggleZone(name) {
   const cn = $("chip-none"); if (cn) cn.classList.toggle("sel", noneSel);
   document.querySelectorAll(".chip[data-zone]").forEach(c => c.classList.toggle("sel", zonesSel.has(c.dataset.zone)));
 }
+/* 提交完成：系统弹窗（参考档案页 syspop 格式） */
 function submitForm() {
-  const name = $("f-姓名");
-  if (!name || !name.value.trim()) {
-    if (name) {
-      name.closest(".frow2").classList.add("err");
-      if (nameStep) stepGo(nameStep);
-      setTimeout(() => name.focus(), 60);
-    }
+  const sg = $("qsign");
+  if (!sg || !sg.value.trim()) {
+    if (sg) { sg.closest(".blank-wrap").classList.add("err"); sg.focus(); }
     return;
   }
-  $("overlay-msg").textContent = D.form.after;
-  $("overlay").classList.add("show");
+  const app = $("quizApp"); if (!app) return;
+  const old = app.querySelector(".qcard"); if (old) old.remove();
+  const dn = (D.form && D.form.done) || {};
+  const c = document.createElement("div"); c.className = "qcard enter";
+  c.innerHTML = `<div class="syspop">
+    <i class="c3"></i><i class="c4"></i>
+    <div class="sp-head"><span class="sp-dot"></span><span>${esc(dn.title || "SYSTEM // 提交完成")}</span><small>${esc(dn.tag || "CM-INTAKE")}</small></div>
+    <div class="sp-body">
+      <p>${esc(D.form.after || "感谢您的提交，稍后会有员工前来接应您。")}</p>
+      <p class="sp-code">${esc(dn.code || "REF : INTAKE-##### · 档案已归档")}</p>
+    </div>
+    <div class="sp-btns"><button class="sp-btn main" id="dpok">${esc(dn.ret || "返 回 首 页")}</button></div>
+  </div>`;
+  app.appendChild(c);
+  c.querySelector("#dpok").onclick = () => closeOverlay();
 }
 function closeOverlay() { $("overlay").classList.remove("show"); show("home"); }
 function openFile(p) {
@@ -1429,36 +2063,60 @@ function skipBoot() {
 $("boot").addEventListener("click", enterTerminal);
 window.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") enterTerminal(); });
 
-/* ================= HERO 打字机（数据驱动） ================= */
-let twI = 0, twC = 0, twDel = false;
+/* ================= HERO 打字机（数据驱动）
+   - 首次进入固定显示第一条（欢迎词），之后加权随机
+   - data 格式：字符串（w=1）或 {t,w} 对象；w 越大出现越频繁（彩蛋条把 w 调低即可）
+   ================= */
+let twC = 0, twDel = false, twFirst = true, twCur = "";
+function twPick() {
+  const raw = (D && D.home && D.home.typewriter) || ["CYBERMORGUE"];
+  if (twFirst) {
+    twFirst = false;
+    return typeof raw[0] === "string" ? raw[0] : raw[0].t;
+  }
+  const pool = [];
+  raw.forEach(it => {
+    const txt = typeof it === "string" ? it : it.t;
+    const w = typeof it === "string" ? 1 : (it.w == null ? 1 : Math.max(0.1, it.w));
+    const n = Math.max(1, Math.round(w * 10));
+    for (let k = 0; k < n; k++) pool.push(txt);
+  });
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function typeLoop() {
   const el = $("typewriter");
   if (!el) return;
-  const lines = (D && D.home && D.home.typewriter) || ["CYBERMORGUE"];
-  const t = lines[twI];
+  if (twC === 0 && !twDel) twCur = twPick();
+  const t = twCur;
   el.textContent = t.slice(0, twC);
   if (!twDel) {
-    if (++twC > t.length) { twDel = true; return setTimeout(typeLoop, 2400); }
+    if (++twC > t.length) { twDel = true; return setTimeout(typeLoop, 3600); }
   } else {
-    if (--twC <= 0) { twDel = false; twI = (twI + 1) % lines.length; }
+    if (--twC <= 0) { twDel = false; }
   }
-  setTimeout(typeLoop, twDel ? 26 : 62);
+  setTimeout(typeLoop, twDel ? 30 : 70);
 }
 function startHero() { if (D) typeLoop(); }
 
-/* ================= 大标题 3D 倾斜（跟随鼠标） ================= */
+/* ================= 大标题 3D 倾斜（跟随鼠标，分层景深） ================= */
 (function heroTilt() {
   const hero = document.querySelector(".hero");
-  const h1 = document.querySelector(".hero h1");
-  if (!hero || !h1) return;
+  const els = [
+    { el: document.querySelector(".hero h1"), k: 7 },
+    { el: document.querySelector(".hero-sub"), k: 3.5 },
+    { el: document.querySelector(".hero-tag"), k: 2 }
+  ].filter(o => o.el);
+  if (!hero || !els.length) return;
   if (window.matchMedia && (matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
   hero.addEventListener("mousemove", e => {
     const r = hero.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - .5;
     const py = (e.clientY - r.top) / r.height - .5;
-    h1.style.transform = `perspective(900px) rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 7).toFixed(2)}deg)`;
+    els.forEach(o => {
+      o.el.style.transform = `perspective(900px) rotateX(${(-py * o.k).toFixed(2)}deg) rotateY(${(px * o.k).toFixed(2)}deg)`;
+    });
   });
-  hero.addEventListener("mouseleave", () => { h1.style.transform = ""; });
+  hero.addEventListener("mouseleave", () => { els.forEach(o => { o.el.style.transform = ""; }); });
 })();
 
 /* ================= 实时时钟 ================= */
@@ -1531,33 +2189,55 @@ setInterval(() => {
 
 /* ================= 启动 ================= */
 async function init() {
-  D = await fetch(DATA).then(r => r.json());
-  renderMain();
-  $("view-form").innerHTML = formHtml();
-  $("view-zones").innerHTML = zonesHtml();
-  initMap();
-  decodeZoneTitle();
-  $("view-login").innerHTML = loginHtml();
-  $("view-staff").innerHTML = staffHtml();
-  initStepper();
-  bindReveal();
-  bindCounts();
-  for (let i = 0; i < 7; i++) pushLog();
-  setInterval(pushLog, 1800);
-  let booted = false;
-  try { booted = sessionStorage.getItem("cm-booted") === "1"; } catch (e) {}
-  if (booted) skipBoot(); else nextBootLine();
-  let goto = (location.hash || "").replace("#", "");
-  try { const s = sessionStorage.getItem("cm-goto"); if (s) { goto = s; sessionStorage.removeItem("cm-goto"); } } catch (e) {}
-  if (goto && $("view-" + goto)) show(goto, null, false);
+  try {
+    D = await fetch(DATA).then(r => r.json());
+    renderMain();
+    $("view-form").innerHTML = formHtml();
+    quizShow(false);
+    $("view-zones").innerHTML = zonesHtml();
+    initMap();
+    decodeZoneTitle();
+    $("view-login").innerHTML = loginHtml();
+    $("view-staff").innerHTML = staffHtml();
+    quizPreloadAudio();
+    bindReveal();
+    bindCounts();
+    for (let i = 0; i < 7; i++) pushLog();
+    setInterval(pushLog, 1800);
+    let booted = false;
+    try { booted = sessionStorage.getItem("cm-booted") === "1"; } catch (e) {}
+    if (booted) skipBoot(); else nextBootLine();
+    let goto = (location.hash || "").replace("#", "");
+    try { const s = sessionStorage.getItem("cm-goto"); if (s) { goto = s; sessionStorage.removeItem("cm-goto"); } } catch (e) {}
+    if (goto && $("view-" + goto)) show(goto, null, false);
+  } catch (e) {
+    /* 出错时仍然可以进入：把错误显示在 boot 屏，点击放行 */
+    console.error(e);
+    try {
+      const b = $("boot");
+      if (b) {
+        b.style.cursor = "pointer";
+        b.innerHTML = '<div style="color:var(--red);font-size:15px;white-space:pre-wrap">BOOT ERROR<br>' +
+          esc((e && e.message) || String(e)) + '</div>' +
+          '<div style="color:var(--ph-dim);margin-top:10px">— 点击任意处继续 —</div>';
+        b.onclick = function () {
+          try { sessionStorage.setItem("cm-booted", "1"); } catch (e2) {}
+          b.remove();
+          document.body.classList.add("powering");
+          if (typeof startHero === "function") startHero();
+        };
+      }
+    } catch (e2) {}
+  }
 }
+init();
 if (typeof spherse !== "undefined" && spherse.events) {
   spherse.events.on("file:update", { path: DATA }, () => init());
 }
-init().catch(e => { $("about-txt").innerHTML = "<p>LOAD FAILED: " + esc(e.message) + "</p>"; });
 
 /* ===== 瞄准光标 ===== */
 (function () {
+  if (window.__CM_CURSOR__) return; /* 共享 base.js 已接管光标 */
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var sel = ".gate,.mi,.cal-nav,.gnext,.tbtns button,.todo,.todo-add button,.logout,.step-next,.step-back,.zone-link,.chip,.more,.entry,.path,.logo,nav a,.gate-red,.gate-green,#q,.clearbtn,.back,.fchip";
   var w = document.createElement("div"); w.className = "cc";

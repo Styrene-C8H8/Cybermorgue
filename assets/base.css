@@ -1,0 +1,50 @@
+/* ============================================================
+   CYBERMORGUE 共享基底 · base.css（全局公共样式）
+   - 复古终端风滚动条（桌面）/ 触屏隐藏
+   - 瞄准光标（桌面端：四角锁定 + 点击公转动画）
+   引用方式（放在页面 <style> 之后，确保覆盖页面内重复规则）：
+     OC 页：<link rel="stylesheet" href="../assets/base.css">
+     根目录页：<link rel="stylesheet" href="assets/base.css">
+   所有颜色走各页 :root 变量（--ph / --am / --primary 兜底链），
+   以后改光标/滚动条只需改这一个文件，全站生效。
+   ============================================================ */
+
+/* ===== 全局滚动条 · 复古终端风 ===== */
+::-webkit-scrollbar{width:12px;height:12px;background:#0a0805}
+::-webkit-scrollbar-track{
+  background:repeating-linear-gradient(to bottom,transparent 0 6px,rgba(232,176,75,.06) 6px 7px);
+  border-left:1px solid rgba(232,176,75,.15)}
+::-webkit-scrollbar-thumb{
+  background:
+    linear-gradient(90deg,var(--ph,var(--am,#e8b04b)) 0,var(--ph,var(--am,#e8b04b)) calc(100% - 4px),transparent calc(100% - 4px)),
+    linear-gradient(-90deg,var(--ph,var(--am,#e8b04b)) 0,var(--ph,var(--am,#e8b04b)) calc(100% - 4px),transparent calc(100% - 4px));
+  background-color:#3d2f14;
+  border:1px solid var(--ph-dim,var(--amd,#8a6a2f))}
+::-webkit-scrollbar-thumb:hover{background-color:var(--ph-dim,var(--amd,#8a6a2f));box-shadow:0 0 8px rgba(232,176,75,.5)}
+::-webkit-scrollbar-thumb:active{background-color:#c85a4a;box-shadow:0 0 10px rgba(200,90,74,.6)}
+::-webkit-scrollbar-corner{background:#0a0805}
+*{scrollbar-width:thin;scrollbar-color:var(--ph-dim,var(--amd,#8a6a2f)) #0a0805}
+.thin-scroll::-webkit-scrollbar{width:6px;height:6px}
+.thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
+.thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
+.thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
+
+/* ===== 瞄准光标（桌面端） ===== */
+body.has-cc, body.has-cc * { cursor: none !important; }
+body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc input[type="email"], body.has-cc input[type="password"], body.has-cc textarea { cursor: text !important; }
+.cc { position: fixed; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647; pointer-events: none; }
+.cc-dot { position: fixed; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px; border-radius: 50%; background: var(--ph, var(--am, var(--primary))); box-shadow: 0 0 6px var(--ph, var(--am, var(--primary))); transition: transform .25s ease; }
+.cc-press .cc-dot { transform: scale(.6); }
+.cc-click .cc-c { opacity: .3; }
+.cc-click .cc-dot { transform: scale(1.7); box-shadow: 0 0 14px var(--ph, var(--am, var(--primary))); }
+.cc-c { position: fixed; width: 9px; height: 9px; border: 1.5px solid var(--ph, var(--am, var(--primary))); opacity: .85; box-shadow: 0 0 4px var(--ph, var(--am, var(--primary))); transition: left .18s ease, top .18s ease, border-color .2s ease, transform .3s cubic-bezier(.2,.7,.2,1), background .2s ease; }
+.cc-tl { border-right: none; border-bottom: none; }
+.cc-tr { border-left: none; border-bottom: none; }
+.cc-bl { border-right: none; border-top: none; }
+.cc-br { border-left: none; border-top: none; }
+.cc.locked .cc-c { border-color: var(--ok, var(--gr, var(--gold))); opacity: 1; }

@@ -119,6 +119,22 @@ h1.in .ch{opacity:1}
 .errbox{max-width:520px;margin:60px auto;text-align:center;color:var(--red);
   border:1px solid rgba(200,90,74,.4);padding:24px;letter-spacing:.1em;line-height:2}
 
+/* ===== 员工状态标记 ===== */
+.st{font-size:12px;letter-spacing:.2em;padding:0 8px;flex-shrink:0;
+  border:1px solid var(--line);color:var(--amd)}
+.st.st-active{color:var(--gr);border-color:rgba(127,191,127,.4)}
+.st.st-quit{color:var(--amd);border-color:var(--line);text-decoration:line-through}
+.st.st-unknown{color:var(--red);border-color:rgba(200,90,74,.5);animation:pul 1.6s infinite}
+@keyframes pul{50%{opacity:.3}}
+.st.st-garbled{color:transparent;background:rgba(200,90,74,.12);
+  border-color:rgba(200,90,74,.4);text-shadow:0 0 6px rgba(200,90,74,.9);
+  user-select:none}
+/* 卡片整体状态氛围 */
+.card.is-quit{opacity:.55}
+.card.is-quit:hover{opacity:.85}
+.card.is-garbled b{letter-spacing:.05em;filter:blur(.6px)}
+.card.is-unknown{border-style:dashed}
+
 /* 瞄准光标（桌面端） */
 body.has-cc, body.has-cc * { cursor: none !important; }
 body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc input[type="email"], body.has-cc input[type="password"], body.has-cc textarea { cursor: text !important; }
@@ -162,7 +178,14 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
 .thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
 .thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
 .thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
 </style>
+<link rel="stylesheet" href="../assets/base.css">
+<script src="../assets/base.js"></script>
 </head>
 <body>
 
@@ -202,7 +225,15 @@ var $ = function(id){ return document.getElementById(id); };
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 var OCS = [];
-var st = { q:"", gender:"", zone:"", department:"" };
+var st = { q:"", gender:"", zone:"", department:"", status:"" };
+
+/* ============ 员工状态 ============ */
+var STATUS={
+  active: {label:"在职", cls:"st st-active"},
+  quit:   {label:"离职", cls:"st st-quit"},
+  unknown:{label:"未记录", cls:"st st-unknown"},
+  garbled:{label:"▓▓▓▓", cls:"st st-garbled"}
+};
 
 /* ============ 标题解码动画 ============ */
 (function(){
@@ -248,6 +279,7 @@ function load(){
         gender:(d.tags&&d.tags.gender)||"",
         zone:(d.tags&&d.tags.zone)||"",
         department:(d.tags&&d.tags.department)||"",
+        status:d.status||"active",
         faction:d.faction||"",
         path:"project/OC/"+f.replace(/^\.\//,"").replace(/\.data\.json$/,".html"),
         pathRel:f.replace(/^\.\//,"").replace(/\.data\.json$/,".html")
@@ -270,14 +302,18 @@ function uniq(k){ var seen={},out=[]; OCS.forEach(function(o){
 function group(label,key,vals){
   return '<div class="fg"><span class="fl">'+label+'</span>'
     +'<button class="fchip sel" data-k="'+key+'" data-v="">ALL</button>'
-    + vals.map(function(v){return '<button class="fchip" data-k="'+key+'" data-v="'+esc(v)+'">'+esc(v)+'</button>';}).join("")
+    + vals.map(function(v){
+        var t=(key==="status"&&STATUS[v])?STATUS[v].label:v;
+        return '<button class="fchip" data-k="'+key+'" data-v="'+esc(v)+'">'+esc(t)+'</button>';
+      }).join("")
     +'</div>';
 }
 function buildFilters(){
   $("filters").innerHTML =
     group("GENDER / 性别","gender",uniq("gender"))+
     group("ZONE / 区域","zone",uniq("zone"))+
-    group("DEPT / 部门","department",uniq("department"));
+    group("DEPT / 部门","department",uniq("department"))+
+    group("STATUS / 状态","status",uniq("status"));
   document.querySelectorAll(".fchip").forEach(function(b){
     b.addEventListener("click",function(){
       var k=b.dataset.k,v=b.dataset.v;
@@ -297,7 +333,8 @@ function apply(){
     return (!st.gender||o.gender===st.gender)
       && (!st.zone||o.zone===st.zone)
       && (!st.department||o.department===st.department)
-      && (!q || [o.name,o.alias,o.fileNo,o.realName,o.realAlias,o.faction,o.department,o.zone]
+      && (!st.status||o.status===st.status)
+      && (!q || [o.name,o.alias,o.fileNo,o.realName,o.realAlias,o.faction,o.department,o.zone,o.status]
         .join(" ").toLowerCase().indexOf(q)>-1);
   });
   $("count").textContent=String(list.length).padStart(3,"0")+" / "+String(OCS.length).padStart(3,"0");
@@ -307,11 +344,14 @@ function apply(){
   }
   list.forEach(function(o,i){
     var el=document.createElement("button");
-    el.className="card";
+    var sm=STATUS[o.status]||STATUS.active;
+    el.className="card"+(o.status==="quit"?" is-quit":"")
+      +(o.status==="garbled"?" is-garbled":"")
+      +(o.status==="unknown"?" is-unknown":"");
     el.style.animationDelay=(i*45)+"ms";
     el.innerHTML=
       '<div class="no-row"><span><i class="cldot cl-'+esc(o.clearance)+'"></i>'+esc(o.fileNo)+'</span>'+
-      '<span style="color:var(--grd)">FILE_'+String(i+1).padStart(2,"0")+'</span></div>'+
+      '<span class="'+sm.cls+'">'+sm.label+'</span></div>'+
       '<b>'+esc(o.name)+'</b>'+
       (o.alias?'<i>'+esc(o.alias)+'</i>':'')+
       '<div class="t">'+[o.gender,o.zone,o.department].filter(Boolean).map(function(t){
@@ -322,7 +362,7 @@ function apply(){
 }
 
 function resetAll(){
-  st={q:"",gender:"",zone:"",department:""};
+  st={q:"",gender:"",zone:"",department:"",status:""};
   $("q").value="";
   document.querySelectorAll(".fchip").forEach(function(c){
     c.classList.toggle("sel",c.dataset.v==="");
@@ -347,6 +387,7 @@ if(typeof spherse!=="undefined"&&spherse.events){
 
 /* ============ 瞄准光标 ============ */
 (function () {
+  if (window.__CM_CURSOR__) return; /* 共享 base.js 已接管光标 */
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var sel = ".card,.fchip,.clearbtn,.back,#q";
   var w = document.createElement("div"); w.className = "cc";

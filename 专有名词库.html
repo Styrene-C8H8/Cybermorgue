@@ -208,7 +208,14 @@
 .thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
 .thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
 .thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
 </style>
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/base.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -272,6 +279,7 @@ h1,.ftitle,.ttitle,.splash-title,.greet{text-shadow:none}
   var st = document.createElement("style");
   st.textContent = css;
   document.head.appendChild(st);
+  if (window.__CM_CURSOR__) return; /* 共享 base.js 已接管光标 */
   if (document.getElementById("page-main")) return;
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var sel = ".card,.entry,.path,.thread,.rec,.sysdlg,.attach,.mailcard,.recipe,.video,.music-ui,.mbtn,.rec-toggle,.email-btn,.linkbtn,.mnav button,.arc-item,.fchip,.zone-link,.chip,.more,.step-next,.step-back,.back";

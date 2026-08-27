@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE MAGICIAN · 员工档案</title>
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/oc-base.css">
 <style>
 :root{
   --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
@@ -316,7 +317,15 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
 .thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
 .thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
 .thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
 </style>
+<link rel="stylesheet" href="../assets/base.css">
+<script src="../assets/base.js"></script>
+<script src="../assets/oc-base.js"></script>
 </head>
 <body>
 
@@ -378,7 +387,7 @@ function render(){
   var tags=(d.tags?[d.tags.gender,d.tags.zone,d.tags.department]:[]).filter(Boolean);
   if(d.faction)tags.push(d.faction);
   var head=
-   '<div class="fhead">'+
+   '<div class="fhead'+(d.status==="quit"?" is-quit":d.status==="garbled"?" is-garbled":d.status==="unknown"?" is-unknown":"")+'">'+
      '<div class="fmeta">'+
        '<span>FILE NO : <b>'+esc(fno)+'</b></span>'+
        '<span>CLEARANCE : <i class="cldot '+dot+'"></i><b>'+esc(level)+'</b></span>'+
@@ -386,7 +395,9 @@ function render(){
      '</div>'+
      '<h1 id="bigname">'+esc(name)+'</h1>'+
      '<div class="alias">AKA · '+esc(alias)+'</div>'+
-     '<div class="ftags">'+tags.map(function(t){return '<span class="ftag">'+esc(t)+'</span>';}).join("")+'</div>'+
+     '<div class="ftags">'+tags.map(function(t){return '<span class="ftag">'+esc(t)+'</span>';}).join("")+
+       '<span class="'+(STATUS[d.status]||STATUS.active).cls+'">'+(STATUS[d.status]||STATUS.active).label+'</span>'+
+     '</div>'+
    '</div>';
 
   var barcode="";
@@ -605,6 +616,7 @@ if(typeof spherse!=="undefined"&&spherse.events)
 
 /* ============ 瞄准光标 ============ */
 (function () {
+  if (window.__CM_CURSOR__) return; /* 共享 base.js 已接管光标 */
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var sel = ".back,.spoiler,.expand,.rec-head,.sp-btn";
   var w = document.createElement("div"); w.className = "cc";

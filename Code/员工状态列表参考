@@ -1,0 +1,94 @@
+加状态很简单——在数据映射、卡片渲染和筛选器三处各加一点就行。你的 JSON 里暂时没有 `status` 字段也没关系，我会给一个**默认值兜底**：没写的自动是「在职」，你后面想给谁特殊状态，只需在对应 `.data.json` 里加一行 `"status": "..."`。
+
+**① CSS（贴到 `</style>` 前）**
+
+```css
+/* ===== 员工状态标记 ===== */
+.st{font-size:12px;letter-spacing:.2em;padding:0 8px;flex-shrink:0;
+  border:1px solid var(--line);color:var(--amd)}
+.st.active{color:var(--gr);border-color:rgba(127,191,127,.4)}
+.st.quit{color:var(--amd);border-color:var(--line);text-decoration:line-through}
+.st.unknown{color:var(--red);border-color:rgba(200,90,74,.5);
+  animation:pul 1.6s infinite}
+@keyframes pul{50%{opacity:.3}}
+.st.garbled{color:transparent;background:rgba(200,90,74,.12);
+  border-color:rgba(200,90,74,.4);
+  text-shadow:0 0 6px rgba(200,90,74,.9);user-select:none}
+/* 卡片整体状态氛围 */
+.card.is-quit{opacity:.55}
+.card.is-quit:hover{opacity:.85}
+.card.is-garbled b{letter-spacing:.05em;filter:blur(.6px)}
+.card.is-unknown{border-style:dashed}
+```
+
+**② JS —— 状态定义表**（放在 `var OCS = []` 附近）
+
+```js
+/* ============ 员工状态 ============ */
+var STATUS={
+  active: {label:"在职", cls:"st st-active"},
+  quit:   {label:"离职", cls:"st st-quit"},
+  unknown:{label:"未记录", cls:"st st-unknown"},
+  garbled:{label:"▓▓▓▓", cls:"st st-garbled"}
+};
+```
+
+**③ JS —— `load()` 映射里加一行**
+
+在 return 的对象里补上：
+
+```js
+        status:d.status||"active",
+```
+
+**④ JS —— `apply()` 渲染卡片时徽章**
+
+把 `el.innerHTML=` 那段替换为：
+
+```js
+    var sm=STATUS[o.status]||STATUS.active;
+    el.className="card"+(o.status==="quit"?" is-quit":"")
+      +(o.status==="garbled"?" is-garbled":"")
+      +(o.status==="unknown"?" is-unknown":"");
+    el.innerHTML=
+      '<div class="no-row"><span><i class="cldot cl-'+esc(o.clearance)+'"></i>'+esc(o.fileNo)+'</span>'+
+      '<span class="'+sm.cls+'">'+sm.label+'</span></div>'+
+      '<b>'+esc(o.name)+'</b>'+
+      (o.alias?'<i>'+esc(o.alias)+'</i>':'')+
+      '<div class="t">'+[o.gender,o.zone,o.department].filter(Boolean).map(function(t){
+        return '<em>'+esc(t)+'</em>'; }).join("")+'</div>';
+```
+
+（注意原来右上角的灰色 `FILE_01` 序号被换成了状态徽章——如果你两个都想要，把序号放回左边 fileNo 后面即可。）
+
+**⑤ 搜索也匹配状态**——`apply()` 里关键词数组加上 `o.status`：
+
+```js
+      && (!q || [o.name,o.alias,o.fileNo,o.realName,o.realAlias,o.faction,o.department,o.zone,o.status]
+        .join(" ").toLowerCase().indexOf(q)>-1);
+```
+
+---
+
+之后在任意 OC 的 json 里就能这样用：
+
+```json
+{
+  "name": "某员工",
+  "...": "...",
+  "status": "quit"
+}
+```
+
+四种状态的视觉效果：
+
+| status | 显示 | 效果 |
+|---|---|---|
+| `active` | 绿色「在职」 | 默认，不写也是这个 |
+| `quit` | 划线「~~离职~~」 | **整张卡变暗变透明**，像被打入冷宫的档案 |
+| `unknown` | 红色呼吸闪烁「未记录」 | 卡片边框改虚线 |
+| `garbled` | 乱码 `▓▓▓▓` | 徽章文字被涂掉只留红晕，卡片姓名轻微模糊 |
+
+最后那个 `garbled` 是我建议至少给一个 OC 用的——整页都是正常绿点里有一个“连状态本身都被涂黑的”，比任何文字描写都瘆人。
+
+另外一个小建议：现在索引页缺少状态筛选。如果想加一排 `STATUS / 在职情况` 筛选 chips，只需在 `buildFilters()` 里多拼一行 `group("STATUS / 状态","status",uniq("status"))`,并把它从搜索无关字段中独立出来即可——不过如果名单只有 10 个人，也可以不加，保持工具栏简洁。要加的话说一声。

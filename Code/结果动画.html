@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUDGEMENT SEQUENCE // 分区判定</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);overflow:hidden;
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 48%,rgba(0,0,0,.66) 100%)}
+
+/* ---- 全局灯光层：判定时被 JS 操控 ---- */
+#flicker{position:fixed;inset:0;z-index:800;pointer-events:none;background:none}
+
+.stage{height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:40px 22px;text-align:center;
+  position:relative;z-index:5}
+
+.en-lab{color:var(--amd);font-size:13px;letter-spacing:.55em;margin-bottom:20px}
+h1.big{font-size:clamp(38px,7vw,72px);color:var(--am);
+  letter-spacing:.14em;text-shadow:0 0 28px rgba(232,176,75,.4);line-height:1.15}
+.desc-p{max-width:34em;line-height:2.15;color:var(--txt);
+  font-family:'Noto Sans SC',sans-serif;font-weight:300;margin-top:22px;white-space:pre-line}
+
+.bigbtn{margin-top:44px;font-family:'VT323',monospace;font-size:21px;
+  letter-spacing:.3em;background:none;border:1px solid var(--ph,#e8b04b);
+  border:1px solid var(--am);color:var(--am);padding:13px 52px;
+  cursor:pointer;transition:all .25s;border-radius:0}
+.bigbtn:hover{background:var(--am);color:#000;box-shadow:0 0 36px rgba(232,176,75,.5)}
+
+/* ============ 判定中：仪表状态 ============ */
+.judging .en-lab,.judging h1.big,.judging .desc-p,.judging .bigbtn{display:none}
+
+.gauge{display:flex;flex-direction:column;align-items:center;gap:26px;width:min(620px,92vw)}
+.j-status{font-size:24px;letter-spacing:.35em;color:var(--am)}
+.j-status i{font-style:normal;animation:jblink .5s steps(1) infinite}
+@keyframes jblink{50%{opacity:.15}}
+.logwin{width:100%;height:220px;border:1px solid var(--line);background:var(--panel);
+  text-align:left;overflow:hidden;padding:10px 16px;position:relative}
+.logwin::before,.logwin::after{content:"";position:absolute;width:12px;height:12px}
+.logwin::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.logwin::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.logwin .lw-head{color:var(--amd);font-size:12px;letter-spacing:.3em;
+  border-bottom:1px dashed var(--line);padding-bottom:5px;margin-bottom:6px}
+#jlog div{font-size:14.5px;line-height:1.9;letter-spacing:.05em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+#jlog .lo{color:var(--txt)} #jlog .lok{color:var(--gr)}
+#jlog .ler{color:var(--red)} #jlog .lam{color:var(--am)}
+#jlog .lwarn{color:var(--red);text-shadow:0 0 8px rgba(200,90,74,.5)}
+.signalbars{display:flex;gap:7px;align-items:flex-end;height:26px}
+.signalbars i{width:9px;background:var(--amd);opacity:.5;transition:all .12s}
+.signalbars i.on{background:var(--am);opacity:1;box-shadow:0 0 9px var(--am)}
+
+/* ============ 宣判结果卡 ============ */
+.verdict{display:none;flex-direction:column;align-items:center;
+  animation:vIn .5s cubic-bezier(.2,.8,.3,1) both}
+.verdict.show{display:flex}
+@keyframes vIn{from{opacity:0;transform:translateY(26px) scale(.97)}
+  to{opacity:1;transform:none}}
+
+.stamp{padding:6px 24px;border:2px solid var(--red);color:var(--red);
+  font-size:22px;letter-spacing:.3em;transform:rotate(-4deg);
+  animation:stampIn .32s cubic-bezier(.3,1.6,.6,1) both .55s}
+@keyframes stampIn{from{opacity:0;transform:rotate(-4deg) scale(2.6)}
+  to{opacity:.92;transform:rotate(-4deg) scale(1)}}
+
+.z-en{color:var(--amd);font-size:14px;letter-spacing:.6em;margin-top:30px;text-indent:.6em}
+.z-name{font-size:clamp(44px,9vw,92px);color:var(--am);letter-spacing:.18em;
+  line-height:1.1;text-shadow:0 0 34px rgba(232,176,75,.5);margin:8px 0 4px}
+.z-tag{color:var(--txt);opacity:.65;font-family:'Noto Sans SC',sans-serif;
+  font-weight:300;font-size:16px;letter-spacing:.35em}
+
+.z-card{width:min(600px,92vw);margin-top:34px;border:1px solid var(--line);
+  background:var(--panel);padding:18px 24px;text-align:left;position:relative}
+.z-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--am)}
+.z-card .zc-h{display:flex;justify-content:space-between;color:var(--amd);
+  font-size:12.5px;letter-spacing:.25em;border-bottom:1px dashed var(--line);
+  padding-bottom:7px;margin-bottom:10px}
+.z-card .zc-h b{color:var(--am);font-weight:400}
+.z-card p{font-size:15.5px;line-height:2.05;color:var(--txt);
+  font-family:'Noto Sans SC',sans-serif;font-weight:300}
+.z-card em{font-style:normal;color:var(--am)}
+
+.decree{margin-top:32px;font-size:clamp(17px,2.4vw,21px);color:var(--txt);
+  letter-spacing:.14em;font-family:'VT323','Noto Sans SC',monospace;line-height:2.1}
+.decree b{color:var(--am);font-weight:400;
+  text-shadow:0 0 16px rgba(232,176,75,.6);padding:0 4px}
+.againbtn{margin-top:36px}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01s!important}
+}
+</style>
+</head>
+<body>
+
+<div id="flicker"></div>
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<!-- ============ 分区数据（接入时替换为你的正式 zones）============ -->
+<script>
+const ZONES=[
+ {name:"噩兆回廊",en:"THE OMEN GALLERY",tag:"预兆 / 观测 / 沉默",
+  no:"ZONE-01",pop:"在册人员：██ 名",
+  desc:"位于站点最深处的连续拱形长廊，壁灯永远比熄灭提前一秒变暗。驻留此区的员工普遍具备<em>对未发生之事的钝感力</em>——这是招聘时的必要条件，而非后天培养。<br>请注意：走廊里与你擦肩而过的人，不一定都办理过入职手续。"},
+ {name:"电子囚笼",en:"THE ELECTRONIC CAGE",tag:"机器 / 秩序 / 低语",
+  no:"ZONE-02",pop:"在册人员：██ 名",
+  desc:"主服务器阵列所在的恒温区。散热风扇昼夜运转，声音混合成一种近似<em>呼吸</em>的底噪。在此值班超过三个月的员工会开始准时在凌晨三点醒来，无人能解释原因。"},
+ {name:"黄金计时",en:"THE GOLDEN CHRONOGRAPH",tag:"时间 / 守时 / 规律",
+  no:"ZONE-03",pop:"在册人员：██ 名",
+  desc:"站点的钟表枢纽，所有时钟由这里统一校准。有员工报告自己的表在这里走快了七分钟——<em>恰好是他迟到的那七分钟。</em>"},
+ {name:"江河世年",en:"RIVER OF YEARS",tag:"漂流 / 回忆 / 温柔",
+  no:"ZONE-04",pop:"在册人员：██ 名",
+  desc:"档案地下层的旧物存放区，传闻水流声常年不止，但勘测从未找到水源。负责整理旧物的人都说，这里闻起来像<em>某个想不起来的夏天。</em>"}
+];
+</script>
+
+<div class="stage" id="stage">
+
+  <!-- ===== 待机态 ===== -->
+  <p class="en-lab">SECTOR ALLOCATION // 分区判定程序</p>
+  <h1 class="big">资 料 已 收 讫</h1>
+  <p class="desc-p">你的登记答卷已完成初步扫描。
+分区归属将由系统结合全部作答内容进行综合评估。
+该过程无法中止、不可复核、不接受申诉。
+
+文书科祝你顺利。</p>
+  <button class="bigbtn" id="start">▶ 开 始 判 定</button>
+
+  <!-- ===== 判定中 ===== -->
+  <div class="gauge" id="gauge" style="display:none">
+    <div class="j-status">分 区 判 定 中<i> ▮</i></div>
+    <div class="signalbars" id="sig"></div>
+    <div class="logwin">
+      <div class="lw-head">ALLOCATION ENGINE · 实时输出</div>
+      <div id="jlog"></div>
+    </div>
+  </div>
+
+  <!-- ===== 宣判 ===== -->
+  <div class="verdict" id="verdict">
+    <div class="stamp">RECORD SEALED</div>
+    <div class="z-en" id="vEn"></div>
+    <div class="z-name" id="vName"></div>
+    <div class="z-tag" id="vTag"></div>
+    <div class="z-card">
+      <div class="zc-h"><b id="vNo"></b><span id="vPop"></span></div>
+      <p id="vDesc"></p>
+    </div>
+    <div class="decree" id="decree"></div>
+    <button class="bigbtn againbtn" onclick="location.reload()">↺ 重 新 演 示</button>
+  </div>
+
+</div>
+
+<script>
+/* ============ 工具 ============ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---- 信号条 ---- */
+(function(){let h="";for(let i=0;i<9;i++)h+="<i style='height:"+(6+i*2.5)+"px'></i>";$("sig").innerHTML=h;})();
+function sigChase(){
+  const bars=[...$("sig").children];
+  let k=0;
+  const t=setInterval(()=>{
+    bars.forEach(b=>b.classList.remove("on"));
+    for(let j=0;j<=k%9;j++)bars[(k-j+9)%9].classList.add("on");
+    k++;
+  },110);
+  return ()=>clearInterval(t);
+}
+
+/* ---- 灯光操控：闪红 / 狂闪琥珀 / 全暗一拍 ---- */
+const fl=$("flicker");
+function pulse(color,ms){fl.style.transition="background .1s";fl.style.background=color;
+  setTimeout(()=>fl.style.background="none",ms);}
+
+/* ============ 判定日志脚本 ============ */
+const LOGSCRIPT=[
+ [80 ,["氨","> 载入答卷数据 ......... OK","lok"],
+      ["> 作答时长总计 00:03:47","lo"]],
+ [null,["> 提取语义特征 ██████████ 100%","lok"],
+       ["> 匹配历史档案库 ....... 2 条相似记录","lo"]],
+ [130,["> 分析中…","lo"],["> 分析中……","lo"],["> 分析中………","lo"]],
+ [60 ,["> 分析中… 分析中… 分析中…","lam"],
+      ["> 冲突项：Q.02 与 Q.03 呈逆向倾向","lo"]],
+ [200,["> ⚠ 检测到非典型应答模式","lwarn"],
+      ["> 正在与『时隙之间』核对参照系 ……","lo"]],
+ [90 ,["> 无响应（预期之内）","ler"],
+      ["> 改用备用基准继续计算","lo"]],
+ [70 ,["> 分析中………………","lam"],
+      ["> 分析中……………………","lam"]],
+ [160,["> 权重收敛完毕","lok"],
+      ["> 归属阈值突破 —— 唯一分区确定","lok"]],
+];
+
+async function playLog(){
+  const box=$("jlog");
+  for(const[,lines]of LOGSCRIPT){
+    if(lines[0][0]===undefined){}
+    lines.forEach(([t,c])=>{
+      const d=document.createElement("div");d.className=c;d.textContent=t;
+      box.appendChild(d);
+      while(box.children.length>10)box.removeChild(box.firstChild);
+    });
+    await sleep(lines.length*240);
+  }
+}
+
+/* ============ 主流程 ============ */
+$("start").onclick=start;
+
+async function start(){
+  $("stage").classList.add("judging");
+  $("gauge").style.display="flex";
+
+  /* --- 阶段一：入题闪一下 --- */
+  pulse("rgba(232,176,75,.10)",180);
+  const stopSig=sigChase();
+  playLog();
+
+  /* --- 阶段二：滚动途中狂闪告警 --- */
+  await sleep(2600);pulse("rgba(200,90,74,.12)",140);
+  await sleep(700); pulse("rgba(200,90,74,.12)",100);
+  await sleep(900); pulse("rgba(232,176,75,.14)",120);
+
+  /* --- 阶段三：突然静止 —— 灯全灭一拍，然后白闪宣布 --- */
+  stopSig();
+  [...$("sig").children].forEach(b=>b.classList.remove("on"));
+  document.body.style.filter="brightness(.15)";
+  await sleep(500);
+  /* 白闪 + 抖动 */
+  document.body.style.filter="";
+  pulse("rgba(255,240,200,.85)",70);
+  document.body.animate(
+    [{transform:"translateX(0)"},{transform:"translateX(-9px)"},
+     {transform:"translateX(7px)"},{transform:"translateX(0)"}],
+    {duration:200});
+
+  announce();
+}
+
+/* ============ 宣判 ============ */
+function announce(){
+  $("gauge").style.display="none";
+  $("stage").classList.remove("judging");
+
+  /* 演示用随机；正式版换成你的打分结果 */
+  const z=ZONES[Math.random()*ZONES.length|0];
+
+  $("vEn").textContent=z.en;
+  $("vName").textContent=z.name;
+  $("vTag").textContent=z.tag;
+  $("vNo").textContent=z.no;
+  $("vPop").textContent=z.pop;
+  $("vDesc").innerHTML=z.desc;
+
+  /* 官方口吻逐字打出 */
+  const decree=$("decree");
+  const txt="检测完成。您将被分配至【"+z.name+"】。档案已归档。";
+  let i=0;
+  (function type(){
+    i++;
+    decree.innerHTML=esc(txt.slice(0,i))
+      /* 给【】里的分区名上色 */
+      .replace(/【(.*)】?$/,(m,g)=>m.endsWith("】")?"【<b>"+esc(g)+"</b>】":m+"▌");
+    if(i<txt.length)setTimeout(type,55);
+  })();
+
+  $("verdict").classList.add("show");
+}
+</script>
+</body>
+</html>

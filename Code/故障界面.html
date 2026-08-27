@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 // FILE NOT FOUND</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a;
+  --bg:#0c0a06; --panel:#121008; --line:rgba(232,176,75,.25); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
+::selection{background:var(--am);color:#000}
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 48%,rgba(0,0,0,.66) 100%)}
+
+/* ---- 顶栏 ---- */
+.topline{position:absolute;top:16px;left:20px;right:20px;z-index:5;
+  display:flex;justify-content:space-between;color:var(--amd);
+  font-size:12.5px;letter-spacing:.25em}
+
+/* ---- 主内容 ---- */
+.stage{min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:70px 20px 60px;
+  position:relative;text-align:center}
+
+/* 大号 404：三层错位，平时安静、偶尔爆一次故障 */
+.err404{
+  font-family:'VT323',monospace;font-size:clamp(130px,26vw,240px);
+  line-height:.95;color:var(--am);position:relative;user-select:none;
+  text-shadow:0 0 46px rgba(232,176,75,.32);
+  animation:skewB 6.8s infinite steps(1)}
+.err404::before,.err404::after{content:attr(data-text);position:absolute;left:0;right:0;top:0}
+.err404::before{color:rgba(0,205,230,.5);z-index:-1;animation:gCyan 5.1s infinite steps(1)}
+.err404::after{color:rgba(200,40,30,.55);z-index:-2;animation:gRed 5.1s infinite steps(1)}
+
+@keyframes gCyan{
+  0%,78%,100%{clip-path:inset(0 0 100% 0);transform:none}
+  79%{clip-path:inset(8% 0 58% 0);transform:translate(-7px,-2px)}
+  82%{clip-path:inset(55% 0 12% 0);transform:translate(6px,2px)}
+  85%{clip-path:inset(28% 0 44% 0);transform:translate(-4px,1px)}
+  88%{clip-path:inset(72% 0 4% 0);transform:translate(5px,-1px)}
+}
+@keyframes gRed{
+  0%,38%,100%{clip-path:inset(0 0 100% 0);transform:none}
+  39%{clip-path:inset(64% 0 8% 0);transform:translate(6px,1px)}
+  42%{clip-path:inset(15% 0 62% 0);transform:translate(-5px,-2px)}
+  45%{clip-path:inset(44% 0 34% 0);transform:translate(3px,2px)}
+}
+@keyframes skewB{
+  0%,52%,100%{transform:none}
+ 53%{transform:skewX(-7deg) scaleX(1.03)}
+  56%{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .err404,.err404::before,.err404::after{animation:none}
+}
+
+.sub{color:var(--amd);letter-spacing:.45em;font-size:15px;margin-top:4px}
+.sub i{font-style:normal;color:var(--am);margin:0 10px}
+
+/* ---- 借口轮播行 ---- */
+.exbox{
+  margin-top:34px;width:min(560px,92vw);
+  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  padding:11px 0;font-size:16.5px;cursor:pointer;user-select:none}
+.exbox:hover{background:var(--amf)}
+.exlab{color:var(--amd);font-size:13px;letter-spacing:.2em;margin-right:12px}
+#excuse{color:var(--txt)}
+.cur{display:inline-block;width:9px;height:1em;background:var(--am);
+  vertical-align:-2px;margin-left:8px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.tick{animation:tickA .18s steps(2)}
+@keyframes tickA{30%{transform:translateX(-4px) skewX(-5deg)}65%{transform:translateX(2px)}}
+
+/* ---- 错误日志 ---- */
+.logp{width:min(560px,92vw);margin-top:30px;border:1px solid var(--line);
+  background:var(--panel);padding:14px 18px;position:relative;text-align:left}
+.logp::before,.logp::after{content:"";position:absolute;width:12px;height:12px;pointer-events:none}
+.logp::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.logp::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.logp-head{color:var(--amd);font-size:12px;letter-spacing:.3em;
+  border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:8px}
+.ln{font-family:'VT323','Courier New',monospace;font-size:14.5px;line-height:2.05;
+  letter-spacing:.04em;white-space:pre-wrap;color:var(--txt)}
+.ln.ok{color:var(--gr)}
+.ln.er{color:var(--red);text-shadow:0 0 8px rgba(200,90,74,.4)}
+.ln.dm{color:var(--amd)}
+.ln.hl{color:var(--am);text-shadow:0 0 10px rgba(232,176,75,.5)}
+
+/* ---- 返回 ---- */
+.backzone{margin-top:36px}
+.backbtn{font-family:inherit;font-size:17px;letter-spacing:.35em;
+  color:var(--am);background:none;border:1px solid var(--line);
+  padding:12px 46px;cursor:pointer;transition:all .25s}
+.backbtn:hover{border-color:var(--am);box-shadow:0 0 24px rgba(232,176,75,.35);background:var(--amf)}
+.backhint{margin-top:12px;font-size:13px;color:var(--amd);letter-spacing:.18em}
+
+footer{position:absolute;bottom:16px;left:0;right:0;text-align:center;
+  color:var(--amd);font-size:12.5px;letter-spacing:.3em}
+
+/* ---- 发呆彩蛋 ---- */
+.whisper{position:fixed;bottom:110px;left:0;right:0;text-align:center;z-index:5;
+  color:var(--red);font-size:14px;letter-spacing:.4em;opacity:0;
+  transition:opacity 1.2s;pointer-events:none}
+.whisper.show{opacity:.75}
+</style>
+</head>
+<body>
+
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="topline">
+  <span>NODE : CM-07 · ERR-HNDLR v0.4</span>
+  <span>SESSION : <b id="sid">----</span>
+</div>
+
+<div class="stage">
+
+  <h1 class="err404" data-text="404">404</h1>
+  <div class="sub">FILE NOT FOUND<i>//</i>文 件 未 找 到</div>
+
+  <!-- 点击可手动换一条 -->
+  <div class="exbox" id="exbox" title="点击换一条解释">
+    <span class="exlab">SYS://</span><span id="excuse">该页面不存在。</span><i class="cur"></i>
+  </div>
+
+  <section class="logp">
+    <div class="logp-head">ERROR TRACE · 实时输出</div>
+    <div id="log"></div>
+  </section>
+
+  <div class="backzone">
+    <button class="backbtn" onclick="goBack()">◈ 返 回 首 页 ◈</button>
+    <div class="backhint">// 或返回上一页——如果它还愿意让你回去</div>
+  </div>
+
+</div>
+
+<footer>CYBERMORGUE ARCHIVE SYSTEM · 此错误已记录在案（真的）</footer>
+
+<div class="whisper" id="whisper">// 你为什么还在这里</div>
+
+<script>
+/* ============ 会话号 ============ */
+function hx(n){var s="";for(var i=0;i<n;i++)s+="0123456789ABCDEF"[Math.random()*16|0];return s;}
+document.getElementById("sid").textContent=hx(4)+"-"+hx(4);
+
+/* ============ 借口轮播（点击可手动跳下一条）============ */
+var EXCUSES=[
+  "该页面不存在。",
+  "该页面从未存在过。",
+  "该页面暂时离开了本站点。",
+  "你确定你刚才想找的是这个吗？",
+  "也许它正停留在时隙之间。",
+  "访问请求有效，但页面无意愿回应。",
+  "访问已被记录。很高兴认识你。"
+];
+var ei=0,timer=null;
+var exEl=document.getElementById("excuse");
+var exBox=document.getElementById("exbox");
+
+function showNext(){
+  ei=(ei+1)%EXCUSES.length;
+  exBox.classList.remove("tick");void exBox.offsetWidth;exBox.classList.add("tick");
+  setTimeout(function(){exEl.textContent=EXCUSES[ei];},90);
+  restartTimer();
+}
+function restartTimer(){
+  clearInterval(timer);
+  timer=setInterval(showNext,3400);
+}
+exBox.addEventListener("click",showNext);
+restartTimer();
+
+/* ============ 错误日志逐字打印 ============ */
+var LOG=[
+ {t:"GET /archive/view?id=CM-\u25a0\u25a0-077",c:""},
+ {t:"验证访客通行牌 .......... OK",c:"ok"},
+ {t:"检索主索引 .............. OK",c:"ok"},
+ {t:"定位目标文件 ............ 失败",c:"er"},
+ {t:"重试定位目标文件 ........ 失败",c:"er"},
+ {t:"[目标文件拒绝被定位]",c:"er"},
+ {t:"备用方案：询问『时隙之间'] ... 无响应",c:"dm"},
+ {t:"建议：返回。或者，别回头也行。",c:"hl"}
+];
+(function(){
+  var host=document.getElementById("log"),li0,ci=0,curLn=null;
+  function step(){
+    if(li>=LOG.length)return;
+    if(ci===0){
+      curLn=document.createElement("div");
+      curLn.className="ln "+LOG[li].c;
+      host.appendChild(curLn);
+    }
+    ci++;
+    curLn.innerHTML="&gt; "+LOG[li].t.slice(0,ci);
+    if(ci>=LOG[li].t.length){li++;ci=0;setTimeout(step,320);}
+    else setTimeout(step,26);
+  }
+  setTimeout(step,700);
+})();
+
+/* ============ 返回按钮 ============ */
+function goBack(){
+  exEl.textContent="正在带您离开……";
+  setTimeout(function(){history.length>1?history.back():location.href="/";},650);
+}
+
+/* ============ 彩蛋一：发呆 15 秒，角落低语 ============ */
+var whisperTimer=null;
+var ws=document.getElementById("whisper");
+function armWhisper(){
+  clearTimeout(whisperTimer);
+  whisperTimer=setTimeout(function(){
+    ws.classList.add("show");
+    setTimeout(function(){ws.classList.remove("show");},2200);
+    armWhisper();
+  },15000);
+}
+window.addEventListener("mousemove",armWhisper);
+armWhisper();
+
+/* ============ 彩蛋二：切到后台，标签页标题变化 ============ */
+var BASE_TITLE=document.title;
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden){
+    document.title="\u25ae\u25ae\u25ae 信号丢失";
+  }else{
+    document.title="……找回信号";
+    setTimeout(function(){document.title=BASE_TITLE;},900);
+  }
+});
+</script>
+</body>
+</html>

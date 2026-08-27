@@ -181,7 +181,8 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  .ticker-track { animation: none !important; }
+  /* 跑马灯是信息通告，即使减弱动效也保持滚动 */
+  .ticker-track { animation: tick 46s linear infinite !important; }
 }
 @media(max-width:900px){
   .wrap{grid-template-columns:1fr}
@@ -215,7 +216,14 @@ body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc in
 .thin-scroll::-webkit-scrollbar-track{background:transparent;border:none}
 .thin-scroll::-webkit-scrollbar-thumb{background:var(--ph-dim,var(--amd,#8a6a2f));border:none}
 .thin-scroll::-webkit-scrollbar-thumb:hover{box-shadow:0 0 6px rgba(232,176,75,.6)}
+/* 触屏设备：隐藏自定义滚动条，恢复原生手势滚动 */
+@media (hover: none), (pointer: coarse) {
+  ::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
+  *{scrollbar-width:none;-ms-overflow-style:none}
+}
 </style>
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/base.js"></script>
 </head>
 <body>
 
@@ -499,6 +507,9 @@ window.addEventListener("scroll", () => {
 /* ===== 启动 ===== */
 async function init() {
   D = await fetch(DATA).then(r => r.json());
+  /* 跑马灯双份复制，实现无缝循环（带防重复） */
+  const tt = $("ticker-track");
+  if (tt && !tt.dataset.done) { tt.dataset.done = "1"; tt.innerHTML += tt.innerHTML; }
   let terms = [];
   try {
     const g = await fetch(DICT).then(r => r.json());
@@ -513,6 +524,7 @@ init().catch(e => { $("s0-body").innerHTML = "<p>LOAD FAILED: " + esc(e.message)
 
 /* ===== 瞄准光标 ===== */
 (function () {
+  if (window.__CM_CURSOR__) return; /* 共享 base.js 已接管光标 */
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   var sel = ".dict-link,.dept,.rule-head,.back,.logo,nav a,.ow,.ow-item";
   var w = document.createElement("div"); w.className = "cc";

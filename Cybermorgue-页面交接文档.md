@@ -22,6 +22,11 @@ project/                      ← 站点根目录（部署时即仓库根目录�
 ├── Cybermorgue-档案主页.data.json
 ├── 员工手册.html / 员工手册.data.json
 ├── 专有名词库.html / 专有名词库.data.json
+├── assets/                  ← 全局共享资源（见第五节）
+│   ├── base.css             ← 光标 + 滚动条（全站 14 页通用）
+│   ├── base.js              ← 光标脚本
+│   ├── oc-base.css          ← OC 档案模板 CSS（FILE VIEWER 公共样式）
+│   └── oc-base.js           ← OC 档案模板 JS（渲染函数/动画/返回）
 ├── README.md                 ← 部署说明
 ├── OC/                       ← 员工档案目录
 │   ├── 索引.html             ← 员工档案索引（搜索/筛选页）
@@ -103,10 +108,24 @@ else location.href = "索引.html";
 - 阴影一律带橄榄色调：`color-mix(in srgb, var(--primary) 10%, transparent)`
 - 全站固定一层 4.5% 纸噪点（body::after，pointer-events:none）
 
-### 交互层（每页底部注入脚本，已内置）
-- **瞄准光标**（桌面端）：`hover:none` 触屏自动关闭；锁定 `.card/.entry/.path/.thread/.rec/.sysdlg/.attach/.mailcard/.recipe/.video/.music-ui/.mbtn/.rec-toggle/.email-btn/.linkbtn/.fchip/.zone-link/.chip/.more/.step-next/.step-back/.back` 时四角展开变金色。表单输入框恢复系统光标。
+### OC 档案模板（共享，重要）
+
+档案页的公共模板也已抽成共享文件（`assets/oc-base.css` + `assets/oc-base.js`）：
+- **加载顺序（安全保证）**：`oc-base.css` 放在页面 `<style>` **之前** → 页面自身的特殊样式永远优先，**特殊效果页（Nyxstr 异象 / Marcus 双版本 / Merrie 随身听 / Hax 金斜体 / Belle 视频 / Tatyana 邮件等）零风险**；特殊页只需在自身 `<style>` 里覆盖或新增即可。
+- **oc-base.js** 放在页面脚本之前（head 里），提供 `esc/sp/paras/lvTag/CLMAP/DOTMAP/fheadHtml/badgeHtml/sectionsHtml/threadHtml/galleryHtml/decodeName/revealPanels/goBack`；需要定制渲染的页面（如 Nyxstr 的 `bodyText`、Hax 的 `%%` 处理）在自身脚本里重定义同名函数，**后定义者胜出**。
+- **纯标准页 = 壳**：Dye / Kameron / Valentina 已瘦身为极薄页面（只有 `DATA` + `SELF_IDS` + `render()` 三行核心，全页不到 2KB），任何模板改动只需改 oc-base 两个文件即可全量生效。
+- 特殊页内仍内嵌着模板 CSS/JS 的历史副本（被页面样式优先覆盖/被重定义覆盖），功能不受影响；如需彻底瘦身可后续清理。
+
+### 交互层（全局共享，已内置）
+
+**公共资源架构（重要）**：光标与滚动条已抽成共享文件，全站 14 页统一引用，**以后改光标/滚动条只需改这两个文件，全站生效，不要逐页改**：
+- `assets/base.css`：全局滚动条（复古终端风：12px 网格轨道 + 琥珀切角滑块 + hover 辉光 + 按住变红彩蛋 + Firefox 简配 + `.thin-scroll` 迷你版；触屏 `hover:none`/`pointer:coarse` 自动隐藏恢复原生手势）+ 瞄准光标 CSS。颜色走各页 `:root` 变量（`var(--ph, var(--am, var(--primary)))` 兜底链）。
+- `assets/base.js`：瞄准光标脚本。**立即设置 `window.__CM_CURSOR__ = true`**，各页旧光标 IIFE 顶部已有守卫（`if (window.__CM_CURSOR__) return;`）自动跳过，不会双光标。光标挂 `<html>`（body 抖动动画不影响）。事件委托选择器 `sel` 是**全站超集**，新增可交互界面元素请加进 base.js 的 `sel` 列表。
+- 引用方式：OC 页（`OC/` 下）用 `../assets/base.css` + `../assets/base.js`；根目录页用 `assets/base.css` + `assets/base.js`（放在页面 `<style>` 之后）。**新增页面只需引用这两个文件**，不再需要复制光标/滚动条代码。
+- 各页残留的旧光标/滚动条 CSS 与旧光标 IIFE 属于历史冗余（被共享文件覆盖/守卫跳过），可留可清，不影响功能。
+- 光标行为：桌面端方框+圆点（琥珀色），锁定可点元素时四角张开变金色/绿色；**点击时四角以准星自身中心为圆心公转一圈**（380ms，无自转）；文本框恢复 I-beam；触屏/减弱动效自动关闭。
 - **3D 倾斜卡片**（`.tilt`）：鼠标跟随 rotateX/Y，**角度 4°、透视 1200px**（保持文字清晰，勿加大角度）。
-- 所有动画遵循 `prefers-reduced-motion`。
+- 所有动画遵循 `prefers-reduced-motion`（跑马灯通告除外——它是信息通告，减弱动效下也保持滚动）。
 
 ---
 
@@ -188,7 +207,7 @@ else location.href = "索引.html";
 
 1. 从 `Texts/CMOC列表x（无排版）` 读取用户写的 OC 原文。
 2. 建 `OC/<名字>.data.json`（按第七节格式；`++`/`%%`/注音/`//` 标记照原文写进数据，渲染器自动处理）。
-3. 复制一个标准 OC 页（推荐 `OC/DyeOxide.html` 或 `OC/ZakeVacuma.html`）改名为 `<名字>.html`，改：`DATA` 路径、`<title>`；如有特殊机制（播放器/弹窗/引用/视频等）参照第八节对应页面的写法移植。
+3. 复制一个**标准壳页**（推荐 `OC/DyeOxide.html`）改名为 `<名字>.html`，改：`<title>`、`DATA` 路径、`SELF_IDS`（该 OC 在论坛的 id，命中显示 ◆ 本档案关联者）；如需特殊机制（播放器/弹窗/引用/视频/双版本/异象等）参照第八节对应页面的写法，在壳页里**追加**自己的 `<style>` 块和脚本（oc-base 模板在前，你的特殊样式永远生效）。
 4. 把新 OC 加入：`OC/索引.html` 的 `OC_FILES` 数组、主页 data.json 的 `staffHome.ocs`。
 5. 如果有图片，放 `OC/img/`，在 data.json `portrait` 填相对路径（如 `img/xxx.png`，页面在 OC/ 下所以不用带 OC/）。
 6. 有 mp3 等资源放 `OC/otherresources/`，`music.src` 用编码后的相对路径（空格用 %20、`'` 用 %27）。
@@ -211,8 +230,8 @@ else location.href = "索引.html";
 - 路径有 app（`project/…`）与浏览器（相对路径）两套，改一个必须同步另一个。
 - 3D 倾斜角度勿加大（会糊）；CRT 效果（外壳/扫描线/色差）用户已要求移除，**不要重新加**。
 - 配色以第五节为准（多次覆盖后的最终值）；若用户再调色，改 `:root` 覆盖块即可。
-- 所有页面底部有一段注入脚本（瞄准光标 + 样式覆盖），新增页面时也要带上。
-- **瞄准光标（桌面端方框+圆点，琥珀色）是所有页面的必备元素**：每个页面都要有 `.cc` 系列 CSS + 光标脚本（事件委托，选择器覆盖该页所有可点元素：卡片/按钮/菜单/筛选/返回键/输入框恢复系统光标）。新增任何界面（员工终端、闸门、表单、弹窗等）都要把新交互元素加进光标的 `sel` 选择器列表，否则鼠标没有反馈。
+- **公共资源走共享文件**：光标与滚动条一律改 `assets/base.css` / `assets/base.js`（全站生效），不要逐页改。新增页面只需引用这两个文件（见第五节「交互层」）。
+- **瞄准光标（桌面端方框+圆点，琥珀色）是所有页面的必备元素**：由 `assets/base.js` 统一注入（事件委托，选择器覆盖全站所有可点元素）。新增任何界面（员工终端、闸门、表单、弹窗等）都要把新交互元素加进 `assets/base.js` 的 `sel` 选择器列表，否则鼠标没有反馈。
 - **系统弹窗统一格式**（参考 `Code/系统弹窗格式参考.html`）：**作为页内块放在文档末尾**（不要做成全局遮罩/自动弹出）——`.syspop` 四角框（sp-head 圆点标题 / sp-body 正文带 `.hl` 高亮词 / sp-code 小字代码行 / sp-btns 忽略+查看按钮 / done 反馈态）。**弹窗内所有文案（标题/英文/正文/按钮/反馈）都必须放进对应 data.json 的 `sysdlg` 字段，页面从数据渲染**，方便用户随时改文案。
 - **Wildcard 相关判词/语录统一用「档案附页·诗框」格式**（参考 `Code/一些特殊quote参考.html` 最下面的诗框）：`.poem-zone` > `.poem-title`（如「—《 判 词 》—」）+ `.poem`（顶部光晕 + 34px 间隔横线稿纸底 + `◈` 徽记 + 衬线）+ `.pl` 逐行浮现 + `.poem-sign` 签名。注音（`〔汉字|英文〕`）照常压在汉字上方。
 - 新页面（员工手册/索引等）统一走「VT323 + Noto Sans SC + 琥珀/绿/红」终端视觉语言，与主页一致。

@@ -1,0 +1,141 @@
+好加——特殊结果不走 `ZONES` 数组，单独做一个“无法归类”分支：日志结尾不一样（反复分析失败 → 转人工），结果卡变成**红色虚线的挂起单**样式，宣判句也换成官方踢皮球的口吻。
+
+只需改动三处，先给关键代码，最后附完整替换版 `announce` 流程：
+
+**① 在 `ZONES` 数组后面加一条特殊结果定义**
+
+```js
+/* ---- 特殊结果：无法归类 ---- */
+const UNCLASSIFIED={
+  en:"PENDING // MANUAL REVIEW",
+  name:"待 分 配",
+  tag:"异常 / 挂起 / 人工复核",
+  no:"ZONE-??",
+  pop:"状态：移交文书科",
+  desc:"系统在全部四个分区的特征阈值间反复摆动，无法收敛出唯一解。这不常见，但也<em>并非第一次</em>。<br>您的案例已标记为「低优先级 · 有趣」，将由工作人员在<a style='pointer-events:none;color:var(--amd)'>某个工作日</a>亲自为您指定去处。在此期间请勿擅自选择归属地——历史上这样做的人都后悔了。"
+};
+```
+
+**② 判定日志脚本改两行**（让结尾为失败留出伏笔）——把 `LOGSCRIPT` 最后两条换成：
+
+```js
+ [160,["> 权重收敛完毕","lok"],
+      ["> 归属阈值突破 —— 唯一分区确定","lok"]],
+ /* 特殊结局时这两条由 JS 动态追加 */
+```
+
+**③ 主流程加判定开关 + 特殊结局的分叉**
+
+```js
+/* ============ 主流程 ============ */
+$("start").onclick=start;
+
+async function start(){
+  $("stage").classList.add("judging");
+  $("gauge").style.display="flex";
+
+  pulse("rgba(232,176,75,.10)",180);
+  const stopSig=sigChase();
+  playLog();
+
+  await sleep(2600);pulse("rgba(200,90,74,.12)",140);
+  await sleep(700); pulse("rgba(200,90,74,.12)",100);
+  await sleep(900); pulse("rgba(232,176,75,.14)",120);
+
+  /* ====== 正式接入时删掉这行演示随机，换成打分结果判断 ====== */
+  const special=Math.random()<0.28;   /* 演示：28% 出特殊结局 */
+
+  if(special){
+    /* —— 特殊分支：日志改唱失败戏码 —— */
+    const box=$("jlog");
+    const extra=[
+      ["> 警告：置信度不足 (31% < 60%)","lwarn"],
+      ["> 尝试强制收敛 …… 失败","ler"],
+      ["> 再次尝试强制收敛 …… 失败","ler"],
+      ["> 特征组合超出已知分区定义域","lwarn"],
+      ["> 移交人工队列 …… 已受理","lam"],
+    ];
+    for(const [t,c] of extra){
+      const d=document.createElement("div");d.className=c;d.textContent=t;
+      box.appendChild(d);
+      while(box.children.length>10)box.removeChild(box.firstChild);
+      await sleep(420);            /* 故意放慢：一次一次砸出来 */
+    }
+    pulse("rgba(200,90,74,.16)",260);   /* 长红脉冲代替白闪 */
+    await sleep(800);
+    document.body.style.filter="brightness(.15)";
+    await sleep(650);
+    document.body.style.filter="";
+    announce(UNCLASSIFIED,true);
+  }else{
+    stopSig();
+    [...$("sig").children].forEach(b=>b.classList.remove("on"));
+    document.body.style.filter="brightness(.15)";
+    await sleep(500);
+    document.body.style.filter="";
+    pulse("rgba(255,240,200,.85)",70);
+    document.body.animate(
+      [{transform:"translateX(0)"},{transform:"translateX(-9px)"},
+       {transform:"translateX(7px)"},{transform:"translateX(0)"}],
+      {duration:200});
+    announce(ZONES[Math.random()*ZONES.length|0],false);
+  }
+}
+```
+
+**④ `announce()` 支持双态**（把原函数整个替换）
+
+```js
+function announce(z,isSpecial){
+  $("gauge").style.display="none";
+  $("stage").classList.remove("judging");
+
+  $("vEn").textContent=z.en;
+  $("vName").textContent=z.name;
+  $("vTag").textContent=z.tag;
+  $("vNo").textContent=z.no;
+  $("vPop").textContent=z.pop;
+  $("vDesc").innerHTML=z.desc;
+
+  if(isSpecial){
+    /* 结果卡整体换成红警风格 */
+    const card=document.querySelector(".z-card");
+    card.style.borderStyle="dashed";
+    card.style.borderColor="rgba(200,90,74,.5)";
+    card.querySelector(".zc-h b").style.color="var(--red)";
+    $(".stamp").textContent="PENDING";
+    $(".stamp").style.borderColor="var(--red)";
+    document.querySelector(".z-name").style.textShadow=
+      "0 0 34px rgba(200,90,74,.45)";
+  }
+
+  /* 官方宣判（两种口吻）*/
+  const decree=$("decree");
+  const txt=isSpecial
+    ?"检测完成。未能将您匹配至任何已知分区。档案已封存，等待工作人员分配。"
+    :"检测完成。您将被分配至【"+z.name+"】。档案已归档。";
+  let i=0;
+  (function type(){
+    i++;
+    decree.innerHTML=esc(txt.slice(0,i))
+      .replace(/【(.*)】?$/,(m,g)=>m.endsWith("】")?"【<b>"+esc(g)+"</b>】":m+"▌");
+    if(i<txt.length)setTimeout(type,55);
+  })();
+
+  $("verdict").classList.add("show");
+}
+```
+
+这个特殊结局的差异化设计：
+
+| | 普通结局 | 待分配结局 |
+|---|---|---|
+| 日志收尾 | `权重收敛完毕——唯一分区确定` | **连续四条失败**，节奏刻意放慢（420ms/条），像机器在挣扎 |
+| 爆闪方式 | 白光爆闪 + 抖动 | **长红脉冲 + 更长的黑暗**（0.65s），不安感取代爽快感 |
+| 印章 | `RECORD SEALED` 绿转琥珀正常流程 | 印章文字换 **`PENDING`** |
+| 结果卡 | 左竖线琥珀面板 | 整体改**红色虚线边框**、编号 `ZONE-??`、大字带红晕 |
+| 宣判句 | “您将被分配至【X】” | “**未能将您匹配至任何已知分区**……等待工作人员分配” |
+
+介绍卡文案我也顺手埋了两个钩子：「低优先级 · 有趣」是文书科的黑色幽默，「请勿擅自选择归属地」暗示以前有人试过且后果不明——这个待分配身份之后还能和你员工终端联动（比如登录后终端里多一行 `你的分区申请仍在人工队列中（第 ██ 位）`，每次访问数字还会慢慢变动）。
+
+正式接入时记得删掉那行演示用的 `Math.random()<0.28`，改成你打分函数的真实条件，比如「最高分与次高分差值 ≤ 1」或「总分全为零」才触发特殊分支。

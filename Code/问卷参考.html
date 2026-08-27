@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIZ PREVIEW // 深度登记问卷 · 效果预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ph:#d9a44a; --ph-dim:#8a6a34; --ph-faint:rgba(217,164,74,.08);
+  --amber:#e8b45e; --red:#c65b4e; --ok:#7fae6a;
+  --bg:#0a0805; --panel:#100d08; --line:rgba(217,164,74,.20); --txt:#d8ccb0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--txt);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:16px;line-height:1.8;
+  cursor:crosshair;text-shadow:-.3px 0 rgba(255,50,90,.10),.3px 0 rgba(0,205,255,.10)}
+::selection{background:var(--ph);color:#000}
+
+/* ---------- CRT 覆层 ---------- */
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.22) 3px 4px)}
+.crt-vig{position:fixed;inset:0;z-index:901;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.62) 100%)}
+
+/* ---------- 背景氛围 ---------- */
+.bg-amb{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%,rgba(217,164,74,.06),transparent),
+    repeating-linear-gradient(to right,transparent 0 79px,rgba(217,164,74,.03) 79px 80px),
+    repeating-linear-gradient(to bottom,transparent 0 79px,rgba(217,164,74,.03) 79px 80px)}
+.dust{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.dust i{position:absolute;width:2px;height:2px;background:var(--ph);
+  opacity:.18;border-radius:50%;animation:drift linear infinite}
+@keyframes drift{from{transform:translateY(105vh)}to{transform:translateY(-6vh)}}
+
+/* ---------- 舞台 ---------- */
+#stage{position:relative;z-index:5;height:100vh;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px}
+
+.qmeta{position:absolute;top:26px;left:32px;right:32px;display:flex;
+  justify-content:space-between;font-size:14px;color:var(--ph-dim);
+  letter-spacing:.3em;z-index:10;font-family:'VT323',monospace}
+.pbar{position:absolute;top:0;left:0;height:2px;background:var(--ph);
+  box-shadow:0 0 12px var(--ph);width:0;
+  transition:width .7s cubic-bezier(.2,.7,.2,1);z-index:11}
+
+/* ============================================================
+   题卡容器：一次只有一张在舞台上
+   ============================================================ */
+.qcard{width:min(860px,94vw);min-height:58vh;display:flex;
+  flex-direction:column;justify-content:center;position:relative}
+@keyframes qIn{
+  0%{opacity:0;transform:translateY(34px) scale(.985);filter:brightness(2.4) blur(4px)}
+  100%{opacity:1;transform:none;filter:none}}
+@keyframes qOut{
+  0%{opacity:1;transform:none}
+  22%{opacity:.9;transform:translateX(-10px) skewX(-6deg)}
+  24%{transform:translateX(8px) skewX(4deg)}
+  100%{opacity:0;transform:translateX(-40px) skewX(-10deg);filter:brightness(.4)}}
+.qcard.enter{animation:qIn .75s cubic-bezier(.2,.7,.25,1) both}
+.qcard.leave{animation:qOut .45s steps(6) both}
+
+/* ---------- 问题文本 ---------- */
+.q-no{font-family:'VT323',monospace;font-size:19px;color:#6fb3b8;
+  letter-spacing:.35em;margin-bottom:14px}
+.q-text{font-family:'Noto Sans SC',sans-serif;font-weight:300;
+  font-size:clamp(22px,3.4vw,34px);line-height:1.55;color:var(--amber);
+  letter-spacing:.06em;margin-bottom:44px;
+  text-shadow:0 0 22px rgba(232,180,94,.25)}
+.caret{display:inline-block;width:.55em;height:1.05em;background:var(--ph);
+  vertical-align:-4px;margin-left:4px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- 选择题选项 ---------- */
+.opts{display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .4s .1s}
+.opts.ready{opacity:1}
+.opt{
+  display:flex;align-items:center;gap:18px;text-align:left;width:100%;
+  background:none;border:none;border-left:2px solid transparent;
+  color:var(--txt);font-family:'VT323','Noto Sans SC',monospace;
+  font-size:clamp(15px,1.9vw,18px);line-height:1.6;padding:13px 20px;
+  cursor:pointer;transition:border-color .18s,color .18s,padding .18s,background .18s;
+  opacity:0;transform:translateY(10px)}
+.opt.show{opacity:1;transform:none;transition:opacity .4s,transform .4s,
+  border-color .18s,color .18s,padding .18s,background .18s}
+.opt .idx{font-family:'VT323',monospace;font-size:19px;color:var(--ph-dim);
+  flex-shrink:0;letter-spacing:.1em;transition:color .18s}
+.opt .arr{margin-left:auto;color:var(--ph);opacity:0;
+  transform:translateX(-6px);transition:all .22s;font-family:'VT323',monospace;font-size:20px}
+.opt:hover{border-left-color:var(--ph);color:var(--amber);
+  background:linear-gradient(90deg,var(--ph-faint),transparent 70%);
+  padding-left:30px}
+.opt:hover .idx{color:var(--ph)}
+.opt:hover .arr{opacity:1;transform:none}
+.kbd-hint{margin-top:28px;font-size:12px;color:var(--ph-dim);
+  letter-spacing:.25em;opacity:0;transition:opacity .6s .6s}
+.kbd-hint.ready{opacity:.7}
+
+/* ---------- 填空题 ---------- */
+.blank-wrap{display:flex;flex-direction:column;gap:22px}
+.blank-input{align-self:flex-start;width:min(520px,82vw);
+  font-family:'VT323','Noto Sans SC',monospace;font-size:clamp(19px,2.4vw,24px);
+  color:var(--amber);background:none;border:none;
+  border-bottom:1px solid var(--line);padding:6px 4px;outline:none;line-height:2}
+.blank-input:focus{border-bottom-color:var(--ph);
+  box-shadow:0 14px 26px -18px rgba(217,164,74,.6)}
+.blank-input::placeholder{color:var(--ph-dim);opacity:.55}
+.blank-note{font-size:13px;color:var(--ph-dim);letter-spacing:.15em}
+
+/* ---------- 按钮 ---------- */
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:44px;gap:14px}
+.nbtn{font-family:'VT323','Noto Sans SC',monospace;font-size:15px;letter-spacing:.25em;
+  background:none;border:1px solid var(--line);color:var(--ph-dim);
+  padding:9px 24px;cursor:pointer;transition:all .2s;border-radius:0}
+.nbtn:hover:not(:disabled){border-color:var(--ph);color:var(--ph)}
+.nbtn:disabled{opacity:.25;cursor:default}
+.nbtn.primary{border-color:var(--ph);color:var(--ph);background:var(--ph-faint)}
+.nbtn.primary:hover:not(:disabled){background:var(--ph);color:#000;
+  box-shadow:0 0 24px rgba(217,164,74,.4)}
+
+/* ---------- 开场 & 结尾卡 ---------- */
+.gate-card{text-align:center;display:flex;flex-direction:column;
+  align-items:center;justify-content}
+.gate-card .en{color:var(--ph-dim);font-size:13px;letter-spacing:.55em;margin-bottom:22px}
+.gate-card h1{font-family:'VT323',monospace;font-size:clamp(42px,8vw,86px);
+  color:var(--ph);line-height:1.05;letter-spacing:.12em;
+  text-shadow:0 0 30px rgba(217,164,74,.4);margin-bottom:24px}
+.gate-card p{max-width:36em;color:var(--txt);line-height:2.1;
+  font-family:'Noto Sans SC',sans-serif;font-weight:300;white-space:pre-line}
+.bigbtn{margin-top:44px;font-family:'VT323',monospace;font-size:22px;
+  letter-spacing:.3em;background:none;border:1px solid var(--ph);
+  color:var(--ph);padding:14px 54px;cursor:pointer;transition:all .25s;border-radius:0}
+.bigbtn:hover{background:var(--ph);color:#000;box-shadow:0 0 40px rgba(217,164,74,.5)}
+
+/* 结尾印章 */
+.stamp{display:inline-block;margin-top:6px;padding:8px 28px;
+  border:2px solid var(--red);color:var(--red);
+  font-family:'VT323',monospace;font-size:26px;letter-spacing:.3em;
+  transform:rotate(-4deg);animation:stampIn .35s cubic-bezier(.3,1.6,.6,1) both .8s}
+@keyframes stampIn{from{opacity:0;transform:rotate(-4deg) scale(2.4)}
+  to{opacity:.92;transform:rotate(-4deg) scale(1)}}
+.result-zone{font-family:'Noto Sans SC',sans-serif;font-weight:500;
+  font-size:clamp(30px,5vw,48px);color:var(--amber);letter-spacing:.25em;
+  margin:18px 0 6px;text-shadow:0 0 26px rgba(232,180,94,.4)}
+.result-note{font-size:14px;color:var(--ph-dim);letter-spacing:.15em;
+  margin-top:20px;line-height:2}
+
+@media(max-width:600px){
+  .qmeta{font-size:11px;letter-spacing:.15em}
+  .nav-row{margin-top:32px}
+}
+@media(prefers-reduced-motion:reduce){
+  .qcard.enter,.qcard.leave,.stamp,.dust i{animation:none!important}
+  .opt{opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-amb"></div>
+<div class="dust" id="dust"></div>
+<div class="crt-lines"></div><div class="crt-vig"></div>
+
+<div class="pbar" id="pbar"></div>
+<div class="qmeta">
+  <span>DEEP REGISTRATION // 深度登记程序</span>
+  <span id="qcount">STANDBY</span>
+</div>
+
+<div id="stage"></div>
+
+<script>
+/* ============ 工具 ============ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const stage=$("stage");
+
+/* 尘埃粒子 */
+(function(){
+  const d=$("dust");
+  for(let i=0;i<26;i++){
+    const p=document.createElement("i");
+    p.style.left=Math.random()*100+"%";
+    p.style.animationDuration=(9+Math.random()*14)+"s";
+    p.style.animationDelay=(-Math.random()*20)+"s";
+    p.style.opacity=.08+Math.random()*.16;
+    d.appendChild(p);
+  }
+})();
+
+/* ============ 打字机 ============ */
+function typeText(el,text,speed){
+  return new Promise(res=>{
+    el.innerHTML='<span class="ty"></span><span class="caret"></span>';
+    const ty=el.querySelector(".ty");
+    let i=0;
+    (function step(){
+      ty.textContent=text.slice(0,++i);
+      if(i<text.length)setTimeout(step,speed+Math.random()*speed*.7);
+      else{el.querySelector(".caret").remove();res();}
+    })();
+  });
+}
+
+/* ============================================================
+   题目数据 —— 占位流程，之后换成正式题目即可
+   type: gate(开场) / single(单选) / binary(二选一) / blank(填空) / result
+   ============================================================ */
+const QUESTIONS=[
+ {type:"gate"},
+ {type:"single",no:"Q.01",
+  q:"你抵达时没有携带任何行李。安检员询问原因，你会说：",
+  opts:["我需要的东西都在脑子里。",
+        "我有预感，这边会提供一切。",
+        "行李是留给打算离开的人的。",
+        "……我不记得了。"]},
+ {type:"binary",no:"Q.02",
+  q:"走廊尽头的灯每天熄灭一次，每次三秒。你更愿意：",
+  a:"站在原地数完这三秒",
+  b:"转身背对它走过去"},
+ {type:"single",no:"Q.03",
+  q:"如果必须交出一样东西才能入职，你交出：",
+  opts:["一段别人不知道的记忆","一个再也没打开过的名字",
+        "半夜醒来时的第一句话","没有。我可以谈别的条件。"]},
+ {type:"blank",no:"Q.04",
+  q:"系统需要为你建档。\n请写下你想让这个世界称呼你的名字——真实的，或希望成为的。",
+  ph:"在此输入……"},
+ {type:"result"}
+];
+
+let cur=-1,answers=[];
+
+function cardEl(cls){const c=document.createElement("div");c.className="qcard "+(cls||"");return c;}
+function pushCard(c){stage.appendChild(c);}
+
+function updateMeta(){
+  const total=QUESTIONS.filter(q=>!["gate","result"].includes(q.type)).length;
+  const done=answers.filter(Boolean).length;
+  $("qcount").textContent=
+    cur<0?"STANDBY":
+    done>=total?"DONE 已归档":
+    String(done).padStart(2,"0")+" / "+String(total).padStart(2,"0")+" PROCESSED";
+  $("pbar").style.width=Math.min(done/total*100,100)+"%";
+}
+
+/* ============ 各题型渲染 ============ */
+function renderGate(){
+  const c=cardEl("enter gate-card");
+  c.innerHTML=`<p class="en">DIMENSIONAL INTAKE FORM // 07 SECTORS VERIFIED</p>
+    <h1>深度登记</h1>
+    <p>接下来的问题没有正确答案。
+本问卷结果将被永久记录于你的员工档案。
+若某道题让你犹豫超过十秒——
+请把犹豫本身也当作答案。</p>
+    <button class="bigbtn" id="go">▶ 开 始 登 记</button>`;
+  pushCard(c);
+  $("go").onclick=()=>next();
+  updateMeta();
+}
+
+async function renderSingle(qd){
+  const c=cardEl();
+  c.innerHTML=`<div class="q-no">${esc(qd.no)}</div>
+    <div class="q-text"></div>
+    <div class="opts">${qd.opts.map((o,i)=>
+      `<button class="opt" data-v="i"><spanclass="idx">[0{i}"><span class="idx">[0i"><spanclass="idx">[0{i+1}]</span><span>${esc(o)}</span><span class="arr">&gt;&gt;</span></button>`).join("")}</div>
+    <div class="kbd-hint">↑↓ 或数字键选择 · ENTER 确认</div>
+    <div class="nav-row"><button class="nbtn" id="bk">◀ 回退</button><span style="flex:1"></span></div>`;
+  pushCard(c);
+  await typeText(c.querySelector(".q-text"),qd.q,42);
+  c.querySelector(".opts").classList.add("ready");
+  for(const o of c.querySelectorAll(".opt")){o.classList.add("show");await sleep(90);}
+  c.querySelector(".kbd-hint").classList.add("ready");
+  bindOpts(c,qd);bindBack(c);
+}
+
+async function renderBinary(qd){
+  const c=cardEl("gate-card");
+  c.innerHTML=`<div class="q-no" style="align-self:flex-start">${esc(qd.no)}</div>
+    <div class="q-text" style="text-align:center;white-space:pre-line"></div>
+    <div style="display:flex;gap:26px;flex-wrap:wrap;justify-content:center">
+      <button class="opt" data-v="a"><span class="idx">[A]</span><span>${esc(qd.a)}</span><span class="arr">&gt;&gt;</span></button>
+      <button class="opt" data-v="b"><span class="idx">[B]</span><span>${esc(qd.b)}</span><span class="arr">&gt;&gt;</span></button>
+    </div>
+    <div class="kbd-hint">A / B 键快速选择</div>
+    <div class="nav-row" style="align-self:stretch"><button class="nbtn" id="bk">◀ 回退</button><span style="flex:1"></span></div>`;
+  pushCard(c);
+  await typeText(c.querySelector(".q-text"),qd.q,42);
+  c.querySelector(".kbd-hint").classList.add("ready");
+  bindOpts(c,qd);bindBack(c);
+}
+
+async function renderBlank(qd){
+  const c=cardEl();
+  c.innerHTML=`<div class="q-no">${esc(qd.no)}</div>
+    <div class="q-text" style="white-space:pre-line"></div>
+    <div class="blank-wrap">
+      <input class="blank-input" id="bl" placeholder="${esc(qd.ph||"")}" maxlength="30" autocomplete="off">
+      <span class="blank-note">// 输入内容将直接进入档案，不可涂改</span>
+    </div>
+    <div class="nav-row">
+      <button class="nbtn" id="bk">◀ 回退</button>
+      <button class="nbtn primary" id="ok" disabled>确认归档 ▶</button>
+    </div>`;
+  pushCard(c);
+  await typeText(c.querySelector(".q-text"),qd.q,38);
+  const bl=c.querySelector("#bl"),ok=c.querySelector("#ok");
+  setTimeout(()=>bl.focus(),150);
+  bl.addEventListener("input",()=>{ok.disabled=!bl.value.trim();});
+  ok.onclick=()=>pick(bl.value.trim());
+  bl.addEventListener("keydown",e=>{
+    if(e.key==="Enter"&&bl.value.trim())pick(bl.value.trim());});
+  bindBack(c);
+}
+
+function renderResult(){
+  const c=cardEl("enter gate-card");
+  const na=(answers.find(a=>a&&a.type==="blank")||{}).v||"未命名者";
+  const zone=["电子囚笼","黄金计时","江河世年"][Math.random()*3|0];
+  c.innerHTML=`<p class="en">REGISTRATION COMPLETE</p>
+    <h1 style="font-size:clamp(34px,6vw,64px)">归档完成</h1>
+    <div class="stamp">RECORD SEALED</div>
+    <div class="result-zone">「${esc(zone)}」</div>
+    <p>欢迎入职，${esc(na)}。</p>
+    <div class="result-note">正式分区通知书将于三个工作日内送达<br>（本周内。大概。请勿催促文书科。）</div>
+    <button class="bigbtn" onclick="location.reload()">↺ 重 新 演 示</button>`;
+  pushCard(c);
+  $("qcount").textContent="DONE 已归档";
+  $("pbar").style.width="100%";
+}
+
+/* ============ 交互绑定 ============ */
+function bindOpts(card,qd){
+  let kbFocus=0;
+  const opts=[...card.querySelectorAll(".opt")];
+  function paint(){opts.forEach((o,i)=>
+    o.style.background=i===kbFocus?"var(--ph-faint)":"");}
+  opts.forEach(o=>o.onclick=()=>pick(o.dataset.v));
+  document.onkeydown=e=>{
+    if(!stage.contains(card)){document.onkeydown=null;return;}
+    if(e.key==="ArrowDown"){kbFocus=(kbFocus+1)%opts.length;paint();}
+    else if(e.key==="ArrowUp"){kbFocus=(kbFocus-1+opts.length)%opts.length;paint();}
+    else if(/^[1-9]$/.test(e.key)&&opts[e.key-1]){kbFocus=e.key-1;paint();}
+    else if(e.key==="Enter"&&opts[kbFocus])pick(opts[kbFocus].dataset.v);
+    else if(/^a$/i.test(e.key)&&opts.length===2)pick(opts[0].dataset.v);
+    else if(/^b$/i.test(e.key)&&opts.length===2)pick(opts[1].dataset.v);
+  };
+  paint();
+}
+
+function bindBack(c){
+  const bk=c.querySelector("#bk");
+  if(bk)bk.onclick=()=>{
+    if(cur<=1)return;
+    answers[cur]=undefined;cur-=1;
+    advance();
+  };
+}
+
+function pick(v){
+  answers[cur]={type:QUESTIONS[cur].type,v:v};
+  next();
+}
+
+/* ============ 切换引擎 ============ */
+async function next(){
+  /* 旧题：故障撕裂滑出 */
+  const old=stage.querySelector(".qcard");
+  if(old){old.classList.add("leave");await sleep(430);old.remove();}
+  cur++;
+  const qd=QUESTIONS[cur];
+  if(!qd)return;
+  if(qd.type==="gate")renderGate();
+  else if(qd.type==="single")await renderSingle(qd);
+  else if(qd.type==="binary")await renderBinary(qd);
+  else if(qd.type==="blank")await renderBlank(qd);
+  else renderResult();
+}
+
+/* 回退时复用切换引擎 */
+function advance(){
+  next().then(()=>{
+    cur--;/* 回退逻辑：先退一格再重渲 */
+  });
+}
+
+/* 简化回退实现 */
+bindBackPatched();
+function bindBackPatched(){
+  document.addEventListener("click",e=>{
+    if(e.target.id!=="bk")return;
+    if(cur<=1)return;
+    answers[cur]=undefined;
+    const target=cur-1;
+    (async()=>{
+      const old=stage.querySelector(".qcard");
+      if(old){old.classList.add("leave");await sleep(430);old.remove();}
+      cur=target;
+      const qd=QUESTIONS[cur];
+      if(qd.type==="single")await renderSingle(qd);
+      else if(qd.type==="binary")await renderBinary(qd);
+      else if(qd.type==="blank")await renderBlank(qd);
+      updateMeta    })();
+  });
+}
+
+renderGate();
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIZ SIM // 随机作答分布模拟</title>
+<style>
+:root{--ph:#d9a44a;--ph-dim:#8a6a34;--line:rgba(217,164,74,.25);--bg:#0a0805;--panel:#100d08;--txt:#d8ccb0;--red:#c65b4e;--ok:#7fae6a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono','Courier New',monospace;font-size:14px;padding:34px 20px;line-height:1.7}
+h1{font-family:'VT323',monospace;color:var(--ph);font-size:34px;letter-spacing:.14em;margin-bottom:6px}
+.sub{color:var(--ph-dim);font-size:12px;letter-spacing:.2em;margin-bottom:22px}
+.card{background:var(--panel);border:1px solid var(--line);padding:16px 20px;margin-bottom:14px;max-width:720px}
+.card h2{font-family:'VT323',monospace;color:var(--ph);font-size:20px;letter-spacing:.2em;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed rgba(217,164,74,.08)}
+.row:last-child{border-bottom:none}
+.row b{color:var(--ph);font-weight:400}
+.row .pct{color:var(--ok)}
+.row.spec b{color:var(--red)}
+.bar{height:6px;background:rgba(217,164,74,.12);margin:3px 0 10px;position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ph)}
+.bar.spec i{background:var(--red)}
+.note{color:var(--ph-dim);font-size:12.5px;margin-top:8px}
+#run{margin:6px 0 18px;background:none;border:1px solid var(--ph);color:var(--ph);
+  font-family:inherit;font-size:15px;letter-spacing:.2em;padding:9px 26px;cursor:pointer}
+#run:hover{background:var(--ph);color:#000}
+</style>
+</head>
+<body>
+<h1>QUIZ DISTRIBUTION SIM</h1>
+<div class="sub">// 随机作答 20000 次 · 复刻主页判定逻辑（不含 30 秒瞎点规则，纯内容分布）</div>
+<button id="run" onclick="sim()">▶ 开 始 模 拟</button>
+<div id="out"></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+/* ====== 与主页完全一致的判定逻辑 ====== */
+function computeResult(questions,answers){
+  const zones=["方格厢门","激光停泊","电子囚笼","现实来电","黄金计时","江河世年","人类观光","术法阵列","缸中之魂","边界架构","浮点终端","噩兆回廊"];
+  const scores={};zones.forEach(z=>scores[z]=0);
+  let space=0,force=null,special=false;const excludes={};
+  const list=questions.map((x,i)=>({...x,_i:i}))
+    .sort((a,b)=>{const aw=a.type==="scare"||a.type==="name"?999:(a.w||1);
+      const bw=b.type==="scare"||b.type==="name"?999:(b.w||1);return aw-bw||a._i-b._i;});
+  list.forEach((q,idx)=>{
+    const a=answers[idx];if(a==null||a<0)return;
+    const o=q.opts&&q.opts[a];if(!o)return;
+    if(o.special)special=true;
+    if(o.force)force=o.force;
+    if(o.space)space++;
+    (o.x||[]).forEach(z=>{excludes[z]=true;});
+    for(const z in (o.s||{}))scores[z]=(scores[z]||0)+o.s[z];
+  });
+  if(force)return {name:force,special:false};
+  if(special)return {name:null,special:true};
+  const scifiPick=z=>z==="激光停泊"||z==="电子囚笼";
+  const order=[];for(const z in scores){if(excludes[z])continue;order.push([z,scores[z]]);}
+  order.sort((a,b)=>b[1]-a[1]);
+  const top=order[0];
+  if(!top||top[1]<=0)return {name:null,special:true};
+  if(order.length>1&&order[1][1]===top[1]&&top[1]>0){
+    if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+    const FANT=["术法阵列","缸中之魂","浮点终端"],SCIF=["电子囚笼","激光停泊"];
+    if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
+      return {name:"浮点终端",special:false};
+    return {name:null,special:true};
+  }
+  if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  return {name:top[0],special:false};
+}
+
+async function sim(){
+  const D=await fetch("../Cybermorgue-档案主页.data.json").then(r=>r.json());
+  const qs=(D.quiz.questions||[]).filter(q=>q.type!=="scare"&&q.type!=="name");
+  const N=20000;
+  /* 归因：某次作答是否命中 special（我是神）选项 */
+  function hitSpecial(ans){
+    return qs.some((q,idx)=>{const o=q.opts&&q.opts[ans[idx]];return !!(o&&o.special);});
+  }
+  function run(avoidGod){
+    const counts={};let spec=0,specGod=0,specTie=0;
+    for(let t=0;t<N;t++){
+      const ans={};
+      qs.forEach((q,idx)=>{
+        let k=Math.floor(Math.random()*q.opts.length);
+        if(avoidGod&&q.opts[k]&&q.opts[k].special)k=(k+1)%q.opts.length; /* 重roll避开我是神 */
+        ans[idx]=k;
+      });
+      const r=computeResult(qs,ans);
+      if(r.special){spec++;if(hitSpecial(ans))specGod++;else specTie++;}
+      else counts[r.name]=(counts[r.name]||0)+1;
+    }
+    return {counts,spec,specGod,specTie};
+  }
+  const A=run(false),B=run(true);
+  const out=$("out");
+  function block(title,res){
+    let h=`<div class="card"><h2>${title}</h2>`;
+    const zones=["激光停泊","电子囚笼","现实来电","黄金计时","江河世年","人类观光","术法阵列","缸中之魂","边界架构","浮点终端","噩兆回廊"];
+    zones.forEach(z=>{
+      const c=res.counts[z]||0,pct=(c/N*100).toFixed(1);
+      h+=`<div class="row"><span>${z}</span><b>${c} 次</b><span class="pct">${pct}%</span></div>
+        <div class="bar"><i style="width:${pct}%"></i></div>`;
+    });
+    const sp=(res.spec/N*100).toFixed(1);
+    const gd=(res.specGod/N*100).toFixed(1),tie=(res.specTie/N*100).toFixed(1);
+    h+=`<div class="row spec"><span>待分配（无结果）</span><b>${res.spec} 次</b><span class="pct">${sp}%</span></div>
+      <div class="bar spec"><i style="width:${sp}%"></i></div>
+      <div class="note">其中 ─ 「我是神」触发 ${res.specGod} 次 (${gd}%) &nbsp;·&nbsp; 计分并列/零分 ${res.specTie} 次 (${tie}%)</div></div>`;
+    return h;
+  }
+  out.innerHTML=block("PASS A // 全随机（含「我是神」）",A)+
+                block("PASS B // 剔除「我是神」选项的随机",B)+
+                `<div class="note" style="color:var(--ph-dim);max-width:720px;line-height:2">
+                // 30 秒瞎点隐藏规则不参与本模拟（那是另一条独立触发）。<br>
+                // PASS B 更接近「正常人乱选」的情况，用来观察计分并列导致的待分配概率。</div>`;
+}
+sim();
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+音频选项的核心设计：每条选项不是文字，而是一个可播放的声纹条目——左边播放键、中间是会随声音跳动的频谱柱状图（CSS 动画模拟，JS 播放时激活）、右边时长和序号。同一时间只允许播一个，正在播放的那条会有琥珀描边呼吸 + 「PLAYING」标记。选完一条后其他音频锁定变暗，突出“你已经做出了不可撤销的选择”。
+
+下面是可以直接嵌进问卷引擎的组件代码：
+
+① CSS
+
+css
+Copy
+Download
+/* ===== 音频选择题 ===== */
+.aopts{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.aopt{
+  display:flex;align-items:center;gap:18px;
+  background:var(--amf);border:1px solid var(--line);
+  padding:12px 20px;cursor:pointer;text-align:left;width:100%;
+  color:var(--txt);font-family:'VT323','Noto Sans SC',monospace;font-size:16px;
+  transition:border-color .2s,background .2s,opacity .4s;
+  opacity:0;transform:translateY(10px)}
+.aopt.show{opacity:1;transform:none}
+.aopt:hover:not(.locked){border-color:var(--amd);background:rgba(232,176,75,.1)}
+/* 正在播放 */
+.aopt.playing{border-color:var(--am);box-shadow:0 0 22px rgba(232,176,75,.25),inset 0 0 18px rgba(232,176,75,.06)}
+/* 已选定 */
+.aopt.chosen{border-color:var(--gr);background:rgba(127,191,127,.05)}
+.aopt.chosen .a-play{color:var(--gr)}
+/* 被锁定的落选者 */
+.aopt.locked:not(.playing):not(.chosen){opacity:.28}
+
+/* 播放按钮：方块/三角切换 */
+.a-play{flex-shrink:0;width:40px;height:40px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--am);font-size:17px;background:none;transition:all .2s;border-radius:50%}
+.aopt.playing .a-play{animation:pBreath 1.2s ease-in-out infinite}
+@keyframes pBreath{50%{box-shadow:0 0 14px rgba(232,176,75,.6)}}
+
+/* 频谱柱：静止时是矮柱，播放时由 JS 循环取值跳动 */
+.wave{flex:1;display:flex;align-items:flex-end;gap:3px;height:30px;
+  min-width:90px;max-width:180px}
+.wave i{flex:1;height:15%;background:var(--amd);opacity:.5;transition:height .12s}
+.aopt.playing .wave i{background:var(--am);opacity:.95}
+.aopt.chosen .wave i{background:var(--gr);height:20%!important;transition:height .6s}
+
+.a-meta{display:flex;flex-direction:column;align-items:flex-end;line-height:1.4;min-width:86px}
+.a-no{color:var(--ph-dim,#8a6a2f);font-size:13px;letter-spacing:.25em}
+.a-dur{font-size:13.5px;color:var(--txt);opacity:.65}
+.a-state{font-size:11.5px;letter-spacing:.3em;color:var(--am);height:1.2em}
+② HTML 结构 + JS 组件
+
+html
+Copy
+Download
+<div class="q-no">Q.05 · AUDITORY</div>
+<div class="q-text" id="aq"></div>
+<div class="aopts" id="aopts"></div>
+<div class="kbd-hint" id="ahint">// 点击 ▶ 试听。注意——系统只允许试听其中一段。</div>
+js
+Copy
+Download
+/* ============ 音频选项组件 ============
+   audios: [{label:"频道 A",src:"audio/a.mp3"},...]
+   没有 src 时自动用合成音兜底（方便预览）        */
+function renderAudioQ(audios){
+  const box=$("aopts");
+  const players=[];let current=null,waveTimer=null;
+
+  audios.forEach((a,i)=>{
+    const el=document.createElement("button");
+    el.className="aopt";
+    el.innerHTML=
+      '<span class="a-play">▶</span>'+
+      '<span class="wave">'+Array.from({length:16},()=>" <i>").join("").replace(/ <i>/g,"<i></i> <i>").slice(0)+'</span>'
+        /* 上面这行太绕，用下面的写法更清晰 —— 实际生成见 fix 行 */ ;
+    /* --- 修正：频谱柱直接循环生成 --- */
+    const w=el.querySelector(".wave");w.innerHTML="";
+    for(let k=0;k<16;k++){const b=document.createElement("i");
+      b.style.height=(10+Math.random()*15)+"%";w.appendChild(b);}
+    el.insertAdjacentHTML("beforeend",
+      '<span class="a-meta"><span class="a-state"></span>'+
+      '<span class="a-no">CH-0'+(i+1)+'</span>'+
+      '<span class="a-dur">0:0'+((i%3)+2)+'</span></span>');
+
+    let audio=null;
+    if(a.src){audio=new Audio(a.src);}
+    else{ /* 合成音兜底：不同频道不同音色 */
+      audio=synthTone([220,277,330,392][i%4]);
+    }
+
+    function stopAll(){
+      players.forEach(p=>{p.audio.pause();p.audio.currentTime=0;
+        p.el.classList.remove("playing");
+        p.el.querySelector(".a-state").textContent="";
+        clearInterval(p.timer);
+        p.el.querySelectorAll(".wave i").forEach(b=>
+          b.style.height=(10+Math.random()*15)+"%");});
+      current=null;
+    }
+    function toggle(){
+      if(el.classList.contains("locked"))return;
+      if(current===el){stopAll();return;}     /* 再点一次=停止 */
+      stopAll();
+      current=el;
+      el.classList.add("playing");
+      el.querySelector(".a-play").textContent="■";
+      el.querySelector(".a-state").textContent="◉ PLAYING";
+      audio.play().catch(()=>{});
+      waveTimer=setInterval(()=>{
+        if(!el.isConnected)return clearInterval(waveTimer);
+        el.querySelectorAll(".wave i").forEach(b=>{
+          if(Math.random()<.85)b.style.height=(12+Math.random()*82)+"%";});
+      },110);
+      audio.onended=()=>{if(current===el)stopAll();};
+    }
+    el.addEventListener("click",toggle);
+
+    /* 选择：选中即全锁定 */
+    el.addEventListener("dblclick",choose);
+    /* 单击播放/停止，双击选定——或者加个独立确认按钮更友好 */
+
+    box.appendChild(el);
+    players.push({el,audio,timer:null});
+    setTimeout(()=>el.classList.add("show"),120*i+300);
+  });
+
+  async function choose(){
+    if(!current)return;
+    stopAll();
+    players.forEach(p=>{
+      p.el.classList.add(p.el===current?"chosen":"locked");
+      p.el.querySelector(".a-state").textContent=
+        p.el===current?"✓ SELECTED":"MUTED";
+    });
+    answers[cur]={type:"audio",v:$("aopts").querySelector(".chosen .a-no").textContent};
+    await sleep(700);next();
+  }
+  /* 建议：另设一个「确认此段 ▶」按钮调用 choose()，
+     放在 nav-row 里，比双击好发现。双击保留作为快捷方式 */
+}
+
+/* ============ 无音频文件时的合成音兜底 ============ */
+function synthTone(freq){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type="sine";o.frequency.value=freq;
+  g.gain.value=.08;o.connect(g).connect(ctx.destination);
+  /* 伪装成 Audio 元素的最小接口 */
+  return {play(){o.start(ctx.currentTime);setTimeout(()=>{},1e9)},
+          pause(){try{o.stop()}catch(e){}},
+          get currentTime(){return ctx.currentTime},
+          set currentTime(v){},
+          set onended(fn){o.onended=fn}};
+}
+实际调用就是一行：
+
+js
+Copy
+Download
+renderAudioQ([
+  {label:"频道 A",src:"audio/hum.mp3"},
+  {label:"频道 B",src:"audio/rain.mp3"},
+  {label:"频道 C",src:"audio/static.mp3"},   // ← 交互彩蛋建议放这个
+  {label:"频道 D"}                             // 不给 src = 合成音演示
+]);
