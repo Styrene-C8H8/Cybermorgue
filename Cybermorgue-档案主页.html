@@ -68,6 +68,8 @@ body{
 @media (prefers-reduced-motion: reduce) {
   .crt-flicker, .hero-scroll, #boot-enter { animation: none !important; }
   .radar .sweep, .compass-ring, .radar .blip { animation: none !important; }
+  /* 跑马灯为信息通告：减弱动效下也保持滚动 */
+  .ticker-track { animation: tick 46s linear infinite !important; }
   * { scroll-behavior: auto !important; }
 }
 
@@ -1080,16 +1082,12 @@ function quizSorted(){
       return aw-bw || a._i-b._i;
     });
 }
-/* 全局预加载音频题素材：对象存入缓存保持引用，浏览器按 preload=auto 自然调度
-   （不手动 load()，避免 4 个大文件同时抢带宽拖慢页面本身） */
+/* 全局预加载：只预留缓存条目，播放时用 fetch→blob→objectURL（绕过 audio 元素对
+   服务器 Range/编码的严格要求，兼容本地/沙箱静态服务） */
 function quizPreloadAudio(){
   (D.quiz.questions||[]).forEach(q=>(q.opts||[]).forEach(o=>{
-    if(!o.src||QUIZ_AUDIO_CACHE[o.src])return;
-    try{
-      const a=new Audio(o.src);
-      a.preload="auto";
-      QUIZ_AUDIO_CACHE[o.src]=a;
-    }catch(e){}
+    if(!o.src)return;
+    if(!QUIZ_AUDIO_CACHE[o.src])QUIZ_AUDIO_CACHE[o.src]={};
   }));
 }
 function formHtml(){
@@ -1277,18 +1275,7 @@ function renderQAudio(c,q,back,i){
         <span class="a-meta"><span class="a-state"></span><span class="a-no">CH-0${k+1}</span><span class="a-dur">--:--</span></span>`;
       const w=el.querySelector(".wave");
       for(let j=0;j<16;j++){const b=document.createElement("i");b.style.height=(10+Math.random()*15)+"%";w.appendChild(b);}
-      let audio=null;
-      if(o.src){
-        audio=QUIZ_AUDIO_CACHE[o.src]||new Audio(o.src);
-        audio.preload="auto";
-        if(!QUIZ_AUDIO_CACHE[o.src]){QUIZ_AUDIO_CACHE[o.src]=audio;audio.load();}
-        audio.onloadedmetadata=()=>{const d=el.querySelector(".a-dur");if(d&&isFinite(audio.duration))d.textContent=fmtQ(audio.duration);};
-        audio.onerror=()=>{const s=el.querySelector(".a-state");if(s)s.textContent="✕ 加载失败";};
-        audio.oncanplaythrough=null; /* 每渲染清一次，防旧监听 */
-        audio.onended=null;
-        if(audio.readyState>=1&&isFinite(audio.duration)){const d=el.querySelector(".a-dur");if(d)d.textContent=fmtQ(audio.duration);}
-      }
-      const p={el,audio,timer:null};
+      const p={el,audio:null,timer:null,o};
       players.push(p);
       el.onclick=()=>{
         if(el.classList.contains("locked")||chosenK>-1)return;
@@ -1296,33 +1283,44 @@ function renderQAudio(c,q,back,i){
         stopAll();current=p;
         el.classList.add("playing");el.querySelector(".a-play").textContent="■";
         const st=el.querySelector(".a-state");
-        if(audio){
-          if(audio.readyState>=3){  /* 已缓冲到可播放：直接播 */
-            st.textContent="◉ PLAYING";
-            audio.play().catch(()=>{});
-          }else{  /* 数据未就绪：等待缓冲完成自动续播，绝不重复 load() */
-            st.textContent="◉ LOADING…";
-            audio.play().catch(()=>{
-              audio.oncanplaythrough=function h(){
-                audio.oncanplaythrough=null;
-                if(current===p&&el.classList.contains("playing")){
-                  st.textContent="◉ PLAYING";
-                  audio.play().catch(()=>{});
-                }
-              };
-            });
-          }
-          audio.onended=()=>{if(current===p)stopAll();};
-        }
         p.timer=setInterval(()=>{
           if(!el.isConnected){clearInterval(p.timer);p.timer=null;return;}
           el.querySelectorAll(".wave i").forEach(b=>{if(Math.random()<.85)b.style.height=(12+Math.random()*82)+"%";});
         },110);
         $("qa-ok").disabled=false;
+        playAudio(p,el,st);
       };
       box.appendChild(el);
       setTimeout(()=>el.classList.add("show"),120*k+300);
     });
+    /* fetch → blob → objectURL：绕开 audio 元素对服务器 Range/编码的严格要求 */
+    async function playAudio(p,el,st){
+      const o=p.o;
+      if(!o||!o.src)return;
+      const c2=QUIZ_AUDIO_CACHE[o.src]||(QUIZ_AUDIO_CACHE[o.src]={});
+      if(!c2.blob){
+        st.textContent="◉ LOADING…";
+        try{
+          const r=await fetch(o.src);
+          if(!r.ok)throw 0;
+          c2.blob=await r.blob();
+        }catch(e){c2.blob=null;}
+      }
+      if(!c2.blob){st.textContent="✕ 加载失败";stopAll();return;}
+      if(current!==p||!el.isConnected)return;
+      if(!c2.audio)c2.audio=new Audio();
+      if(!c2.url)c2.url=URL.createObjectURL(c2.blob);
+      const a=c2.audio;p.audio=a;
+      a.onloadedmetadata=()=>{const d=el.querySelector(".a-dur");if(d&&isFinite(a.duration))d.textContent=fmtQ(a.duration);};
+      try{
+        a.src=c2.url;
+        await a.play();
+        if(current===p&&el.isConnected){
+          st.textContent="◉ PLAYING";
+          a.onended=()=>{if(current===p)stopAll();};
+        }
+      }catch(e){st.textContent="✕ 无法播放";}
+    }
     c.querySelector("#qa-ok").onclick=()=>{
       if(!current||chosenK>-1)return;
       chosenK=players.indexOf(current);
