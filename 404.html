@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/base.css">
 <script src="assets/base.js"></script>
+<link rel="stylesheet" href="assets/support.css">
+<script src="assets/support.js"></script>
 <style>
 :root{
   --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
@@ -105,11 +107,33 @@ body{background:var(--bg);color:var(--txt);
 .backbtn:hover{border-color:var(--am);box-shadow:0 0 24px rgba(232,176,75,.35);background:var(--amf)}
 .backhint{margin-top:12px;font-size:13px;color:var(--amd);letter-spacing:.18em}
 
-/* ---- 发呆彩蛋 ---- */
-.whisper{position:fixed;bottom:110px;left:0;right:0;text-align:center;z-index:5;
-  color:var(--red);font-size:14px;letter-spacing:.4em;opacity:0;
-  transition:opacity 1.2s;pointer-events:none}
-.whisper.show{opacity:.75}
+/* ---- 系统弹窗（发呆彩蛋用） ---- */
+.syspop{width:min(400px,90vw);background:var(--panel);position:relative;
+  border:1px solid var(--line);box-shadow:0 24px 70px -16px rgba(232,176,75,.35),0 0 40px rgba(0,0,0,.8)}
+.syspop::before,.syspop::after,.syspop .c3,.syspop .c4{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+.syspop::before{top:-1px;left:-1px;border-top:2px solid var(--am);border-left:2px solid var(--am)}
+.syspop::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
+.syspop .c3{top:-1px;right:-1px;border-top:2px solid var(--am);border-right:2px solid var(--am)}
+.syspop .c4{bottom:-1px;left:-1px;border-bottom:2px solid var(--am);border-left:2px solid var(--am)}
+.sp-head{display:flex;align-items:center;gap:10px;padding:7px 16px;border-bottom:1px dashed var(--line);
+  color:var(--am);font-size:15px;letter-spacing:.35em;background:var(--amf)}
+.sp-dot{width:8px;height:8px;border-radius:50%;background:var(--am);box-shadow:0 0 8px var(--am);animation:spPul 1.2s infinite}
+@keyframes spPul{50%{opacity:.35}}
+.sp-head small{margin-left:auto;color:var(--amd);font-size:12px;letter-spacing:.2em}
+.sp-body{padding:22px 22px 8px;text-align:center}
+.sp-body p{font-size:17px;line-height:2;color:var(--txt)}
+.sp-code{margin-top:10px;color:var(--amd);font-size:12.5px;letter-spacing:.25em;opacity:.75}
+.sp-btns{display:flex;border-top:1px dashed var(--line);margin-top:16px}
+.sp-btn{flex:1;padding:11px 0;font-family:inherit;font-size:15.5px;letter-spacing:.25em;
+  background:none;border:none;cursor:pointer;color:var(--amd);transition:all .18s}
+.sp-btn:hover{color:var(--am);background:var(--amf)}
+.sp-btn.main{color:var(--am)}
+.sp-btn.main:hover{background:var(--am);color:#000}
+@keyframes spFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.whisper-pop{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.65);
+  display:none;align-items:center;justify-content:center;padding:20px}
+.whisper-pop.show{display:flex}
+.whisper-pop .syspop{animation:spFadeUp .4s cubic-bezier(.2,.7,.2,1) both;margin:0}
 </style>
 </head>
 <body>
@@ -138,12 +162,12 @@ body{background:var(--bg);color:var(--txt);
 
   <div class="backzone">
     <button class="backbtn" onclick="goBack()">◈ 返 回 首 页 ◈</button>
-    <div class="backhint">// 或返回上一页——如果它还愿意让你回去</div>
+    <div class="backhint">// 或返回上一页</div>
   </div>
 
 </div>
 
-<div class="whisper" id="whisper">// 你为什么还在这里</div>
+<div class="whisper-pop" id="whisperPop"></div>
 
 <script>
 /* ============ 会话号 ============ */
@@ -156,8 +180,8 @@ var EXCUSES=[
   "该页面从未存在过。",
   "该页面暂时离开了本站点。",
   "你确定你刚才想找的是这个吗？",
-  "也许它正停留在时隙之间。",
-  "访问请求有效，但页面无意愿回应。",
+  "如有疑问，请咨询IT部门员工。",
+  "NOT FOUND : ACCESS DENIED",
   "访问已被记录。很高兴认识你。"
 ];
 var ei=0,timer=null;
@@ -185,8 +209,8 @@ var LOG=[
   {t:"定位目标文件 ............ 失败",c:"er"},
   {t:"重试定位目标文件 ........ 失败",c:"er"},
   {t:"[目标文件拒绝被定位]",c:"er"},
-  {t:"备用方案：询问『时隙之间』 ... 无响应",c:"dm"},
-  {t:"建议：返回。或者，别回头也行。",c:"hl"}
+  {t:"已将本次异常访问记录上报至IT部门",c:"dm"},
+  {t:"访问已被拒绝。",c:"hl"}
 ];
 (function(){
   var host=document.getElementById("log"),li=0,ci=0,curLn=null;
@@ -215,15 +239,26 @@ function goBack(){
   },650);
 }
 
-/* ============ 彩蛋一：发呆 15 秒，角落低语 ============ */
+/* ============ 彩蛋一：发呆 15 秒，弹出系统弹窗（需手动关闭） ============ */
 var whisperTimer=null;
-var ws=document.getElementById("whisper");
+var wp=document.getElementById("whisperPop");
 function armWhisper(){
   clearTimeout(whisperTimer);
   whisperTimer=setTimeout(function(){
-    ws.classList.add("show");
-    setTimeout(function(){ws.classList.remove("show");},2200);
-    armWhisper();
+    if(wp.classList.contains("show"))return;
+    wp.innerHTML='<div class="syspop">'+
+      '<i class="c3"></i><i class="c4"></i>'+
+      '<div class="sp-head"><span class="sp-dot"></span><span>SYSTEM // 异常驻留</span><small>IDLE</small></div>'+
+      '<div class="sp-body"><p>// 你为什么还在这里</p>'+
+      '<p class="sp-code">IDLE 15s · 本次驻留已记录</p></div>'+
+      '<div class="sp-btns"><button class="sp-btn main" id="wsClose">关 闭</button></div>'+
+    '</div>';
+    wp.classList.add("show");
+    document.getElementById("wsClose").onclick=function(){
+      wp.classList.remove("show");
+      wp.innerHTML="";
+      armWhisper();
+    };
   },15000);
 }
 window.addEventListener("mousemove",armWhisper);

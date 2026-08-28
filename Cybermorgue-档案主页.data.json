@@ -8,7 +8,7 @@
     "sentence": "欢迎来到赛博停尸间，您死后去处的最佳选择！本区域于■■■年成立，旨在为所有作品中因故去世或离奇死亡的各位提供专属于您的死后庇护所（After-life-shelter）。",
     "paths": [
       { "id": "dead", "label": "申请入驻", "desc": "我不知道为什么自己出现在这里" },
-      { "id": "staff", "label": "员工", "desc": "我是这里的工作人员" }
+      { "id": "staff", "label": "员工终端", "desc": "我是这里的工作人员" }
     ],
     "manualTitle": "《赛博停尸间入驻手册》",
     "typewriter": [
@@ -191,7 +191,7 @@
     "title": "员工通道",
     "idLabel": "工号",
     "pwdLabel": "密码",
-    "id": "00002",
+    "id": "Head_Rider",
     "password": "eternaldeath",
     "greeting": "欢迎您，",
     "maskName": "议会01"

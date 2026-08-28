@@ -17,7 +17,7 @@ window.__CM_CURSOR__ = true;
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   /* 站点所有可交互元素（超集选择器：新增界面元素请加到这里） */
-  var sel = window.CURSOR_SEL || ".gate,.mi,.cal-nav,.gnext,.tbtns button,.todo,.todo-add button,.logout,.step-next,.step-back,.zone-link,.chip,.more,.entry,.path,.logo,nav a,.back,.back2,.card,.thread,.rec,.rec-head,.sysdlg,.attach,.mailbtn,.recipe,.video,.mbtn,.mailcard,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item,.key,.np-trackbar,.volwheel,.spoiler,.expand,.anom-t,.trig-btn,.conf-err a,.sp-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.step-ind,.witem,.mnav button,.arc-item,.mailbox .mitem";
+  var sel = window.CURSOR_SEL || ".gate,.mi,.cal-nav,.gnext,.tbtns button,.todo,.todo-add button,.logout,.step-next,.step-back,.zone-link,.chip,.more,.entry,.path,.logo,nav a,.back,.back2,.card,.thread,.rec,.rec-head,.sysdlg,.attach,.mailbtn,.recipe,.video,.mbtn,.mailcard,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item,.key,.np-trackbar,.volwheel,.spoiler,.expand,.anom-t,.trig-btn,.conf-err a,.sp-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.step-ind,.witem,.mnav button,.arc-item,.mailbox .mitem,.cs-fab,.cs-min,.cs-send,.cs-chips button,.hdr-reset,.cs-link";
 
   function boot() {
     var w = document.createElement("div"); w.id = "cc-rt"; w.className = "cc";

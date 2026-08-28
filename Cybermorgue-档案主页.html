@@ -121,8 +121,13 @@ header{
 .logo{font-family:var(--disp);font-size:22px;color:var(--ph);letter-spacing:.06em;white-space:nowrap;cursor:pointer}
 .logo b{color:var(--txt);font-weight:400}
 .hdr-clock{color:var(--ph-dim);font-family:var(--disp);font-size:19px}
-.hdr-sig{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--ph-dim)}
+.hdr-sig{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--ph-dim);margin-right:18px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ph);box-shadow:0 0 8px var(--ph);animation:pulse 2s infinite}
+/* 重置图标：刻意低调（装饰字符质感，不诱导点击） */
+.hdr-reset{background:none;border:none;color:var(--ph-dim);opacity:.3;cursor:pointer;
+  font-size:14px;line-height:1;padding:2px 6px;transition:opacity .4s,color .4s;
+  box-shadow:none;text-shadow:none;width:auto;flex-shrink:0}
+.hdr-reset:hover{opacity:.6;color:var(--ph)}
 nav.main-nav{display:flex;gap:22px}
 nav.main-nav a{color:var(--txt);text-decoration:none;position:relative;padding-left:14px;transition:color .2s;cursor:pointer}
 nav.main-nav a::before{content:">";position:absolute;left:0;color:var(--ph-dim);transition:color .2s,transform .2s}
@@ -797,6 +802,15 @@ textarea{resize:vertical;min-height:64px}
 .sp-btn.main:hover{background:var(--ph);color:#000}
 @keyframes spFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
+/* ---- 员工终端：长时间无操作警示弹窗 ---- */
+.idle-mask{position:fixed;inset:0;z-index:9500;background:rgba(2,2,1,.74);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.idle-mask .syspop{margin:0;animation:spFadeUp .4s cubic-bezier(.2,.7,.2,1) both}
+.idle-cd{font-family:var(--disp);font-size:54px;color:var(--ph);line-height:1;
+  text-shadow:0 0 22px rgba(217,164,74,.5);margin:16px 0 4px}
+.idle-cd small{display:block;font-size:12px;color:var(--ph-dim);letter-spacing:.3em;margin-top:8px}
+.idle-mask .sp-body .hl{color:var(--red)}
+
 /* 瞄准光标（桌面端） */
 body.has-cc, body.has-cc * { cursor: none !important; }
 body.has-cc input[type="text"], body.has-cc input[type="number"], body.has-cc input[type="email"], body.has-cc input[type="password"], body.has-cc textarea { cursor: text !important; }
@@ -902,6 +916,8 @@ footer .cp{max-width:640px;margin:6px auto 0;opacity:.75}
 </style>
 <link rel="stylesheet" href="assets/base.css">
 <script src="assets/base.js"></script>
+<link rel="stylesheet" href="assets/support.css">
+<script src="assets/support.js"></script>
 </head>
 <body>
 
@@ -927,6 +943,7 @@ footer .cp{max-width:640px;margin:6px auto 0;opacity:.75}
     <a onclick="navGo('gates')">02_ACCESS</a>
   </nav>
   <span class="hdr-sig"><span class="dot"></span>SIGNAL : STABLE</span>
+  <button class="hdr-reset" id="hdrReset" title="" onclick="hdrResetAsk()" aria-label="◇">◇</button>
 </header>
 
 <!-- 跑马灯 -->
@@ -1035,7 +1052,7 @@ function renderMain() {
       <span class="gate-id">GATE-A</span>
       <p class="gate-kicker">NEW ARRIVAL REGISTRATION</p>
       <h3>${esc(D.home.paths[0].label)}</h3>
-      <p>${esc(D.home.paths[0].desc)}。完成十步登记问卷，领取临时通行证，等待分区分配结果。</p>
+      <p>${esc(D.home.paths[0].desc)}。完成问卷，领取临时通行证，等待分区分配结果。</p>
       <span class="gate-cta">开始登记
         <svg width="22" height="12" viewBox="0 0 22 12" fill="none"><path d="M0 6h19M15 1l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg>
       </span>
@@ -1517,7 +1534,12 @@ function computeResult(){
   order.sort((a,b)=>b[1]-a[1]);
   const top=order[0];
   if(!top||top[1]<=0)return {name:null,special:true,reason:"tie"};
-  /* 方向锁定：多个选项强指向某些区时，只在指向区里判定（防少数非典型作答制造并列/待分配） */
+  /* 明确冠军（领先次名 ≥2 分）：直接信任原始分数，不套方向锁定 */
+  if(order.length===1||top[1]-order[1][1]>=2){
+    if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+    return {name:top[0],special:false};
+  }
+  /* 接近或并列：方向锁定（多个选项强指向某些区时，只在指向区里判定） */
   const votes={};
   QUIZ_LIST.forEach((q,idx)=>{
     const a=QUIZ_ANSWERS[idx];if(a==null||a<0)return;
@@ -1547,8 +1569,10 @@ function computeResult(){
       return {name:"浮点终端",special:false};
     return {name:null,special:true,reason:"tie"};
   }
-  /* 单冠军：落在科幻双区则用太空选项数定夺 */
-  if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  /* 次名接近（差 ≤1）：科幻对由太空决定，魔法×科幻→浮点，否则取冠军 */
+  if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
+    return {name:"浮点终端",special:false};
   return {name:top[0],special:false};
 }
 /* ---------- 宣判 ---------- */
@@ -1783,7 +1807,8 @@ function loginHtml() {
   return `<div id="gate">
     <div class="gbox">
       <pre class="gtop" id="bootTxt"></pre>
-      <div class="gline"><span class="pr">STAFF-ID&gt;</span><input id="uid" maxlength="20" autocomplete="off"></div>
+      <div class="gline"><span class="pr">STAFF-ID&gt;</span><input id="uid" maxlength="30" autocomplete="off"></div>
+      <div class="gline" style="margin-top:8px"><span class="pr">PASSWD&gt;</span><input id="pwd" type="password" maxlength="30" autocomplete="off"></div>
       <p id="gmsg"></p>
       <button class="gnext" onclick="gateSubmit()">ENTER ▶</button>
     </div>
@@ -1889,12 +1914,43 @@ const BOOT_GATE = [
   "AUTH REQUIRED — PLEASE IDENTIFY YOURSELF", ""
 ];
 function gateSubmit() {
-  const uid = $("uid");
-  if (!uid) return;
-  const v = uid.value.trim(), m = $("gmsg");
-  if (!v) { if (m) { m.style.color = "var(--red)"; m.textContent = "! ACCESS DENIED — EMPTY ID"; } uid.focus(); return; }
-  if (m) { m.style.color = "var(--ok)"; m.textContent = "> VERIFYING…"; }
-  setTimeout(() => enterPortal(v.toUpperCase()), 700);
+  const uid = $("uid"), pwd = $("pwd"), m = $("gmsg");
+  if (!uid || !pwd) return;
+  const v = uid.value.trim(), p = pwd.value.trim();
+  if (!v || !p) {
+    if (m) { m.style.color = "var(--red)"; m.textContent = "! ACCESS DENIED — INCOMPLETE"; }
+    (v ? pwd : uid).focus();
+    return;
+  }
+  const okU = (D.login.id || "Head_Rider") === v;
+  const okP = (D.login.password || "eternaldeath") === p;
+  if (okU && okP) {
+    gateFail = 0;
+    if (m) { m.style.color = "var(--ok)"; m.textContent = "> VERIFYING…"; }
+    setTimeout(() => enterPortal(v), 700);
+  } else {
+    if (m) { m.style.color = "var(--red)"; m.textContent = "! ACCESS DENIED"; }
+    uid.value = ""; pwd.value = "";
+    uid.focus();
+    /* 连续错 3 次：系统弹窗 + 自动遣返回主页 */
+    gateFail++;
+    if (gateFail >= 3) {
+      gateFail = 0;
+      const mk = document.createElement("div");
+      mk.className = "idle-mask";
+      mk.id = "gateKick";
+      mk.innerHTML = `<div class="syspop">
+        <i class="c3"></i><i class="c4"></i>
+        <div class="sp-head"><span class="sp-dot"></span><span>SECURITY // 强制遣返</span><small>INTRUSION</small></div>
+        <div class="sp-body">
+          <p>检测到多次输入错误，执行强制遣返。</p>
+          <p class="sp-code">// 本次尝试已记录并上报监察部门</p>
+        </div>
+      </div>`;
+      document.body.appendChild(mk);
+      setTimeout(() => { mk.remove(); show("home"); }, 2600);
+    }
+  }
 }
 function initGate() {
   const bt = $("bootTxt");
@@ -1909,17 +1965,24 @@ function initGate() {
       setTimeout(nx, 180 + Math.random() * 220);
     })();
   }
-  const uid = $("uid");
+  const uid = $("uid"), pwd = $("pwd");
   if (uid) {
     uid.value = "";
     uid.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); gateSubmit(); } };
-    setTimeout(() => uid.focus(), 150);
   }
+  if (pwd) {
+    pwd.value = "";
+    pwd.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); gateSubmit(); } };
+  }
+  setTimeout(() => uid && uid.focus(), 150);  /* 默认聚焦用户名 */
 }
+let gateFail = 0;  /* 连续错误次数（满 3 次强制遣返） */
 function enterPortal(uid) {
   const gate = $("gate");
   if (gate) gate.classList.add("off");
   window.__staffUid = uid;
+  /* 登录成功 = 检查点 2：通知客服（跑马灯 eternaldeath 线索随之消失） */
+  try { if (window.__CM_SUPPORT_API__) window.__CM_SUPPORT_API__.flagSet("mag_login"); } catch (e) {}
   setTimeout(() => show("staff"), 380);
 }
 
@@ -2041,6 +2104,61 @@ function initTerm() {
   if (sid) sid.textContent = uid.slice(0, 3) + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
+/* ===== 员工终端：长时间无操作自动退出提示（30s 无操作 → 5s 倒计时 → 确认返回主页） ===== */
+let idleT = null, idleShown = false, idleIV = null;
+const IDLE_MS = 30000, IDLE_SEC = 10;
+function idleReset() {
+  if (idleShown) return;
+  clearTimeout(idleT);
+  idleT = setTimeout(showIdlePopup, IDLE_MS);
+}
+function idleHide() {
+  clearTimeout(idleT);
+  if (idleIV) { clearInterval(idleIV); idleIV = null; }
+  const m = $("idleMask");
+  if (m) { m.remove(); }
+  idleShown = false;
+}
+function showIdlePopup() {
+  if (idleShown || view !== "staff") return;
+  idleShown = true;
+  const mask = document.createElement("div");
+  mask.className = "idle-mask";
+  mask.id = "idleMask";
+  mask.innerHTML = `<div class="syspop">
+    <i class="c3"></i><i class="c4"></i>
+    <div class="sp-head"><span class="sp-dot"></span><span>SECURITY // 无操作警示</span><small>IDLE</small></div>
+    <div class="sp-body">
+      <p>系统检测到您太久无操作，<span class="hl" id="idleSecTxt">${IDLE_SEC} 秒钟后</span>将为您自动退出账号，以免账号被他人滥用。</p>
+      <div class="idle-cd"><span id="idleNum">${IDLE_SEC}</span><small>SECONDS REMAINING</small></div>
+    </div>
+    <div class="sp-btns"><button class="sp-btn" id="idleKeep">取消 · 保持登录</button></div>
+  </div>`;
+  document.body.appendChild(mask);
+  let s = IDLE_SEC;
+  const num = mask.querySelector("#idleNum"), secTxt = mask.querySelector("#idleSecTxt");
+  const keep = mask.querySelector("#idleKeep");
+  keep.onclick = () => { idleHide(); idleReset(); };  /* 取消 = 保持登录并重新计时 */
+  idleIV = setInterval(() => {
+    s--;
+    if (s > 0) {
+      num.textContent = s;
+      secTxt.textContent = s + " 秒钟后";
+    } else {
+      clearInterval(idleIV); idleIV = null;
+      /* 切换到确认态 */
+      mask.querySelector(".sp-head span:not(.sp-dot)").textContent = "SESSION TIMEOUT // 会话超时";
+      mask.querySelector(".sp-body p").innerHTML = "您已过长时间无操作，将为您返回终端主页。";
+      mask.querySelector(".idle-cd").style.display = "none";
+      keep.textContent = "确 认 · 返 回";
+      keep.classList.add("main");
+      keep.onclick = () => { idleHide(); show("home"); };
+    }
+  }, 1000);
+}
+["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(ev =>
+  document.addEventListener(ev, idleReset, { passive: true }));
+
 /* ================= 视图切换 ================= */
 async function show(v, from, anim = true) {
   if (v === "zones" && from) backTo = from;
@@ -2073,6 +2191,8 @@ async function show(v, from, anim = true) {
   if (v === "login") initGate();
   if (v === "staff") initTerm();
   if (v === "form") { $("view-form").innerHTML = formHtml(); quizShow(false); }
+  /* 无操作监控：仅员工终端激活 */
+  if (v === "staff") idleReset(); else idleHide();
 }
 function scrollTopPage() { window.scrollTo({ top: 0, behavior: "smooth" }); }
 function scrollToId(id) { const el = $(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
@@ -2098,6 +2218,18 @@ function submitForm() {
     if (sg) { sg.closest(".blank-wrap").classList.add("err"); sg.focus(); }
     return;
   }
+  /* 记录问卷完成 + 姓名（供客服「转人工」剧情使用）：优先走客服全局 API（含存储降级） */
+  try {
+    if (window.__CM_SUPPORT_API__) {
+      window.__CM_SUPPORT_API__.flagSet("quiz_done");
+      if (QUIZ_NAME) window.__CM_SUPPORT_API__.saveName(QUIZ_NAME);
+    } else {
+      const f = JSON.parse(localStorage.getItem("cm_sup_flags") || "[]");
+      if (f.indexOf("quiz_done") < 0) f.push("quiz_done");
+      localStorage.setItem("cm_sup_flags", f.join(","));
+      if (QUIZ_NAME) localStorage.setItem("cm_quiz_name", QUIZ_NAME);
+    }
+  } catch (e) {}
   const app = $("quizApp"); if (!app) return;
   const old = app.querySelector(".qcard"); if (old) old.remove();
   const dn = (D.form && D.form.done) || {};
@@ -2115,6 +2247,39 @@ function submitForm() {
   c.querySelector("#dpok").onclick = () => closeOverlay();
 }
 function closeOverlay() { $("overlay").classList.remove("show"); show("home"); }
+/* 顶栏重置图标：系统确认弹窗 → 继续则彻底清空记录并刷新（同 ?reset=1） */
+function hdrResetAsk() {
+  const old = document.getElementById("resetMask");
+  if (old) old.remove();
+  const mask = document.createElement("div");
+  mask.className = "idle-mask";
+  mask.id = "resetMask";
+  mask.innerHTML = `<div class="syspop">
+    <i class="c3"></i><i class="c4"></i>
+    <div class="sp-head"><span class="sp-dot"></span><span>SYSTEM // 确认操作</span><small>RESET</small></div>
+    <div class="sp-body">
+      <p>这样做会彻底清空您之前的记录。是否继续？</p>
+      <p class="sp-code">// 该操作不可撤销 · 问卷进度与客服记录均将清除</p>
+    </div>
+    <div class="sp-btns">
+      <button class="sp-btn" id="rsNo">取 消</button>
+      <button class="sp-btn main" id="rsYes">继 续</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mask);
+  document.getElementById("rsNo").onclick = () => mask.remove();
+  document.getElementById("rsYes").onclick = () => {
+    try {
+      localStorage.removeItem("cm_sup_flags");
+      localStorage.removeItem("cm_sup_chat");
+      localStorage.removeItem("cm_quiz_name");
+      localStorage.removeItem("cm_mg_state");
+      sessionStorage.removeItem("cm-booted");
+      sessionStorage.removeItem("cm-goto");
+    } catch (e) {}
+    location.reload();
+  };
+}
 function openFile(p) {
   if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile(p);
   else location.href = p.replace(/^project\//, "");
@@ -2132,8 +2297,9 @@ const bootLines = [
   ['ALL SYSTEMS READY.', 'ok'],
 ];
 const bootLog = $("boot-log"), bootBar = $("boot-bar"), bootEnter = $("boot-enter");
-let li = 0;
+let li = 0, bootPlaying = false;
 function nextBootLine() {
+  bootPlaying = true;
   if (li >= bootLines.length) { bootBar.style.width = "100%"; bootEnter.classList.add("show"); return; }
   const [txt, cls] = bootLines[li];
   const div = document.createElement("div");
@@ -2154,12 +2320,14 @@ function nextBootLine() {
 function enterTerminal() {
   if (!bootEnter.classList.contains("show")) return;
   try { sessionStorage.setItem("cm-booted", "1"); } catch (e) {}
+  bootPlaying = false;
   $("boot").classList.add("done");
   document.body.classList.add("powering");
   startHero();
   setTimeout(() => { const b = $("boot"); if (b) b.remove(); }, 600);
 }
 function skipBoot() {
+  bootPlaying = false;
   const b = $("boot"); if (b) b.remove();
   startHero();
 }
@@ -2315,13 +2483,17 @@ async function init() {
     setInterval(pushLog, 1800);
     let booted = false;
     try { booted = sessionStorage.getItem("cm-booted") === "1"; } catch (e) {}
-    /* 每次加载（含 file:update 重跑）都完整重播 boot 动画：
-       清空旧日志/重置进度/清零 li，避免"闪一下就消失" */
-    bootLog.innerHTML = "";
-    bootBar.style.width = "0%";
-    bootEnter.classList.remove("show");
-    li = 0;
-    nextBootLine();
+    /* 会话内已看过 boot → 干净跳过（不闪屏）；
+       boot 正在播放/等待点击（如 file:update 重跑）→ 不打扰它 */
+    if (booted && !bootPlaying) {
+      skipBoot();
+    } else if (!bootPlaying) {
+      bootLog.innerHTML = "";
+      bootBar.style.width = "0%";
+      bootEnter.classList.remove("show");
+      li = 0;
+      nextBootLine();
+    }
     let goto = (location.hash || "").replace("#", "");
     try { const s = sessionStorage.getItem("cm-goto"); if (s) { goto = s; sessionStorage.removeItem("cm-goto"); } } catch (e) {}
     if (goto && $("view-" + goto)) show(goto, null, false);

@@ -60,7 +60,12 @@ function computeResult(questions,answers){
   order.sort((a,b)=>b[1]-a[1]);
   const top=order[0];
   if(!top||top[1]<=0)return {name:null,special:true};
-  /* 方向锁定（与主页一致） */
+  /* 明确冠军（领先 ≥2）：信任原始分数，不套方向锁定（与主页一致） */
+  if(order.length===1||top[1]-order[1][1]>=2){
+    if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+    return {name:top[0],special:false};
+  }
+  /* 接近或并列：方向锁定（与主页一致） */
   const votes={};
   list.forEach((q,idx)=>{
     const a=answers[idx];if(a==null||a<0)return;
@@ -89,7 +94,9 @@ function computeResult(questions,answers){
       return {name:"浮点终端",special:false};
     return {name:null,special:true};
   }
-  if(scifiPick(top[0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  if(scifiPick(top[0])&&scifiPick(order[1][0]))return {name:space>=2?"激光停泊":"电子囚笼",special:false};
+  if((FANT.includes(top[0])&&SCIF.includes(order[1][0]))||(FANT.includes(order[1][0])&&SCIF.includes(top[0])))
+    return {name:"浮点终端",special:false};
   return {name:top[0],special:false};
 }
 
