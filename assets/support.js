@@ -164,6 +164,15 @@
     });
   }
 
+  /* ---- 移动端锁页：聊天面板打开时防止键盘把页面顶上去/滚动到底部 ---- */
+  function lockPage(on) {
+    try {
+      var d = document.documentElement;
+      if (on && window.matchMedia && matchMedia("(hover: none)").matches) d.classList.add("cs-lock-page");
+      else d.classList.remove("cs-lock-page");
+    } catch (e) {}
+  }
+
   function buildUI() {
     if (document.getElementById("cs-fab")) return;
     var w = document.createElement("div");
@@ -222,6 +231,7 @@
       var p = document.getElementById("cs-panel");
       p.style.display = "flex";
       this.style.display = "none";
+      lockPage(true);  /* 移动端：锁页面滚动，防键盘顶页面 */
       /* 打开时定位到最新一条消息 */
       var csb = document.getElementById("cs-body");
       if (csb) csb.scrollTop = csb.scrollHeight;
@@ -252,6 +262,7 @@
       setTimeout(function () { document.getElementById("cs-inp").focus(); }, 500);
     };
     document.getElementById("cs-min").onclick = function () {
+      lockPage(false);
       var p = document.getElementById("cs-panel");
       p.classList.add("closing");
       setTimeout(function () {
@@ -266,6 +277,7 @@
       if (e.key === "Escape") {
         var p = document.getElementById("cs-panel");
         if (p && p.style.display === "flex") {
+          lockPage(false);
           p.classList.add("closing");
           setTimeout(function () {
             p.style.display = "none";
@@ -401,6 +413,7 @@
     var p = document.getElementById("cs-panel");
     var fab = document.getElementById("cs-fab");
     if (!p || !fab || p.style.display !== "flex") return;
+    lockPage(false);
     p.classList.add("closing");
     setTimeout(function () {
       p.style.display = "none";

@@ -136,6 +136,13 @@
 
 /* ---- 全局显隐：加载界面/死者问卷/系统弹窗出现时隐藏 ---- */
 .cm-hide{opacity:0;pointer-events:none}
+/* 移动端聊天时锁住页面滚动（防键盘把页面顶上去/滚到底部），并隐藏站点返回按钮防止与 ✕ 误触 */
+html.cs-lock-page, html.cs-lock-page body{overflow:hidden !important}
+html.cs-lock-page #vback{display:none !important}
+
+@media(max-width:600px){
+  .cs-min{width:40px;height:40px;font-size:18px}
+}
 
 /* ---- 转人工时的窗口故障闪烁 ---- */
 .cs-glitch{animation:csGlitch .6s steps(3) both}
