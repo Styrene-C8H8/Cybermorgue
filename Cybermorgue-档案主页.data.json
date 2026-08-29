@@ -51,9 +51,9 @@
   "zones": [
     { "name": "方格厢门", "en": "Check Entrance", "desc": "方格厢门是赛博停尸间的中心公共区域，在这里您能够见到来自不同作品的各种角色。预备居民可以通过赛博停尸间大门进入方格厢门，在这里进行申请表格提交；本地居民则可以在此区域进行交易，或通过此处前往其他区域。", "selectable": false },
     { "name": "激光停泊", "en": "Laser Berth", "desc": "宇宙侧科幻世界观" },
-    { "name": "电子囚笼", "en": "Electronic Cage", "desc": "科技侧科幻世界观" },
+    { "name": "电子囚笼", "en": "Electronic Cage", "desc": "电子囚笼是涵盖近未来乌托邦，赛博朋克，以及废土风格世界观的以科幻为主的区域。它的核心坐落着“中心城（Central City）”，区域内有百分之七十的人口均居住于此。城市的内环区域是极为稳定的理想化乌托邦居住区、外环区域则是规模大于前者四五倍的赛博朋克居住区、郊区还驻扎着许多废土风格营地。本区域与激光停泊接壤，两者之间由边界的太空空港链接，区域间交通十分便捷。" },
     { "name": "现实来电", "en": "Reality Dial", "desc": "现代作品" },
-    { "name": "黄金计时", "en": "Golden Countdown", "desc": "上世纪作品，时间处于20世纪前" },
+    { "name": "黄金计时", "en": "Golden Countdown", "desc": "欢迎来到「黄金计时」！此区域的人口主要于来自工业革命至二十世纪末期，作品背景不含奇幻元素的居民组成。您可以在西区的荒野中感受到二十世纪中期的美国西部文化，也可以在港口买上一张蒸汽船票跨越南海，前往名副其实的”迷雾之城“中参观整个区域最大的钟表塔楼。无论您是身着燕尾服的高官、枪不离手的牛仔，抑或是热爱爵士乐的嬉皮士，您总能在「黄金计时」找到属于您自己的位置。" },
     { "name": "江河世年", "en": "Aging River", "desc": "历史向作品" },
     { "name": "人类观光", "en": "Human Zoo", "desc": "主体为\"非普遍意义人类\"的作品" },
     { "name": "术法阵列", "en": "Magic Matrix", "desc": "西幻魔法侧世界观" },
@@ -191,8 +191,10 @@
     "title": "员工通道",
     "idLabel": "工号",
     "pwdLabel": "密码",
-    "id": "Head_Rider",
-    "password": "eternaldeath",
+    "accounts": [
+      { "id": "Head_Rider", "password": "eternaldeath" },
+      { "id": "styrene", "password": "testpassword" }
+    ],
     "greeting": "欢迎您，",
     "maskName": "议会01"
   },

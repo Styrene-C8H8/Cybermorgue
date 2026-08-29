@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>亡语之声 // 站内论坛</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/base.js"></script>
+<link rel="stylesheet" href="assets/support.css">
+<script src="assets/support.js"></script>
+<style>
+:root{
+  --ph:#d9a44a; --ph-dim:#8a6a34; --ph-faint:rgba(217,164,74,.08);
+  --amber:#e8b45e; --red:#c65b4e; --cy:#6fb3b8; --ok:#7fae6a;
+  --bg:#0a0805; --panel:#100d08; --line:rgba(217,164,74,.20); --txt:#d8ccb0;
+  --mono:'IBM Plex Mono','Courier New',monospace;
+  --disp:'VT323','IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);min-height:100vh;
+  font-family:var(--mono);font-size:15px;line-height:1.8;
+  text-shadow:-.4px 0 rgba(255,50,90,.08),.4px 0 rgba(0,205,255,.08)}
+::selection{background:var(--ph);color:#000}
+.wrap{max-width:1120px;margin:0 auto;padding:26px 20px 90px;position:relative}
+.crt-vig{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+/* 顶栏 */
+.topbar{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);
+  padding-bottom:12px;margin-bottom:20px;flex-wrap:wrap}
+.topbar .tb-title{font-family:var(--disp);font-size:clamp(26px,4vw,40px);color:var(--ph);
+  letter-spacing:.2em;text-shadow:0 0 22px rgba(217,164,74,.35)}
+.topbar .tb-en{color:var(--ph-dim);font-size:13px;letter-spacing:.3em}
+.topbar .tb-back{color:var(--ph);font-family:var(--mono);font-size:14px;
+  letter-spacing:.15em;cursor:pointer;transition:color .2s,text-shadow .2s;
+  text-shadow:0 0 8px rgba(217,164,74,.4);border-right:1px solid var(--line);
+  padding-right:14px;align-self:center}
+.topbar .tb-back:hover{color:var(--amber);text-shadow:0 0 14px rgba(217,164,74,.85)}
+.f-head{display:flex;align-items:baseline;gap:16px;border-bottom:2px solid var(--line);
+  padding-bottom:12px;margin-bottom:22px;flex-wrap:wrap;animation:riseIn .5s both}
+.f-head h1{font-family:var(--disp);font-size:clamp(28px,4vw,40px);color:var(--ph);
+  letter-spacing:.22em;font-weight:400;text-shadow:0 0 22px rgba(217,164,74,.35)}
+.f-head .f-en{color:var(--ph-dim);font-size:13px;letter-spacing:.3em}
+.f-head .f-user{margin-left:auto;font-size:13.5px;letter-spacing:.08em}
+.f-head .f-user b{color:var(--cy);font-weight:400}
+.f-grid{display:grid;grid-template-columns:190px 1fr 240px;gap:16px;align-items:start}
+@media(max-width:920px){.f-grid{grid-template-columns:1fr}}
+.f-nav{border:1px solid var(--line);background:var(--panel);position:sticky;top:16px}
+.f-nav .n-h{padding:9px 14px;font-size:12px;letter-spacing:.3em;color:var(--ph-dim);
+  border-bottom:1px solid var(--line);background:var(--ph-faint)}
+.f-nav button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:none;border:none;border-left:3px solid transparent;color:var(--txt);
+  font-family:var(--mono);font-size:15px;letter-spacing:.08em;padding:11px 14px;
+  cursor:pointer;transition:all .18s}
+.f-nav button .nm{font-family:'Noto Sans SC',sans-serif;font-size:15.5px}
+.f-nav button:hover{background:var(--ph-faint);border-left-color:var(--ph-dim);color:var(--ph);padding-left:18px}
+.f-nav button.on{background:var(--ph-faint);border-left-color:var(--ph);color:var(--ph)}
+.f-nav button .cnt{margin-left:auto;font-size:11px;color:var(--ph-dim)}
+.f-nav .n-red{border-top:1px dashed var(--line);margin-top:4px;padding-top:4px}
+.f-nav .locked{color:var(--ph-dim);opacity:.5;cursor:not-allowed}
+.f-nav .locked:hover{padding-left:14px;background:none}
+.f-main{display:flex;flex-direction:column;gap:10px;animation:riseIn .5s .05s both}
+/* 帖子入场动画（排序/切分区/翻页时触发） */
+@keyframes postIn{from{opacity:0;transform:translateY(12px) scale(.985);filter:blur(2px)}
+  to{opacity:1;transform:none;filter:none}}
+.f-main .post.anim{animation:postIn .4s cubic-bezier(.2,.9,.3,1) both}
+/* 分页条 */
+.f-pages{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;
+  padding-top:10px;border-top:1px dashed var(--line)}
+.f-pages .pg{min-width:30px;height:30px;background:none;border:1px solid var(--line);
+  color:var(--ph-dim);font-family:var(--mono);font-size:14px;cursor:pointer;
+  transition:all .18s;border-radius:4px;line-height:1}
+.f-pages .pg:hover{color:var(--ph);border-color:var(--ph)}
+.f-pages .pg.on{background:var(--ph);color:#000;border-color:var(--ph);
+  box-shadow:0 0 10px rgba(217,164,74,.4)}
+.f-pages .pg:disabled{opacity:.3;cursor:default}
+.f-pages .pg:disabled:hover{color:var(--ph-dim);border-color:var(--line)}
+.f-pages .pg:active:not(:disabled){transform:scale(.92)}
+/* 帖子工具栏：排序 + 搜索 */
+.f-tool{display:flex;align-items:center;gap:10px;margin-bottom:2px;flex-wrap:wrap}
+.ft-sort{position:relative;display:flex;background:rgba(217,164,74,.06);
+  border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.ft-ind{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:999px;
+  background:var(--ph);box-shadow:0 0 12px rgba(217,164,74,.45);z-index:0;
+  transition:transform .35s cubic-bezier(.3,1.15,.35,1),width .35s cubic-bezier(.3,1.15,.35,1)}
+.ft-sort button{position:relative;z-index:1;border:none;background:none;border-radius:999px;
+  color:var(--ph-dim);font-family:var(--mono);font-size:13px;letter-spacing:.12em;
+  padding:6px 16px;cursor:pointer;transition:color .2s}
+.ft-sort button:hover{color:var(--ph)}
+.ft-sort button.on{color:#000}
+.ft-sort button:active{transform:scale(.92)}
+.ft-sort button.on:active{transform:scale(.96)}
+.ft-search{position:relative;margin-left:auto;min-width:min(230px,100%)}
+.ft-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;stroke:var(--ph-dim);pointer-events:none;transition:stroke .2s}
+.ft-search:focus-within svg{stroke:var(--ph)}
+.ft-search input{width:100%;background:none;border:1px solid var(--line);outline:none;
+  color:var(--ph);font-family:var(--mono);font-size:13.5px;padding:7px 12px 7px 32px;
+  letter-spacing:.06em;border-radius:6px;transition:border-color .2s,box-shadow .2s}
+.ft-search input:focus{border-color:var(--ph);box-shadow:0 0 0 1px rgba(217,164,74,.25)}
+.ft-search input::placeholder{color:var(--ph-dim)}
+@media(max-width:600px){.ft-search{width:100%;margin-left:0}}
+.post{display:flex;gap:14px;border:1px solid var(--line);background:var(--panel);
+  padding:13px 16px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.post::after{content:"";position:absolute;left:-30%;top:0;bottom:0;width:24%;
+  background:linear-gradient(105deg,transparent,rgba(217,164,74,.09),transparent);
+  transition:left .5s;pointer-events:none}
+.post:hover::after{left:120%}
+.post:hover{border-color:var(--ph);background:var(--ph-faint);transform:translateX(4px);
+  box-shadow:-4px 0 0 rgba(217,164,74,.4)}
+.post .p-zone{flex-shrink:0;align-self:center;width:56px;text-align:center;
+  border:1px solid var(--line);color:var(--ph-dim);font-size:10px;letter-spacing:.06em;
+  padding:7px 0;line-height:1.5;transition:all .2s}
+.post .p-zone b{display:block;font-weight:400;color:var(--ph);font-size:13.5px;
+  letter-spacing:.05em;font-family:var(--mono)}
+.post:hover .p-zone{border-color:var(--ph);color:var(--ph)}
+.post:hover .p-zone b{color:var(--amber)}
+.post .p-body{flex:1;min-width:0}
+.post .p-title{font-size:16px;color:var(--txt);letter-spacing:.04em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;transition:color .18s}
+.post:hover .p-title{color:var(--ph)}
+.post .p-title .tag{color:var(--red);font-size:12.5px;margin-right:8px}
+.post .p-title .tag.pin{color:var(--ph)}
+.post .p-meta{font-size:12px;color:var(--ph-dim);letter-spacing:.1em;margin-top:2px}
+.post .p-meta .r{color:var(--cy)}
+.post .p-meta .bd{color:var(--ph);border:1px solid var(--line);font-size:10.5px;
+  padding:0 5px;letter-spacing:.1em}
+.post.hot .p-title{color:var(--ph);text-shadow:0 0 10px rgba(217,164,74,.3)}
+.post .p-views{flex-shrink:0;text-align:right;font-size:12px;color:var(--ph-dim);
+  line-height:1.6;align-self:center}
+.post .p-views .h{color:var(--red);font-size:10.5px;letter-spacing:.2em}
+.f-empty{border:1px dashed var(--line);padding:26px 16px;text-align:center;
+  color:var(--ph-dim);font-size:13.5px;letter-spacing:.2em}
+.f-side{display:flex;flex-direction:column;gap:16px;animation:riseIn .5s .1s both}
+.fbox{border:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden}
+.fbox::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--ph),transparent);
+  animation:fboxScan 4s ease-in-out infinite;opacity:.5}
+@keyframes fboxScan{0%,100%{transform:translateX(-40%)}50%{transform:translateX(40%)}}
+.fbox .b-h{padding:9px 14px;font-size:12px;letter-spacing:.3em;color:var(--ph-dim);
+  border-bottom:1px solid var(--line);background:var(--ph-faint);
+  display:flex;justify-content:space-between}
+.fbox .b-b{padding:14px 16px}
+/* 今日运势：抽签式（小/中/大 × 吉/凶；单池抽 2宜 2忌；每刷新一次） */
+.fortune .f-idle{text-align:center;padding:16px 0 8px}
+.fortune .f-seal{font-family:var(--disp);font-size:54px;color:var(--ph-dim);line-height:1;
+  text-shadow:0 0 24px rgba(217,164,74,.35);animation:sealPulse 2.8s ease-in-out infinite}
+@keyframes sealPulse{50%{opacity:.45;transform:scale(1.05) rotate(2deg)}}
+.fortune .f-btn{display:inline-block;margin-top:18px;font-family:var(--disp);font-size:17px;
+  letter-spacing:.32em;text-indent:.32em;color:var(--ph);background:none;border:1px solid var(--ph);
+  padding:9px 22px;cursor:pointer;transition:all .25s;position:relative}
+.fortune .f-btn::before,.fortune .f-btn::after{content:"";position:absolute;width:7px;height:7px}
+.fortune .f-btn::before{top:-1px;left:-1px;border-top:2px solid var(--ph);border-left:2px solid var(--ph)}
+.fortune .f-btn::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--ph);border-right:2px solid var(--ph)}
+.fortune .f-btn:hover{background:var(--ph);color:#000;box-shadow:0 0 26px rgba(217,164,74,.55)}
+.fortune .f-btn:disabled{opacity:.45;cursor:wait;background:none;color:var(--ph-dim);border-color:var(--ph-dim)}
+/* 抽取动画：旋转卦环 + 符文闪烁 */
+.fortune .f-draw{text-align:center;padding:14px 0 8px}
+.fortune .f-ring{width:74px;height:74px;margin:0 auto;border:1px dashed var(--ph);
+  border-radius:50%;animation:ringSpin 3.2s linear infinite;position:relative}
+.fortune .f-ring::before{content:"";position:absolute;inset:9px;border:1px solid rgba(217,164,74,.3);
+  border-radius:50%;animation:ringSpin 2.1s linear infinite reverse}
+.fortune .f-ring::after{content:"";position:absolute;inset:24px;border:1px solid rgba(200,90,74,.4);
+  border-radius:50%;animation:ringSpin 1.4s linear infinite}
+.fortune .f-ring .fr-rune{position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  color:var(--ph);font-size:16px;text-shadow:0 0 12px rgba(217,164,74,.9);animation:runeOrbit 3.2s linear infinite}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+@keyframes runeOrbit{to{transform:translateX(-50%) rotate(360deg)}}
+.fortune .f-rune{font-family:var(--disp);font-size:34px;color:var(--ph);margin-top:14px;
+  min-height:1.4em;letter-spacing:.2em;text-shadow:0 0 18px rgba(217,164,74,.65);
+  animation:runeGlitch .14s steps(2) infinite}
+@keyframes runeGlitch{50%{opacity:.35;transform:translateX(1px) scale(1.04)}}
+/* 结果：居中加粗 + 四角框 */
+.fortune .f-date{font-size:13px;color:var(--ph-dim);letter-spacing:.2em;margin-bottom:6px;text-align:center}
+.fortune .f-result-wrap{position:relative;text-align:center;padding:18px 0 16px;margin:4px 0 2px}
+.fortune .f-cn{position:absolute;width:10px;height:10px}
+.fortune .f-cn.tl{top:0;left:0;border-top:2px solid var(--ph);border-left:2px solid var(--ph)}
+.fortune .f-cn.tr{top:0;right:0;border-top:2px solid var(--ph);border-right:2px solid var(--ph)}
+.fortune .f-cn.bl{bottom:0;left:0;border-bottom:2px solid var(--ph);border-left:2px solid var(--ph)}
+.fortune .f-cn.br{bottom:0;right:0;border-bottom:2px solid var(--ph);border-right:2px solid var(--ph)}
+.fortune .f-result{font-family:'Noto Sans SC',sans-serif;font-weight:600;
+  font-size:clamp(30px,8vw,42px);letter-spacing:.1em;line-height:1.2;white-space:nowrap;
+  animation:resIn .5s cubic-bezier(.2,1.4,.3,1) both}
+.fortune .f-result.good{color:var(--ok);text-shadow:0 0 24px rgba(127,174,106,.55)}
+.fortune .f-result.bad{color:var(--red);text-shadow:0 0 24px rgba(200,90,74,.55)}
+@keyframes resIn{from{opacity:0;transform:scale(2.1) rotate(-5deg);filter:blur(5px)}
+  to{opacity:1;transform:none;filter:none}}
+/* 宜/忌：两竖列（居中） */
+.fortune .f-yiji{display:flex;margin-top:12px;border-top:1px dashed var(--line);
+  padding-top:12px;text-align:center}
+.fortune .f-col{flex:1;min-width:0;text-align:center}
+.fortune .f-col + .f-col{border-left:1px dashed var(--line);padding-left:14px}
+.fortune .f-col-h{font-size:11.5px;letter-spacing:.3em;margin-bottom:7px}
+.fortune .f-col.yi .f-col-h{color:var(--ok)}
+.fortune .f-col.ji .f-col-h{color:var(--red)}
+.fortune .f-it{font-size:13px;line-height:1.8;color:var(--txt)}
+.fortune .f-it b{font-weight:600;color:var(--txt)}
+.fortune .f-it small{display:block;font-size:10.5px;font-weight:400;letter-spacing:.06em;
+  opacity:.7;margin-top:0;line-height:1.5}
+.fortune .f-col.yi .f-it small{color:var(--ok)}
+.fortune .f-col.ji .f-it small{color:var(--red)}
+.fortune .f-it + .f-it{margin-top:3px}
+.fortune .f-note{font-size:11.5px;color:var(--ph-dim);margin-top:10px;letter-spacing:.08em;text-align:center}
+.f-empty2{color:var(--ph-dim);font-size:12.5px;letter-spacing:.12em}
+.trend .tr-it{display:flex;align-items:center;gap:10px;font-size:14px;padding:5px 0;
+  cursor:pointer;transition:all .18s}
+.trend .tr-it:hover{color:var(--ph);padding-left:4px}
+.trend .tr-rank{color:var(--red);width:1.4em;font-family:var(--disp)}
+.trend .tr-n{margin-left:auto;font-size:11.5px;color:var(--ph-dim)}
+.online .o-it{font-size:13.5px;padding:4px 0;display:flex;align-items:center;gap:8px;transition:color .2s}
+.online .o-it::before{content:"";width:6px;height:6px;border-radius:50%;
+  background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.online .o-it.ghost::before{background:var(--red);box-shadow:0 0 6px var(--red)}
+.online .o-it.ghost{color:var(--ph-dim);opacity:.8}
+.f-reader{position:fixed;inset:0;z-index:9600;display:none;align-items:center;
+  justify-content:center;background:rgba(4,3,1,.84);backdrop-filter:blur(3px);padding:20px}
+.f-reader.open{display:flex;animation:fadeIn .25s both}
+@keyframes fadeIn{from{opacity:0}}
+.f-rd{width:min(720px,94vw);max-height:86vh;background:var(--panel);
+  border:1px solid var(--line);display:flex;flex-direction:column;position:relative;
+  animation:rdIn .34s cubic-bezier(.2,.9,.3,1) both}
+.f-rd::before{content:"";position:absolute;top:-1px;left:-1px;width:14px;height:14px;
+  border-top:2px solid var(--ph);border-left:2px solid var(--ph)}
+@keyframes rdIn{from{opacity:0;transform:translateY(26px) scale(.97)}}
+.f-rd-h{display:flex;align-items:center;gap:12px;padding:12px 18px;
+  border-bottom:1px solid var(--line);background:var(--ph-faint)}
+.f-rd-h .rt{flex:1;font-size:17px;color:var(--ph);letter-spacing:.06em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f-rd-x{background:none;border:1px solid var(--line);color:var(--ph-dim);
+  font-family:var(--mono);width:30px;height:30px;cursor:pointer;transition:all .2s;font-size:14px}
+.f-rd-x:hover{border-color:var(--red);color:var(--red);transform:rotate(90deg)}
+.f-rd-b{overflow-y:auto;padding:0;background:var(--bg)}
+/* 阅读层 = OC 档案论坛同款样式（thread） */
+.thread{border:1px solid var(--line);background:var(--bg)}
+.t-head{padding:12px 18px;border-bottom:1px solid var(--line);background:var(--ph-faint)}
+.t-board{display:inline-block;font-size:12.5px;color:#000;background:var(--ph);
+  padding:0 10px;letter-spacing:.2em;margin-bottom:6px}
+.t-title{color:var(--ph);font-size:18px;letter-spacing:.05em}
+.t-post{padding:12px 18px;border-bottom:1px dashed rgba(217,164,74,.14);
+  position:relative;margin-left:calc(var(--d,0)*26px);animation:riseIn .3s both}
+.t-post:last-child{border-bottom:none}
+.t-post[data-d]:not([data-d="0"])::before{content:"";position:absolute;left:-14px;top:0;
+  bottom:0;width:1px;background:rgba(217,164,74,.3)}
+.t-post[data-d]:not([data-d="0"])::after{content:"└";position:absolute;left:-20px;top:9px;
+  color:var(--ph-dim);font-size:13px}
+.t-head2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14.5px}
+.t-uname{color:var(--ph);letter-spacing:.06em}
+.t-tag{font-size:11.5px;border:1px solid var(--line);color:var(--ph-dim);
+  padding:0 7px;letter-spacing:.1em}
+.t-tag.op{color:#000;background:var(--ph);border-color:var(--ph)}
+.t-tag.custom{color:var(--cy);border-color:var(--cy)}
+.t-meta{margin-left:auto;display:flex;gap:12px;font-size:12px;color:var(--ph-dim);
+  white-space:nowrap}
+.t-ip{color:var(--cy)}
+.t-txt{margin-top:4px;font-size:15px;line-height:2}
+.t-txt .rdnote{color:var(--red);border-bottom:1px dashed rgba(200,90,74,.6)}
+.t-txt .sys-red{color:var(--red);font-size:13px;letter-spacing:.1em}
+.t-expand{padding:8px 18px;font-size:13.5px;color:var(--ph-dim);cursor:default;
+  border-bottom:1px dashed rgba(217,164,74,.14);letter-spacing:.1em}
+.t-sysdel{padding:8px 18px;text-align:center;color:rgba(200,90,74,.7);
+  font-size:13.5px;letter-spacing:.15em;border-bottom:1px dashed rgba(217,164,74,.14);
+  animation:riseIn .3s both}
+.f-rd-f{padding:10px 18px;border-top:1px solid var(--line);display:flex;gap:10px;background:rgba(0,0,0,.25)}
+.f-rd-f input{flex:1;background:none;border:1px solid var(--line);outline:none;
+  color:var(--ph);font-family:var(--mono);font-size:14.5px;padding:7px 12px}
+.f-rd-f input:focus{border-color:var(--ph)}
+.f-rd-f button{background:none;border:1px solid var(--ph);color:var(--ph);
+  font-family:var(--mono);font-size:14px;letter-spacing:.2em;padding:0 20px;cursor:pointer;transition:all .2s}
+.f-rd-f button:hover{background:var(--ph);color:#000}
+.f-rd-f .denied{font-size:12.5px;color:var(--ph-dim);align-self:center;animation:blink 2s steps(2) infinite}
+@keyframes riseIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media(max-width:600px){
+  .f-head .f-user{display:none}
+  .f-rd-b{padding:12px 14px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="crt-vig"></div>
+<div class="wrap">
+
+  <div class="topbar">
+    <span class="tb-back" onclick="goBack()">&gt; 返回主页</span>
+    <span class="tb-title" id="tbTitle">亡语之声</span>
+    <span class="tb-en" id="tbEn">ECHO BOARD</span>
+  </div>
+
+  <div class="f-grid">
+    <div class="f-nav">
+      <div class="n-h">BOARDS // 分区</div>
+      <div id="fnavs"></div>
+      <div class="n-h n-red">RESTRICTED // 受限</div>
+      <button class="locked" onclick="fDeny(this)">██████档案室</button>
+      <button class="locked" onclick="fDeny(this)"></button>
+    </div>
+    <div class="f-main">
+      <div class="f-tool">
+        <span class="ft-sort" id="ftsort">
+          <i class="ft-ind"></i>
+          <button data-s="time" onclick="setSort('time')">按时间</button>
+          <button data-s="hot" onclick="setSort('hot')">按热度</button>
+        </span>
+        <label class="ft-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+          <input id="fsearch" placeholder="搜索帖子…" oninput="onFSearch()">
+        </label>
+      </div>
+      <div id="flist"></div>
+      <div id="fpages"></div>
+    </div>
+    <div class="f-side">
+      <div class="fbox fortune">
+        <div class="b-h"><span>今日运势</span><span>DAILY ▮</span></div>
+        <div class="b-b" id="ffbox">
+          <div class="f-idle">
+            <div class="f-seal">☯</div>
+            <button class="f-btn" id="fdraw" onclick="drawFortune()">抽取运势</button>
+          </div>
+        </div>
+      </div>
+      <div class="fbox trend">
+        <div class="b-h"><span>趋势</span><span>TREND</span></div>
+        <div class="b-b" id="ftrend"></div>
+      </div>
+      <div class="fbox online">
+        <div class="b-h"><span>频道在线</span><span id="foncnt"></span></div>
+        <div class="b-b" id="fonline"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="f-reader" id="freader">
+  <div class="f-rd">
+    <div class="f-rd-h"><span class="rt" id="frt"></span>
+      <button class="f-rd-x" onclick="closeFReader()">✕</button></div>
+    <div class="f-rd-b" id="frb"></div>
+  </div>
+</div>
+
+<script>
+const DATA = "./亡语之声.data.json";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+let D = null, fBoard = "all", fSort = "time", fPage = 0;
+const PAGE_SIZE = 10;
+let fList = [];   /* 当前可见帖子（含所属分区 _bd） */
+
+function goBack() {
+  /* 返回员工终端：写 cm-goto=staff，主页加载后直接落到终端视图 */
+  try { sessionStorage.setItem("cm-goto", "staff"); } catch (e) {}
+  if (typeof spherse !== "undefined" && spherse.openFile) spherse.openFile("project/Cybermorgue-档案主页.html");
+  else if (history.length > 1) history.back();
+  else location.href = "index.html";
+}
+
+function renderFNav() {
+  $("fnavs").innerHTML = D.boards.map(b => {
+    const n = b.id === "all"
+      ? D.boards.filter(x => x.id !== "all").reduce((s, x) => s + (D.posts[x.id] || []).length, 0)
+      : (D.posts[b.id] || []).length;
+    return `<button class="${b.id === fBoard ? "on" : ""}" onclick="switchFBoard('${b.id}')">
+      <span class="nm">${esc(b.name)}</span><span class="cnt">${n}帖</span></button>`;
+  }).join("");
+}
+/* 汇总当前可见帖子（总览=全部合并；否则单分区），已过滤+排序 */
+function computePosts() {
+  const qEl = $("fsearch");
+  const q = (qEl ? qEl.value : "").trim().toLowerCase();
+  let posts;
+  if (fBoard === "all") {
+    posts = [];
+    D.boards.forEach(b => { if (b.id !== "all") (D.posts[b.id] || []).forEach(p => posts.push(Object.assign({ _bd: b }, p))); });
+  } else {
+    const b = D.boards.find(x => x.id === fBoard) || {};
+    posts = (D.posts[fBoard] || []).map(p => Object.assign({ _bd: b }, p));
+  }
+  posts = posts.filter(p =>
+    !q || (p.title + " " + (p.by || "") + " " + JSON.stringify(p.floors || [])).toLowerCase().includes(q));
+  const hotVal = p => {
+    const n = parseFloat(String(p.v || "0").replace(/k/gi, "000")) || 0;
+    return (p.hot ? 1e9 : 0) + n;
+  };
+  posts.sort((a, b) => {
+    if (fSort === "hot") return hotVal(b) - hotVal(a);
+    const ap = a.tag === "置顶" ? 1 : 0, bp = b.tag === "置顶" ? 1 : 0;   /* 置顶恒在最上 */
+    if (ap !== bp) return bp - ap;
+    return String(b.t || "").localeCompare(String(a.t || ""));            /* 时间新→旧 */
+  });
+  return posts;
+}
+function onFSearch() { fPage = 0; renderFPosts(); }
+function goPage(p) {
+  const pages = Math.max(1, Math.ceil(computePosts().length / PAGE_SIZE));
+  if (p < 0 || p >= pages) return;
+  fPage = p;
+  renderFPosts(true);
+}
+function switchFBoard(id) { fBoard = id; fPage = 0; renderFNav(); renderFPosts(true); }
+function placeInd() {
+  const cont = $("ftsort");
+  if (!cont) return;
+  const ind = cont.querySelector(".ft-ind");
+  const cur = [...cont.querySelectorAll("button")].find(b => b.dataset.s === fSort);
+  if (!ind || !cur) return;
+  ind.style.width = cur.offsetWidth + "px";
+  ind.style.transform = "translateX(" + cur.offsetLeft + "px)";
+}
+function setSort(s) {
+  fSort = s;
+  fPage = 0;
+  document.querySelectorAll(".ft-sort button").forEach(b => b.classList.toggle("on", b.dataset.s === s));
+  placeInd();
+  renderFPosts(true);
+}
+function renderFPosts(anim) {
+  const q = ($("fsearch") ? $("fsearch").value : "").trim().toLowerCase();
+  const posts = computePosts();
+  fList = posts;
+  /* 分页：每页 10 条 */
+  const pages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
+  if (fPage >= pages) fPage = pages - 1;
+  const pagePosts = posts.slice(fPage * PAGE_SIZE, (fPage + 1) * PAGE_SIZE);
+  let html = pagePosts.map((p, i) => {
+    const [dt, tm] = String(p.t || "").split(" ");
+    const bd = (fBoard === "all" && p._bd && p._bd.name) ? ` · <span class="bd">${esc(p._bd.name)}</span>` : "";
+    return `<div class="post${p.hot ? " hot" : ""}${anim ? " anim" : ""}"${anim ? ` style="animation-delay:${i * 45}ms"` : ""} onclick="openFPost(${i})">
+      <div class="p-zone"><b>${esc(dt || "··-··")}</b>${esc(tm || "")}</div>
+      <div class="p-body">
+        <div class="p-title">${p.tag ? `<span class="tag${p.tag === "置顶" ? " pin" : ""}">[${esc(p.tag)}]</span>` : ""}${esc(p.title)}</div>
+        <div class="p-meta">by ${esc(p.by)}${bd} · <span class="r">${p.r} 回复</span></div>
+      </div>
+      <div class="p-views">${esc(p.v)}<br>${p.hot ? '<span class="h">HOT</span>' : "—"}</div>
+    </div>`;
+  }).join("");
+  if (!pagePosts.length) html = '<div class="f-empty">' + (q ? "// 没有找到相关帖子" : "// 该分区暂无帖子") + "</div>";
+  const list = $("flist");
+  list.innerHTML = html;
+  /* 页码条：单页时显示 1 + 右箭头 */
+  let pgHtml = "";
+  if (posts.length) {
+    let nums = "";
+    for (let i = 0; i < pages; i++)
+      nums += `<button class="pg${i === fPage ? " on" : ""}" onclick="goPage(${i})">${i + 1}</button>`;
+    pgHtml = `<div class="f-pages">
+      ${fPage > 0 ? `<button class="pg" onclick="goPage(${fPage - 1})">◀</button>` : ""}
+      ${nums}
+      <button class="pg"${fPage >= pages - 1 ? " disabled" : ` onclick="goPage(${fPage + 1})"`}>▶</button>
+    </div>`;
+  }
+  $("fpages").innerHTML = pgHtml;
+}
+function openFPost(i) {
+  const p = fList[i];
+  const bn = (p._bd && p._bd.name) || (D.boards.find(b => b.id === fBoard) || {}).name || "";
+  $("frt").textContent = (p.tag ? `[${p.tag}] ` : "") + p.title;
+  const tagCls = t => !t ? "" : (t === "管理员" || t === "官方" || t === "O&M" || t === "bot" ? " op" : (/^lv\d+$/.test(t) ? "" : " custom"));
+  const fmt = txt => esc(txt)
+    .replace(/&lt;span class=['"]sys-red['"]&gt;([\s\S]*?)&lt;\/span&gt;/g, '<span class="sys-red">$1</span>')
+    .replace(/##([\s\S]+?)##/g, '<span class="rdnote">$1</span>')
+    .replace(/\n/g, "<br>");
+  const postHtml = f => {
+    if (f.expand) return `<div class="t-expand">${esc(f.expand)} ▾</div>`;
+    if (f.sysdel) return `<div class="t-sysdel">${esc(f.sysdel)}</div>`;
+    if (Array.isArray(f)) {   /* 简写 [发帖人, 楼层号, 正文] */
+      const [who, fl, txt] = f;
+      return `<div class="t-post">
+        <div class="t-head2"><span class="t-uname">${esc(who)}</span>
+        <span class="t-meta"><span>${esc(fl || "")}</span></span></div>
+        <div class="t-txt">${fmt(txt)}</div></div>`;
+    }
+    const d = f.depth || 0;
+    return `<div class="t-post" data-d="${d}" style="--d:${d};animation-delay:${(f._i || 0) * 45}ms">
+      <div class="t-head2">
+        <span class="t-uname">${esc(f.who)}</span>
+        ${f.tag ? `<span class="t-tag${tagCls(f.tag)}">${esc(f.tag)}</span>` : ""}
+        <span class="t-meta">${f.ip ? `<span class="t-ip">IP:${esc(f.ip)}</span>` : ""}<span>${esc(f.time || "")}</span></span>
+      </div>
+      <div class="t-txt">${fmt(f.txt)}</div></div>`;
+  };
+  $("frb").innerHTML =
+    `<div class="thread"><div class="t-head">
+      <span class="t-board">亡语之声 · ${esc(bn)}</span>
+      <div class="t-title">${esc((p.tag ? `[${p.tag}] ` : "") + p.title)}</div></div>` +
+    p.floors.map((f, k) => postHtml(f, k)).join("") + "</div>";
+  $("freader").classList.add("open");
+}
+function closeFReader() { $("freader").classList.remove("open"); }
+function fDeny(btn) {
+  btn.style.animation = "none";
+  btn.animate([{ transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "none" }], { duration: 180 });
+  setTimeout(fNeedPerm, 150);
+}
+function fNeedPerm() {
+  const d = document.createElement("div");
+  d.style.cssText = "position:fixed;top:24px;left:50%;transform:translateX(-50%);" +
+    "background:var(--panel);border:1px solid var(--red);color:var(--red);padding:8px 24px;" +
+    "letter-spacing:.2em;font-size:14px;z-index:9999;box-shadow:0 0 20px rgba(200,90,74,.4)";
+  d.textContent = "权限不足。请求已递交（队列第 ██ 位）。";
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 2400);
+}
+/* 今日运势：点击抽取（小/中/大 × 吉/凶；单池抽 2宜 2忌不重复）
+   结果按日期持久化：当天抽过一次后，重进页面直接显示结果，无需重抽 */
+const FORT_KEY = "cm_forum_fortune";
+function fortuneToday() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function initFortune() {
+  const box = $("ffbox"), btn = $("fdraw");
+  if (!box) return;
+  try {
+    const saved = JSON.parse(localStorage.getItem(FORT_KEY) || "null");
+    if (saved && saved.date === fortuneToday() && saved.html) {
+      box.innerHTML = saved.html;
+      if (btn) btn.disabled = true;
+      return;
+    }
+  } catch (e) {}
+}
+function drawFortune() {
+  const box = $("ffbox"), btn = $("fdraw");
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;   /* 每日只抽一次 */
+  const F = D.fortune || {};
+  if (!F.pool || F.pool.length < 4) {
+    box.innerHTML = '<div class="f-empty2">// 今日暂无可排算的记录。</div>';
+    return;
+  }
+  /* 抽取动画：卦环 + 符文闪烁（先快后慢，逐渐落定） */
+  box.innerHTML =
+    '<div class="f-draw">' +
+    '<div class="f-ring"><span class="fr-rune">✦</span></div>' +
+    '<div class="f-rune" id="fsh">☯</div>' +
+    '</div>';
+  const d = new Date();
+  const seed = d.getFullYear() * 372 + (d.getMonth() + 1) * 31 + d.getDate();
+  let s = seed;
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const RUNES = "☰☱☲☳☴☵☶☷✦✧";
+  const level = pick(F.levels || ["小"]);
+  const type = pick(F.types || ["吉"]);
+  const poolCopy = F.pool.slice();
+  const take = () => poolCopy.splice(Math.floor(rnd() * poolCopy.length), 1)[0];
+  const yi = [take(), take()];
+  const ji = [take(), take()];
+  const reveal = () => {
+    const good = type === "吉";
+    const it = (x, note) => `<div class="f-it"><b>${esc(x.t || x)}</b>${note ? `<small>${esc(note)}</small>` : ""}</div>`;
+    box.innerHTML =
+      `<div class="f-date">${fortuneToday()} · 播音室排算</div>
+      <div class="f-result-wrap">
+        <i class="f-cn tl"></i><i class="f-cn tr"></i><i class="f-cn bl"></i><i class="f-cn br"></i>
+        <div class="f-result ${good ? "good" : "bad"}">§${esc(level)}${esc(type)}§</div>
+      </div>
+      <div class="f-yiji">
+        <div class="f-col yi">
+          <div class="f-col-h">宜 · YI</div>
+          ${it(yi[0], yi[0].good)}${it(yi[1], yi[1].good)}
+        </div>
+        <div class="f-col ji">
+          <div class="f-col-h">忌 · JI</div>
+          ${it(ji[0], ji[0].bad)}${it(ji[1], ji[1].bad)}
+        </div>
+      </div>
+      <div class="f-note">// 运势由论坛运营业余排算，仅供娱乐。当日结果已固定。</div>`;
+    /* 持久化：当天结果，重进页面直接显示 */
+    try { localStorage.setItem(FORT_KEY, JSON.stringify({ date: fortuneToday(), html: box.innerHTML })); } catch (e) {}
+  };
+  let delay = 90;                      /* 先快 */
+  (function tick() {
+    const sh = $("fsh");
+    if (sh) {
+      sh.textContent = RUNES[Math.floor(Math.random() * RUNES.length)];
+      sh.style.animationDuration = delay + "ms";   /* 闪动频率同步变慢 */
+    }
+    delay += 70;                       /* 逐渐变慢 */
+    if (delay < 520) setTimeout(tick, delay);
+    else setTimeout(reveal, delay);
+  })();
+}
+function renderFTrends() {
+  const t = D.trends || [];
+  $("ftrend").innerHTML = t.length
+    ? t.map(([w, n], i) => `<div class="tr-it" onclick="fNeedPerm()"><span class="tr-rank">${i + 1}</span><span>${esc(w)}</span><span class="tr-n">${n}</span></div>`).join("")
+    : '<div class="f-empty2">// 暂无热词</div>';
+}
+function renderFOnline() {
+  const o = D.online || [];
+  $("fonline").innerHTML = o.length
+    ? o.map(([n, g]) => `<div class="o-it${g ? " ghost" : ""}">${esc(n)}</div>`).join("")
+    : '<div class="f-empty2">// 频道安静中</div>';
+  $("foncnt").textContent = (o.length || 0) + " / ██";
+}
+function init() {
+  $("tbTitle").textContent = D.title || "亡语之声";
+  $("tbEn").textContent = D.en || "ECHO BOARD";
+  renderFNav(); renderFPosts(); renderFTrends(); renderFOnline();
+  placeInd();          /* 排序滑块定位 */
+  initFortune();   /* 当天已抽过 → 直接显示结果 */
+  const rd = $("freader");
+  rd.onclick = e => { if (e.target === rd) closeFReader(); };
+}
+fetch(DATA).then(r => r.json()).then(d => { D = d; init(); })
+  .catch(e => { document.body.innerHTML += '<div style="color:var(--red);padding:30px;text-align:center">亡语之声数据加载失败：' + esc(e.message || e) + "</div>"; });
+</script>
+</body>
+</html>

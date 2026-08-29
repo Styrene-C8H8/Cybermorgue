@@ -408,6 +408,20 @@
     return (MG && MG.hintLines) ? MG.hintLines : ["……"];
   }
 
+  /* ---- 视图切换时自动收拢客服面板（钩住主页 show，登录/分区/表单/返回全部覆盖） ---- */
+  function patchShow() {
+    try {
+      if (typeof window.show !== "function" || window.__CM_SHOW_PATCHED__) return;
+      window.__CM_SHOW_PATCHED__ = true;
+      var orig = window.show;
+      window.show = function () {
+        var r = orig.apply(this, arguments);
+        closePanel();   /* 任何界面切换都关掉客服面板 */
+        return r;
+      };
+    } catch (e) {}
+  }
+
   /* ---- 收拢面板（遮挡恢复时） ---- */
   function closePanel() {
     var p = document.getElementById("cs-panel");
@@ -479,6 +493,24 @@
     mgSaveState();
   }
 
+  /* ---- 关键词优先级：统一候选池，pri 越大越优先（默认：规则0 / 快捷指令0 / 分区链接-1 / 提示-2，同 pri 按定义顺序） ---- */
+  function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\  /* ---- 对话流 ---- */"); }
+  function mgPick(text) {
+    var cands = [];
+    (MG.rules || []).forEach(function (r, i) {
+      cands.push({ kind: "rule", pri: (r.pri == null ? 0 : r.pri), order: i, re: new RegExp(r.re, "i"), r: r });
+    });
+    (MG.chips || []).forEach(function (c, i) {
+      if (!c.t) return;
+      cands.push({ kind: "chip", pri: (c.pri == null ? 0 : c.pri), order: 100 + i, re: new RegExp(escRe(c.t), "i"), c: c });
+    });
+    if (zoneRe) cands.push({ kind: "zone", pri: (MG.zoneLink.pri == null ? -1 : MG.zoneLink.pri), order: 200, re: zoneRe });
+    cands.push({ kind: "hint", pri: (MG.hintPri == null ? -2 : MG.hintPri), order: 201, re: new RegExp(escRe(MG.hintChip || "提示"), "i") });
+    cands.sort(function (a, b) { return (b.pri - a.pri) || (a.order - b.order); });
+    for (var i = 0; i < cands.length; i++) if (cands[i].re.test(text)) return cands[i];
+    return null;
+  }
+
   /* ---- 对话流 ---- */
   async function send(raw) {
     if (busy) return;
@@ -513,44 +545,37 @@
         return;
       }
 
-      var mhit = null;
-      for (var i = 0; i < MG.rules.length; i++) {
-        if (new RegExp(MG.rules[i].re, "i").test(text)) { mhit = MG.rules[i]; break; }
-      }
-      var chipHit = null;
-      for (var ci = 0; ci < (MG.chips || []).length; ci++) {
-        if (MG.chips[ci].t && text.indexOf(MG.chips[ci].t) > -1) { chipHit = MG.chips[ci]; break; }
-      }
-      if (mhit || chipHit) {
-        var key = mhit ? mhit.re : (chipHit.t + "_chip");
-        var g = mgGuard(key);
-        if (g === "silent") return;                 /* 已警告后该问题静默 */
-        if (g === "warn") { await botSay(mgWarnReply()); return; }  /* ≥2 次 → 不耐烦 */
-        var opt = {};
-        if (mhit && mhit.typing === "double") opt.double = true;
-        var rep = mhit ? mhit.reply : chipHit.reply;
-        await botSay(rep, opt);
-        /* 检查点：密码规则 → 写旗标 + ticker + 换 chips */
-        if (mhit && mhit.cp) {
-          flagSet(mhit.cp);
-          mgCp = mgCpNow();
-          mgResetForCp();
-          syncTicker();
+      var cand = mgPick(text);
+      if (cand) {
+        if (cand.kind === "rule") {
+          var key = cand.r.re;
+          var g = mgGuard(key);
+          if (g === "silent") return;                 /* 已警告后该问题静默 */
+          if (g === "warn") { await botSay(mgWarnReply()); return; }  /* ≥2 次 → 不耐烦 */
+          var opt = {};
+          if (cand.r.typing === "double") opt.double = true;
+          await botSay(cand.r.reply, opt);
+          /* 检查点：密码规则 → 写旗标 + ticker + 换 chips */
+          if (cand.r.cp) {
+            flagSet(cand.r.cp);
+            mgCp = mgCpNow();
+            mgResetForCp();
+            syncTicker();
+          }
+        } else if (cand.kind === "chip") {
+          var g2 = mgGuard(cand.c.t + "_chip");
+          if (g2 === "silent") return;
+          if (g2 === "warn") { await botSay(mgWarnReply()); return; }
+          await botSay(cand.c.reply || "……");
+        } else if (cand.kind === "zone") {
+          var gz = mgGuard("zone_link");
+          if (gz === "silent") return;
+          if (gz === "warn") { await botSay(mgWarnReply()); return; }
+          await botSay(MG.zoneLink.reply || ["我不是ai。介绍都在这，你自己看。"]);
+          addLink(MG.zoneLink.linkLabel);
+        } else { /* hint */
+          await mgHintReply();
         }
-        return;
-      }
-      /* 分区名关键词：甩链接到分区索引（同样走不耐烦守卫） */
-      if (zoneRe && zoneRe.test(text)) {
-        var gz = mgGuard("zone_link");
-        if (gz === "silent") return;
-        if (gz === "warn") { await botSay(mgWarnReply()); return; }
-        await botSay(MG.zoneLink.reply || ["我不是ai。介绍都在这，你自己看。"]);
-        addLink(MG.zoneLink.linkLabel);
-        return;
-      }
-      /* 提示（输入"提示"也触发同一状态机） */
-      if (text.indexOf(MG.hintChip || "提示") > -1) {
-        await mgHintReply();
         return;
       }
       /* 未知词：超限后仅不再回复无关键词内容（关键词/规则照常） */
@@ -571,28 +596,38 @@
       return;
     }
 
-    /* —— 自动应答模式 —— */
-    var hit = null;
-    for (var j = 0; j < rules.length; j++) {
-      if (rules[j].re.test(text)) { hit = rules[j]; break; }
-    }
-    if (hit) {
-      var need = hit.req || [];
-      var ok = true;
-      for (var k = 0; k < need.length; k++) if (!flagHas(need[k])) { ok = false; break; }
-      if (!ok) {
-        botSay(hit.denied || D.deniedGeneric || "该条目需要先达成前置条件。", true);
-        return;
+    /* —— 自动应答模式（统一优先级：规则 pri 默认0 / 快捷指令 pri 默认0，同 pri 规则在前） —— */
+    var cand = null;
+    for (var m = 0; m < (D.rules || []).length; m++) {
+      var rr = rules[m];
+      var pc = (rr.pri == null ? 0 : rr.pri);
+      var ord = m;
+      if (cand === null || pc > cand.pri || (pc === cand.pri && ord < cand.order)) {
+        if (rr.re.test(text)) cand = { pri: pc, order: ord, r: rr };
       }
-      (hit.set || []).forEach(flagSet);
-      botSay(hit.reply, { red: !!hit.red });
-      return;
     }
     for (var cj = 0; cj < chips.length; cj++) {
-      if (chips[cj].t && text.indexOf(chips[cj].t) > -1) {
-        botSay(chips[cj].reply || "……");
-        return;
+      if (!chips[cj].t || text.indexOf(chips[cj].t) < 0) continue;
+      var pc2 = (chips[cj].pri == null ? 0 : chips[cj].pri);
+      if (cand === null || pc2 > cand.pri || (pc2 === cand.pri && (100 + cj) < cand.order)) {
+        cand = { pri: pc2, order: 100 + cj, c: chips[cj] };
       }
+    }
+    if (cand) {
+      if (cand.r) {
+        var need = cand.r.req || [];
+        var ok = true;
+        for (var k = 0; k < need.length; k++) if (!flagHas(need[k])) { ok = false; break; }
+        if (!ok) {
+          botSay(cand.r.denied || D.deniedGeneric || "该条目需要先达成前置条件。", true);
+          return;
+        }
+        (cand.r.set || []).forEach(flagSet);
+        botSay(cand.r.reply, { red: !!cand.r.red });
+      } else {
+        botSay(cand.c.reply || "……");
+      }
+      return;
     }
     botSay(fallback[fi++ % fallback.length].replace("{n}", 1000 + (Math.random() * 9000 | 0)));
   }
@@ -625,11 +660,12 @@
         try { zoneRe = new RegExp(MG.zoneLink.names.join("|"), "i"); } catch (e) { zoneRe = null; }
       }
       rules = (d.rules || []).map(function (r) {
-        return { re: new RegExp(r.re, "i"), reply: r.reply, red: r.red, req: r.req, set: r.set, denied: r.denied };
+        return { re: new RegExp(r.re, "i"), reply: r.reply, red: r.red, req: r.req, set: r.set, denied: r.denied, pri: r.pri };
       });
       fallback = d.fallback || [];
       chips = d.chips || [];
       buildUI();
+      patchShow();   /* 视图切换自动收拢面板 */
       var w = document.getElementById("cs-widget");
       wasHidden = isHiddenZone();
       if (w) setInterval(function () {

@@ -17,7 +17,7 @@ window.__CM_CURSOR__ = true;
   if (!window.matchMedia || matchMedia("(hover: none)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   /* 站点所有可交互元素（超集选择器：新增界面元素请加到这里） */
-  var sel = window.CURSOR_SEL || ".gate,.mi,.cal-nav,.gnext,.tbtns button,.todo,.todo-add button,.logout,.step-next,.step-back,.zone-link,.chip,.more,.entry,.path,.logo,nav a,.back,.back2,.card,.thread,.rec,.rec-head,.sysdlg,.attach,.mailbtn,.recipe,.video,.mbtn,.mailcard,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item,.key,.np-trackbar,.volwheel,.spoiler,.expand,.anom-t,.trig-btn,.conf-err a,.sp-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.step-ind,.witem,.mnav button,.arc-item,.mailbox .mitem,.cs-fab,.cs-min,.cs-send,.cs-chips button,.hdr-reset,.cs-link";
+  var sel = window.CURSOR_SEL || ".gate,.mi,.cal-nav,.gnext,.tbtns button,.todo,.todo-add button,.logout,.step-next,.step-back,.zone-link,.chip,.more,.entry,.path,.logo,nav a,.back,.back2,.card,.thread,.rec,.rec-head,.sysdlg,.attach,.mailbtn,.recipe,.video,.mbtn,.mailcard,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item,.key,.np-trackbar,.volwheel,.spoiler,.expand,.anom-t,.trig-btn,.conf-err a,.sp-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.step-ind,.witem,.mnav button,.arc-item,.mailbox .mitem,.cs-fab,.cs-min,.cs-send,.cs-chips button,.hdr-reset,.cs-link,.gexit";
 
   function boot() {
     var w = document.createElement("div"); w.id = "cc-rt"; w.className = "cc";
@@ -59,8 +59,13 @@ window.__CM_CURSOR__ = true;
     }
     function lock(t) {
       if (t === locked) return;
-      locked = t; w.classList.add("locked");
       var r = t.getBoundingClientRect();
+      /* 目标比视口还高/还宽（如可滚动容器内的长帖）→ 不锁定，避免准星四角飞到屏幕外 */
+      if (r.height > innerHeight - 10 || r.width > innerWidth - 10) {
+        if (locked) { locked = null; w.classList.remove("locked"); }
+        return;
+      }
+      locked = t; w.classList.add("locked");
       var p = [[r.left - 1, r.top - 1], [r.right - 7, r.top - 1], [r.right - 7, r.bottom - 7], [r.left - 1, r.bottom - 7]];
       cs.forEach(function (c, i) { c.style.left = p[i][0] + "px"; c.style.top = p[i][1] + "px"; });
     }

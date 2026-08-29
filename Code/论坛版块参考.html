@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORUM // 站内论坛 · 回声板</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
+  --gr:#7fbf7f; --red:#c85a4a; --cy:#6fb3b8;
+  --bg:#0c0a06; --panel:#100d08; --panel2:#151109;
+  --line:rgba(232,176,75,.22); --txt:#d8cdb4;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);min-height:100vh;
+  font-family:'VT323','Noto Sans SC',monospace;font-size:16px;line-height:1.8;
+  text-shadow:-.4px 0 rgba(255,50,90,.08),.4px 0 rgba(0,205,255,.08)}
+::selection{background:var(--am);color:#000}
+.crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0 2px,rgba(0,0,0,.18) 3px 4px)}
+.wrap{max-width:1120px;margin:0 auto;padding:34px 20px 80px;position:relative;z-index:5}
+
+/* ================================================================
+   ① 入口磁贴（放在员工终端主页的那块）
+   ================================================================ */
+.portal-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:44px}
+.portal-lab{width:100%;font-size:12px;color:var(--amd);
+  letter-spacing:.35em;margin-bottom:2px}
+.tile{position:relative;flex:1;min-width:230px;border:1px solid var(--line);
+  background:var(--panel);padding:16px 18px;cursor:pointer;
+  transition:all .25s;overflow:hidden}
+.tile:hover{border-color:var(--am);transform:translateY(-3px);
+  box-shadow:0 6px 26px rgba(0,0,0,.6),0 0 22px rgba(232,176,75,.12)}
+.tile .t-en{font-size:11px;letter-spacing:.3em;color:var(--amd)}
+.tile .t-name{font-size:21px;color:var(--am);letter-spacing:.2em;margin:2px 0}
+.tile .t-sub{font-size:12.5px;color:var(--amd);letter-spacing:.1em}
+/* 论坛磁贴专属：未读角标 + 扫描副标题 */
+.tile.forum{border-color:var(--am);
+  background:linear-gradient(135deg,rgba(232,176,75,.1),var(--panel) 55%)}
+.tile.forum .t-badge{position:absolute;top:10px;right:12px;
+  font-size:11px;letter-spacing:.2em;color:var(--red);
+  border:1px solid var(--red);padding:1px 8px;
+  box-shadow:0 0 10px rgba(200,90,74,.35);animation:dotBlink 1.6s steps(2) infinite}
+@keyframes dotBlink{50%{opacity:.25}}
+.tile.forum .t-scan{overflow:hidden;white-space:nowrap}
+.tile.forum .t-scan i{display:inline-block;font-style:normal;
+  animation:scanMove 7s linear infinite;color:var(--amd)}
+@keyframes scanMove{from{transform:translateX(100%)}to{transform:translateX(-110%)}}
+.tile.forum::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:var(--am);animation:tScan 4s ease-in-out infinite;opacity:.5}
+@keyframes tScan{0%,100%{transform:translateX(-30%)}50%{transform:translateX(30%)}}
+
+/* ================================================================
+   ② 论坛主体
+   ================================================================ */
+.f-head{display:flex;align-items:baseline;gap:16px;border-bottom:2px solid var(--line);
+  padding-bottom:10px;margin-bottom:20px}
+.f-head h1{font-size:30px;color:var(--am);letter-spacing:.25em;font-weight:400}
+.f-head .f-en{color:var(--amd);font-size:13px;letter-spacing:.4em}
+.f-head .f-user{margin-left:auto;font-size:13.5px;color:var(--txt);letter-spacing:.1em}
+.f-head .f-user b{color:var(--cy);font-weight:400}
+
+.f-grid{display:grid;grid-template-columns:200px 1fr 250px;gap:18px}
+@media(max-width:920px){.f-grid{grid-template-columns:1fr}}
+
+/* ---- 分区导航 ---- */
+.f-nav{border:1px solid var(--line);background:var(--panel);align-self:start}
+.f-nav .n-h{padding:9px 14px;font-size:12px;letter-spacing:.3em;color:var(--amd);
+  border-bottom:1px solid var(--line);background:var(--amf)}
+.f-nav button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:none;border:none;border-left:3px solid transparent;
+  color:var(--txt);font-family:inherit;font-size:15.5px;letter-spacing:.1em;
+  padding:10px 14px;cursor:pointer;transition:all .18s}
+.f-nav button:hover{background:var(--amf);border-left-color:var(--amd);color:var(--am)}
+.f-nav button.on{background:var(--amf);border-left-color:var(--am);color:var(--am)}
+.f-nav button .cnt{margin-left:auto;font-size:11.5px;color:var(--amd)}
+.f-nav button.locked{color:var(--amd);opacity:.55;cursor:not-allowed}
+.f-nav .n-red{border-top:1px dashed var(--line);margin-top:4px;padding-top:4px}
+
+/* ---- 帖子流 ---- */
+.f-main{display:flex;flex-direction:column;gap:10px}
+.post{display:flex;gap:14px;border:1px solid var(--line);background:var(--panel);
+  padding:12px 16px;cursor:pointer;transition:all .2s;position:relative}
+.post:hover{border-color:var(--am);background:var(--panel2);
+  transform:translateX(4px);box-shadow:-4px 0 0 rgba(232,176,75,.35)}
+.post .p-zone{flex-shrink:0;align-self:center;width:52px;text-align:center;
+  border:1px solid var(--line);color:var(--amd);font-size:11px;
+  letter-spacing:.1em;padding:5px 0;line-height:1.3}
+.post.hot .p-zone{border-color:var(--red);color:var(--red);
+  box-shadow:0 0 10px rgba(200,90,74,.25)}
+.post .p-body{flex:1;min-width:0}
+.post .p-title{font-size:16.5px;color:var(--txt);letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post:hover .p-title{color:var(--am)}
+.post .p-title .tag{color:var(--red);font-size:13px;margin-right:8px}
+.post .p-title .tag.pin{color:var(--am)}
+.post .p-meta{font-size:12px;color:var(--amd);letter-spacing:.12em;margin-top:2px}
+.post .p-meta .r{color:var(--cy)}
+.post.hot .p-title{color:var(--am)}
+/* 被修订的帖子：内容涂黑 */
+.post .redact{background:var(--txt);color:var(--txt);border-radius:1px;
+  user-select:none;padding:0 3px}
+.post .p-views{flex-shrink:0;text-align:right;font-size:12px;
+  color:var(--amd);line-height:1.6;align-self:center}
+
+/* ---- 右栏 ---- */
+.f-side{display:flex;flex-direction:column;gap:18px;align-self:start}
+.box{border:1px solid var(--line);background:var(--panel)}
+.box .b-h{padding:9px 14px;font-size:12px;letter-spacing:.3em;color:var(--amd);
+  border-bottom:1px solid var(--line);background:var(--amf);
+  display:flex;justify-content:space-between}
+.box .b-b{padding:14px 16px}
+
+/* 今日运势 */
+.fortune .f-date{font-size:13px;color:var(--amd);letter-spacing:.2em;margin-bottom:10px}
+.fortune .f-stars{font-size:20px;color:var(--am);letter-spacing:.3em;margin-bottom:10px;
+  text-shadow:0 0 14px rgba(232,176,75,.4)}
+.fortune .f-row{font-size:14.5px;line-height:2}
+.fortune .f-row b{font-weight:400;letter-spacing:.2em}
+.fortune .f-yi b{color:var(--gr)}
+.fortune .f-ji b{color:var(--red)}
+.fortune .f-luck{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);
+  font-size:13.5px;color:var(--txt)}
+.fortune .f-luck em{font-style:normal;color:var(--am)}
+.fortune .f-note{font-size:11.5px;color:var(--amd);margin-top:8px;letter-spacing:.1em}
+
+/* 热词 */
+.trend .tr-it{display:flex;align-items:center;gap:10px;font-size:14px;
+  padding:5px 0;cursor:pointer;transition:color .2s}
+.trend .tr-it:hover{color:var(--am)}
+.trend .tr-rank{color:var(--red);width:1.4em}
+.trend .tr-n{margin-left:auto;font-size:11.5px;color:var(--amd)}
+
+/* 在线值班 */
+.online .o-it{font-size:13.5px;color:var(--txt);padding:4px 0;
+  display:flex;align-items:center;gap:8px}
+.online .o-it::before{content:"";width:6px;height:6px;border-radius:50%;
+  background:var(--gr);box-shadow:0 0 6px var(--gr)}
+.online .o-it.ghost::before{background:var(--red);box-shadow:0 0 6px var(--red)}
+
+/* ================================================================
+   ③ 帖子阅读层
+   ================================================================ */
+#reader{position:fixed;inset:0;z-index:1000;display:none;
+  align-items:center;justify-content:center;background:rgba(4,3,1,.82);
+  backdrop-filter:blur(3px)}
+#reader.open{display:flex;animation:fadeIn .25s both}
+@keyframes fadeIn{from{opacity:0}}
+.rd{width:min(720px,94vw);max-height:86vh;background:var(--panel);
+  border:1px solid var(--line);display:flex;flex-direction:column;
+  animation:rdIn .35s cubic-bezier(.2,.9,.3,1) both}
+@keyframes rdIn{from{opacity:0;transform:translateY(26px) scale(.97)}}
+.rd::before{content:"";position:absolute;width:18px;height:18px;pointer-events:none}
+.rd-h{display:flex;align-items:center;gap:12px;padding:12px 18px;
+  border-bottom:1px solid var(--line);background:var(--amf)}
+.rd-h .rt{flex:1;font-size:17px;color:var(--am);letter-spacing:.08em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-x{background:none;border:1px solid var(--line);color:var(--amd);
+  font-family:inherit;width:28px;height:28px;cursor:pointer;transition:all .2s}
+.rd-x:hover{border-color:var(--red);color:var(--red);transform:rotate(90deg)}
+.rd-b{overflow-y:auto;padding:18px 22px}
+.rd-b::-webkit-scrollbar{width:8px}
+.rd-b::-webkit-scrollbar-thumb{background:var(--amd)}
+.floor{display:flex;gap:14px;padding:13px 0;border-bottom:1px dashed rgba(232,176,75,.14)}
+.floor:last-child{border-bottom:none}
+.floor .fz{flex-shrink:0;width:74px;text-align:center}
+.floor .fz .who{font-size:13px;color:var(--cy);letter-spacing:.08em;word-break:break-all}
+.floor .fz .fl{font-size:11px;color:var(--amd);letter-spacing:.15em;margin-top:2px}
+.floor.op .fz .who{color:var(--am)}
+.floor .fc{flex:1;font-size:15px;line-height:2}
+.floor .fc .rd2{background:var(--txt);color:var(--txt);user-select:none;
+  padding:0 3px;cursor:not-allowed}
+.floor .fc .sys-red{color:var(--red);font-size:13px;letter-spacing:.1em}
+.rd-f{padding:10px 18px;border-top:1px solid var(--line);display:flex;gap:10px;
+  background:rgba(0,0,0,.25)}
+.rd-f input{flex:1;background:none;border:1px solid var(--line);outline:none;
+  color:var(--am);font-family:inherit;font-size:14.5px;padding:7px 12px}
+.rd-f input:focus{border-color:var(--am)}
+.rd-f button{background:none;border:1px solid var(--am);color:var(--am);
+  font-family:inherit;font-size:14px;letter-spacing:.2em;padding:0 20px;cursor:pointer;
+  transition:all .2s}
+.rd-f button:hover{background:var(--am);color:#000}
+.rd-f .denied{font-size:12.5px;color:var(--amd);align-self:center;
+  animation:dotBlink 2s steps(2) infinite}
+</style>
+</head>
+<body>
+<div class="crt-lines"></div>
+<div class="wrap">
+
+  <!-- ============ ① 员工终端上的入口磁贴 ============ -->
+  <div class="portal-row">
+    <p class="portal-lab">↓ 下面这块就是放在员工终端主页的入口样式（旁边放个普通磁贴做对比）</p>
+    <div class="tile forum" onclick="scrollToF()">
+      <span class="t-badge">3 NEW</span>
+      <div class="t-en">ECHO BOARD</div>
+      <div class="t-name">回 声 板</div>
+      <div class="t-scan"><i>有人回了你的帖子。也可能只是回声。 ›</i></div>
+    </div>
+    <div class="tile">
+      <div class="t-en">INTERNAL MAIL</div>
+      <div class="t-name">站内信</div>
+      <div class="t-sub">0 封未读 · 1 封未寄达</div>
+    </div>
+  </div>
+
+  <!-- ============ ② 论坛主体 ============ -->
+  <div id="forumTop" class="f-head">
+    <h1>回声板</h1>
+    <span class="f-en">ECHO BOARD // 站内唯一许可的喧哗场所</span>
+    <span class="f-user">当前身份：<b>访客-7749</b> · 权限：只读+树洞</span>
+  </div>
+
+  <div class="f-grid">
+    <!-- 分区导航 -->
+    <div class="f-nav">
+      <div class="n-h">BOARDS // 分区</div>
+      <div id="navs"></div>
+      <div class="n-h n-red">RESTRICTED // 受限</div>
+      <button class="locked" onclick="deny(this)">██████档案室</button>
+      <button class="locked" onclick="deny(this)">时隙之间（不存在）</button>
+    </div>
+
+    <!-- 帖子流 -->
+    <div class="f-main" id="postList"></div>
+
+    <!-- 右栏 -->
+    <div class="f-side">
+      <!-- 今日运势 -->
+      <div class="box fortune">
+        <div class="b-h"><span>今日运势</span><span>DAILY ▮</span></div>
+        <div class="b-b">
+          <div class="f-date" id="fDate"></div>
+          <div class="f-stars" id="fStars"></div>
+          <div class="f-row f-yi">宜：<span id="fYi"></span></div>
+          <div class="f-row f-ji">忌：<span id="fJi"></span></div>
+          <div class="f-luck" id="fLuck"></div>
+          <div class="f-note">// 运势由播音室业余排算，仅供娱乐。但第 4 条是认真的。</div>
+        </div>
+      </div>
+      <!-- 热词 -->
+      <div class="box trend">
+        <div class="b-h"><span>今日热词</span><span>TREND</span></div>
+        <div class="b-b" id="trendBox"></div>
+      </div>
+      <!-- 当前在线 -->
+      <div class="box online">
+        <div class="b-h"><span>频道在线</span><span id="oCnt"></span></div>
+        <div class="b-b" id="onlineBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ③ 帖子阅读层 ============ -->
+<div id="reader">
+  <div class="rd">
+    <div class="rd-h">
+      <span class="rt" id="rdTitle"></span>
+      <button class="rd-x rd-x" id="rdClose">✕</button>
+    </div>
+    <div class="rd-b" id="rdBody"></div>
+    <div class="rd-f" id="rdFoot"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function scrollToF(){$("forumTop").scrollIntoView({behavior:"smooth"});}
+
+/* ============ 分区数据 ============ */
+const BOARDS=[
+ {id:"ann", name:"站务公告", en:"ANNOUNCE", desc:"权威发布 · 请勿回帖"},
+ {id:"chat",name:"茶水间",   en:"LOUNGE",   desc:"灌泉区 · 一切闲谈"},
+ {id:"lost",name:"失物招领", en:"LOST&FOUND",desc:"认领前请先确认它是否想被领回"},
+ {id:"tree",name:"匿名树洞", en:"HOLLOW",   desc:"匿名发言 · 系统也不知道你是谁"},
+];
+const POSTS={
+ ann:[
+  {tag:"置顶",title:"关于本周三走廊熄灯三秒的说明",by:"讯务科",r:214,v:"1.2k",hot:true,
+   floors:[["讯务科","1F","本周三 22:00 起走廊照明将按计划熄灭三秒。属于例行维护。\n\n请勿计数。请勿记录实际熄灭时长。请勿在回帖中讨论上一次为什么是四秒。"],
+           ["访客-3312","2F","上次为什么是四秒？"],
+           ["讯务科","3F","请勿回帖。"]]},
+  {tag:"修订",title:"食堂本周菜单（第 ██ 项已按上级要求替换）",by:"后勤科",r:89,v:"766",
+   floors:[["后勤科","1F","周一：烩饭。周二：面。周三：██（原文为某种汤，名称已被涂黑，备注：喝过的人都说好，但没人记得味道）。周四起循环。"],
+           ["访客-0091","2F","周三那个到底是什么","<span class='sys-red'>[此楼层已被修订]</span>"]]},
+ ],
+ chat:[
+  {tag:"",title:"你们那边的饮水机第几口是热的？",by:"访客-5108",r:42,v:"390",
+   floors:[["访客-5108","1F","我这台按下去要等四杯才热。同事说是线路问题。我倾向于它只是在挑时间。"],
+           ["访客-2077","2F","第无穷口。它永远在预热。"]]},
+  {tag:"",title:"（无标题）",by:"访客-████",r:1,v:"2.7k",hot:true,
+   floors:[["访客-████","1F","发出来就没了。写了两百字，点发送之后变成这句话。\n\n如果你们看到这条，说明我至少成功过一次。"],
+           ["系统","??","<span class='sys-red'>[该帖楼层计数异常：显示 1，实际缓存 9。已上报。]</span>"]]},
+ ],
+ lost:[
+  {tag:"认领",title:"捡到一把没有齿的钥匙",by:"访客-2201",r:8,v:"310",
+   floors:[["访客-2201","1F","在三号走廊尽头捡到的。没有齿，但能插进某些门。建议别试。失主请描述它开的是哪扇门（我们核对答案）。"]]},
+  {tag:"寻物",title:"寻找：一段上周三的记忆",by:"访客-8841",r:57,v:"1.9k",hot:true,
+   floors:[["访客-8841","1F","上周三下午失踪。特征：应该很难过，但只剩难过的感觉，内容没了。\n\n如有拾获请勿阅读，直接归还。"],
+           ["访客-0091","2F","……我好像在树洞见过类似的帖子。同一个人。每三个月发一次。"]]},
+ ],
+ tree:[
+  {tag:"匿名",title:"我数过了。是七盏。",by:"匿名",r:0,v:"6.6k",hot:true,
+   floors:[["匿名","1F","守则第七条说不要数。我数了。是七盏。\n\n设计图上只有六盏。\n\n就说到这。"],
+           ["匿名","2F","<span class='sys-red'>[本楼层数与帖子元数据不一致。系统不对此帖真实性负责。]</span>"]]},
+  {tag:"匿名",title:"其实讯务科的TXT-7挺好的",by:"匿名",r:12,v:"830",
+   floors:[["匿名","1F","上次凌晨三点睡不着去问它一个问题，它秒回。虽然答非所问，但秒回。\n\n有时候秒回就够了。"],
+           ["匿名","3F","它没有三点。它的凌晨是持续的。"]]},
+ ]
+};
+
+/* ============ 导航渲染 ============ */
+let curBoard="ann";
+function renderNav(){
+  $("navs").innerHTML=BOARDS.map(b=>
+    `<button data-id="b.id"class="{b.id}" class="b.id"class="{b.id===curBoard?"on":""}"
+      onclick="switchBoard('b.id′)">{b.id}')">b.id′)">{b.name}
+      <span class="cnt">${POSTS[b.id].length}帖</span></button>`).join("");
+}
+function switchBoard(id){curBoard=id;renderNav();renderPosts();}
+function deny(btn){
+  btn.textContent=btn.textContent.includes("不存在")
+    ?"时隙之间（不存在）":"██████档案室";
+  btn.style.animation="none";
+  btn.animate([{transform:"translateX(-4px)"},{transform:"translateX(4px)"},
+    {transform:"none"}],{duration:180});
+}
+
+/* ============ 帖子流渲染 ============ */
+function renderPosts(){
+  $("postList").innerHTML=POSTS[curBoard].map((p,i)=>{
+    const zone=BOARDS.find(b=>b.id===curBoard);
+    return `<div class="post p.hot?"hot":"""onclick="openPost({p.hot?"hot":""}" onclick="openPost(p.hot?"hot":"""onclick="openPost({i})">
+      <div class="p-zone">{zone.en.split("&")[0]}<br>#{String(i+1).padStart(2,"0")}</div>
+      <div class="p-body">
+        <div class="p-title">{p.tag?`<span class="tag{p.tag==="置顶"?"pin":""}">[{p.tag}]</span>`:""}{esc(p.title)}</div>
+        <div class="p-meta">by esc(p.by)⋅<spanclass="r">{esc(p.by)} · <span class="r">esc(p.by)⋅<spanclass="r">{p.r} 回声</span></div>
+      </div>
+      <div class="p-views">👁 p.v<br>{p.v}<br>p.v<br>{p.hot?"HOT":"—"}</div>
+    </div>`;}).join("")+
+    `<div class="post" style="opacity:.55" onclick="needPerm()">
+      <div class="p-zone">NEW</div>
+      <div class="p-body"><div class="p-title">[ + 发起新帖 ]</div>
+      <div class="p-meta">需要发帖权限 · 访客可申请</div></div></div>`;
+}
+function needPerm(){
+  alertStyle("权限不足。发帖申请已递交（队列第 ██ 位）。");
+}
+function alertStyle(t){
+  const d=document.createElement("div");
+  d.style.cssText="position:fixed;top:24px;left:50%;transform:translateX(-50%);"+
+    "background:var(--panel);border:1px solid var(--red);color:var(--red);"+
+    "padding:8px 24px;letter-spacing:.2em;font-size:14px;z-index:2000;"+
+    "box-shadow:0 0 20px rgba(200,90,74,.4)";
+  d.textContent=t;document.body.appendChild(d);
+  setTimeout(()=>d.remove(),2600);
+}
+
+/* ============ 阅读层 ============ */
+function openPost(i){
+  const p=POSTS[curBoard][i];
+  ("rdTitle").textContent=(p.tag?‘[("rdTitle").textContent=(p.tag?`[("rdTitle").textContent=(p.tag?‘[{p.tag}] `:"")+p.title;
+  $("rdBody").innerHTML=p.floors.map(([who,fl,txt])=>
+    `<div class="floor ${who===p.by||who==="讯务科"?"op":""}">
+      <div class="fz"><div class="who">esc(who)</div><divclass="fl">{esc(who)}</div><div class="fl">esc(who)</div><divclass="fl">{fl}</div></div>
+      <div class="fc">${esc(txt).replace(/\n/g,"<br>")}</div>
+    </div>`).join("");
+  $("rdFoot").innerHTML=
+    `<input placeholder="写下你的回声…" disabled>
+     <span class="denied">回帖权限审核中 ▮</span>`;
+  $("reader").classList.add("open");
+}
+("rdClose").onclick=()=>("rdClose").onclick=()=>("rdClose").onclick=()=>("reader").classList.remove("open");
+("reader").onclick=e=>{if(e.target===("reader"))$("reader").classList.remove("open");};
+
+/* ============ 今日运势（按日期做种子，同一天结果固定）============ */
+(function(){
+  const d=new Date();
+  const seed=d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();
+  let s=seed;
+  const rnd=()=>(s=(s*9301+49297)%233280)/233280;
+  const pick=a=>a[rnd()*a.length|0];
+  $("fDate").textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+
+    String(d.getDate()).padStart(2,"0")+" · 播音室排算";
+  const star=rnd();
+  $("fStars").textContent=
+    star>.8?"★★★★★":star>.6?"★★★★":star>.4?"★★★":star>.2?"★★":"★";
+  $("fYi").textContent=pick([
+    "整理档案；早睡；在走廊保持匀速步行",
+    "给旧文件编号；相信第一直觉",
+    "按时用餐；对陌生同事微笑（一次）",
+    "备份；确认门后有人再关门",
+  ]);
+  $("fJi").textContent=pick([
+    "数灯；深夜独白；接听无来电显示的电话",
+    "回头看；抄近路；与新同事谈论上任同事",
+    "许诺；立字据；在三秒的黑暗里睁眼",
+    "追问；计数；回答“你从哪听说的”这个问题",
+  ]);
+  const lucks=[
+    "幸运分区：<em>江河世年</em> · 幸运频道：<em>CH-02</em>",
+    "幸运分区：<em>黄金计时</em> · 幸运时刻：<em>整点前七分钟</em>",
+    "幸运分区：<em>电子囚笼</em> · 幸运底噪频率：<em>50Hz</em>",
+  ];
+  const bad=rnd()<.14;
+  $("fLuck").innerHTML=bad
+    ?"今日运程特殊：所有分区均<em>拒绝为你背书</em>。请保持低调，Avoid 时隙之间。"
+    :pick(lucks);
+  function lucks(){return lucks;}
+  /* 上面写复杂了，直接来 */
+  $("fLuck").innerHTML=bad
+    ?"今日运程特殊：所有分区均<em>拒绝为你背书</em>。请保持低调，回避走廊尽头的窗。"
+    :pick(luck);
+  var luck=[ // 真正使用的数组
+    "幸运分区：<em>江河世年</em> · 幸运频道：<em>CH-02</em>",
+    "幸运分区：<em>黄金计时</em> · 幸运时刻：<em>整点前七分钟</em>",
+    "幸运分区：<em>电子囚笼</em> · 幸运频率：<em>50Hz 底噪</em>",
+  ];
+  $("fLuck").innerHTML=bad
+    ?"今日运程特殊：所有分区均<em>拒绝为你背书</em>。请保持低调，回避走廊尽头的窗。"
+    :pick(luck);
+})();
+
+/* ============ 热词 & 在线 ============ */
+const TRENDS=[["数灯",6660],["周三的汤",1204],["TXT-7",988],["第七条",745],["回声板规则",301]];
+$("trendBox").innerHTML=TRENDS.map(([w,n],i)=>
+  `<div class="tr-it" onclick="alertStyle('该词条的检索权限为：仅站内。')">
+    <span class="tr-rank">i+1</span><span>{i+1}</span><span>i+1</span><span>{esc(w)}</span><span class="tr-n">${n}</span></div>`)
+  .join("").replaceAll('class="tr-rank"','class="tr-rank"');
+/* 修正类名（上面手滑） */
+$("trendBox").innerHTML=TRENDS.map(([w,n],i)=>
+  `<div class="tr-it" onclick="alertStyle('该词条的检索权限为：仅站内。')">
+    <span class="tr-rank">i+1</span><span>{i+1}</span><span>i+1</span><span>{esc(w)}</span><span class="tr-n">${n}</span></div>`).join("");
+
+const ONLINE=[["TXT-7 · 讯务科",0],["后勤-老周",0],["档案室值夜班（未验证）",1],
+  ["访客-2201",0],["[三个未命名频道]",1]];
+$("onlineBox").innerHTML=ONLINE.map(([n,g])=>
+  `<div class="o-it g?"ghost":""">{g?"ghost":""}">g?"ghost":""">{esc(n)}</div>`).join("");
+$("oCnt").textContent=ONLINE.length+" / ██";
+
+renderNav();renderPosts();
+</script>
+</body>
+</html>
