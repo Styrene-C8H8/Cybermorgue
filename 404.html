@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>404 // FILE NOT FOUND</title>
-<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/base.css">
 <script src="assets/base.js"></script>
 <link rel="stylesheet" href="assets/support.css">
@@ -17,7 +17,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--txt);
-  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
   min-height:100vh;text-shadow:-.4px 0 rgba(255,50,90,.10),.4px 0 rgba(0,205,255,.10)}
 ::selection{background:var(--am);color:#000}
 .crt-lines{position:fixed;inset:0;z-index:900;pointer-events:none;
@@ -92,7 +92,7 @@ body{background:var(--bg);color:var(--txt);
 .logp::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--am);border-right:2px solid var(--am)}
 .logp-head{color:var(--amd);font-size:12px;letter-spacing:.3em;
   border-bottom:1px dashed var(--line);padding-bottom:6px;margin-bottom:8px}
-.ln{font-family:'VT323','Courier New',monospace;font-size:14.5px;line-height:2.05;
+.ln{font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace;font-size:14.5px;line-height:2.05;
   letter-spacing:.04em;white-space:pre-wrap;color:var(--txt)}
 .ln.ok{color:var(--gr)}
 .ln.er{color:var(--red);text-shadow:0 0 8px rgba(200,90,74,.4)}
@@ -233,6 +233,8 @@ var LOG=[
 function goBack(){
   exEl.textContent="正在带您离开……";
   setTimeout(function(){
+    /* 返回主页时要求播放 CRT 通电闪白（boot 已看过会跳过，用标记补播） */
+    try { sessionStorage.setItem("cm-poweron", "1"); } catch (e) {}
     if(typeof spherse!=="undefined"&&spherse.openFile) spherse.openFile("project/Cybermorgue-档案主页.html");
     else if(history.length>1) history.back();
     else location.href="index.html";

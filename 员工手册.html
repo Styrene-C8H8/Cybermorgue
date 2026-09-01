@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STAFF MANUAL // 赛博停尸间员工手册</title>
-<link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
@@ -14,7 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--txt);
-  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9}
+  font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace;font-size:17px;line-height:1.9}
 ::selection{background:var(--am);color:#000}
 
 /* CRT 覆层 */
@@ -34,7 +34,7 @@ header{position:sticky;top:0;z-index:100;display:flex;gap:24px;align-items:cente
   background:rgba(12,10,6,.94)}
 header .dno{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo{color:var(--am);font-size:22px;letter-spacing:.05em;cursor:pointer}
-.back{color:var(--grd);text-decoration:none;font-size:16px;margin-left:auto;transition:color .2s;cursor:pointer;font-family:'VT323','Noto Sans SC',monospace}
+.back{color:var(--grd);text-decoration:none;font-size:16px;margin-left:auto;transition:color .2s;cursor:pointer;font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace}
 .back:hover{color:var(--gr)}
 .back2{position:fixed;top:14px;left:24px;z-index:960;font-family:inherit;font-size:16px;
   background:var(--panel);border:1px solid var(--line);color:var(--amd);
@@ -58,7 +58,7 @@ header .dno{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   transition:transform .18s ease-out;transform-style:preserve-3d}
 .hero h1::before{content:"STAFF MANUAL";position:absolute;left:4px;top:4px;color:var(--red);
   opacity:0;z-index:-1;animation:gA 5s infinite steps(1)}
-.hero .sub{display:block;font-family:'Noto Sans SC',sans-serif;font-weight:300;
+.hero .sub{display:block;font-family:'LXGW WenKai','Noto Sans SC',sans-serif;font-weight:300;
   font-size:.28em;letter-spacing:1em;text-indent:1em;color:var(--txt);margin-top:20px}
 @keyframes gA{0%,92%,100%{opacity:0}93%{opacity:.6;transform:translate(-5px,2px)}96%{opacity:.6;transform:translate(4px,-2px)}97%{opacity:0}}
 .doc-meta{margin-top:26px;font-size:15px;color:var(--amd);letter-spacing:.2em}
@@ -72,7 +72,7 @@ header .dno{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 左侧导航 */
 aside nav{position:sticky;top:90px;display:flex;flex-direction:column;gap:2px;font-size:17px}
 aside nav a{color:var(--txt);text-decoration:none;padding:7px 12px 7px 18px;
-  border-left:2px solid transparent;transition:all .2s;cursor:pointer;font-family:'VT323','Noto Sans SC',monospace}
+  border-left:2px solid transparent;transition:all .2s;cursor:pointer;font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace}
 aside nav a:hover{color:var(--am)}
 aside nav a.on{color:var(--am);border-left-color:var(--am);background:var(--amf)}
 aside nav a i{font-style:normal;color:var(--amd);margin-right:8px}
@@ -81,7 +81,7 @@ aside nav a i{font-style:normal;color:var(--amd);margin-right:8px}
 article section{margin-bottom:90px;scroll-margin-top:80px}
 .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:30px;flex-wrap:wrap}
 .sec-no{color:var(--amd);font-size:27px}
-.sec-title{font-family:'Noto Sans SC',sans-serif;font-weight:500;
+.sec-title{font-family:'LXGW WenKai','Noto Sans SC',sans-serif;font-weight:500;
   font-size:29px;color:var(--am);letter-spacing:.22em}
 .sec-en{color:var(--grd);letter-spacing:.25em;font-size:18px}
 .sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
@@ -102,7 +102,7 @@ article section{margin-bottom:90px;scroll-margin-top:80px}
 .dt-name i{font-style:normal;color:var(--amd);font-size:13px;margin-left:8px;letter-spacing:.2em}
 .dt-def{margin-top:6px;font-size:15.5px;color:var(--txt);opacity:.9;line-height:1.8}
 .dict-link{display:inline-block;margin-top:18px;color:var(--am);text-decoration:none;
-  letter-spacing:.2em;font-size:17px;border-bottom:1px dashed var(--amd);padding-bottom:2px;transition:all .2s;cursor:pointer;font-family:'VT323','Noto Sans SC',monospace}
+  letter-spacing:.2em;font-size:17px;border-bottom:1px dashed var(--amd);padding-bottom:2px;transition:all .2s;cursor:pointer;font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace}
 .dict-link:hover{border-bottom-style:solid;border-color:var(--am)}
 
 /* 工作岗位：部门选项滚轮（参考 Code/option wheel：选项弧形排列 + 详情内置右侧） */
@@ -112,7 +112,7 @@ article section{margin-bottom:90px;scroll-margin-top:80px}
   overflow:hidden;cursor:grab;user-select:none;touch-action:none;outline:none}
 .ow-wheel:focus-visible{border-color:var(--am);box-shadow:0 0 0 2px var(--amf)}
 .ow-item{position:absolute;top:50%;left:30px;white-space:nowrap;line-height:1.1;
-  transform-origin:left center;cursor:pointer;font-family:'VT323','Noto Sans SC',monospace;
+  transform-origin:left center;cursor:pointer;font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace;
   text-align:left}
 .ow-item .ow-en{display:block;font-size:11px;letter-spacing:.08em;margin-bottom:3px;
   color:color-mix(in srgb,var(--gr) calc(var(--ow-p,0)*100%),var(--amd))}
@@ -124,7 +124,7 @@ article section{margin-bottom:90px;scroll-margin-top:80px}
   color:var(--amd);pointer-events:none}
 .dept-detail{flex:1;overflow-y:auto;padding:22px 26px;min-width:0}
 .dept-detail .dc{color:var(--grd);letter-spacing:.2em;font-size:17px}
-.dept-detail h4{font-family:'Noto Sans SC',sans-serif;font-weight:500;font-size:24px;
+.dept-detail h4{font-family:'LXGW WenKai','Noto Sans SC',sans-serif;font-weight:500;font-size:24px;
   color:var(--am);letter-spacing:.15em;margin:4px 0 14px}
 .dept-detail h4 .den{font-size:15px;color:var(--gr);letter-spacing:.06em;margin-left:10px}
 .dept-detail .dtext p{margin-bottom:1em;color:var(--txt);opacity:.92;max-width:46em}
@@ -138,7 +138,7 @@ article section{margin-bottom:90px;scroll-margin-top:80px}
   transition:background .2s}
 .rule-head:hover{background:var(--amf)}
 .rule-head .rn{color:var(--amd);font-size:19px}
-.rule-head h4{font-family:'Noto Sans SC',sans-serif;font-weight:400;
+.rule-head h4{font-family:'LXGW WenKai','Noto Sans SC',sans-serif;font-weight:400;
   font-size:19px;color:var(--txt);letter-spacing:.12em;flex:1}
 .rule-head .pm{color:var(--am);font-size:22px;transition:transform .3s}
 .rule.open .rule-head .pm{transform:rotate(45deg)}

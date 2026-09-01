@@ -26,6 +26,11 @@
   /* ---- 工具 ---- */
   function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  /* 编译规则正则：剔除空备选分支（防 "x|y|" 这种手滑导致匹配一切） */
+  function mkRe(s) {
+    var p = String(s == null ? "" : s).replace(/\|{2,}/g, "|").replace(/^\||\|$/g, "");
+    return new RegExp(p, "i");
+  }
   var BASE = "";
   try { BASE = new URL(".", document.currentScript.src).href; } catch (e) { BASE = "assets/"; }
   var D = null;
@@ -498,7 +503,7 @@
   function mgPick(text) {
     var cands = [];
     (MG.rules || []).forEach(function (r, i) {
-      cands.push({ kind: "rule", pri: (r.pri == null ? 0 : r.pri), order: i, re: new RegExp(r.re, "i"), r: r });
+      cands.push({ kind: "rule", pri: (r.pri == null ? 0 : r.pri), order: i, re: mkRe(r.re), r: r });
     });
     (MG.chips || []).forEach(function (c, i) {
       if (!c.t) return;
@@ -660,7 +665,7 @@
         try { zoneRe = new RegExp(MG.zoneLink.names.join("|"), "i"); } catch (e) { zoneRe = null; }
       }
       rules = (d.rules || []).map(function (r) {
-        return { re: new RegExp(r.re, "i"), reply: r.reply, red: r.red, req: r.req, set: r.set, denied: r.denied, pri: r.pri };
+        return { re: mkRe(r.re), reply: r.reply, red: r.red, req: r.req, set: r.set, denied: r.denied, pri: r.pri };
       });
       fallback = d.fallback || [];
       chips = d.chips || [];

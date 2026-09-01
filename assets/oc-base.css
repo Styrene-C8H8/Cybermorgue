@@ -11,6 +11,18 @@
    - 以后改档案模板（工牌/文件头/面板/论坛/录音等）只需改本文件。
    ============================================================ */
 
+/* 汇文明朝体（判词/异象专用）
+   加载顺序：① 本地 assets/汇文明朝体.woff（已放置，最稳）
+   ② CDN .woff → ③ CDN .woff2；全部失败时回退 Noto Serif SC */
+@font-face{
+  font-family:"HuWenMingChao";
+  src:url("./汇文明朝体.woff") format("woff"),
+      url("https://cdn.jsdelivr.net/gh/max32002/zi-hi@main/汇文明朝体/汇文明朝体.woff") format("woff"),
+      url("https://cdn.jsdelivr.net/gh/max32002/zi-hi@main/汇文明朝体/汇文明朝体.woff2") format("woff2");
+  font-display:swap;
+  font-weight:400;
+}
+
 :root{
   --am:#e8b04b; --amd:#8a6a2f; --amf:rgba(232,176,75,.07);
   --gr:#7fbf7f; --grd:#4a6b4a; --red:#c85a4a; --cy:#6fb3b8;
@@ -18,7 +30,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--txt);
-  font-family:'VT323','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
+  font-family:'VT323','LXGW WenKai','Noto Sans SC',monospace;font-size:17px;line-height:1.9;
   min-height:100vh}
 ::selection{background:var(--am);color:#000}
 
@@ -210,7 +222,7 @@ h1 .ch{display:inline-block;opacity:0}
 @keyframes eq{from{height:15%}to{height:100%}}
 .rec-body{padding:10px 14px;display:none}
 .rec.open .rec-body{display:block}
-.rline{font-family:"Courier New",Consolas,"Noto Sans SC",monospace;
+.rline{font-family:"Courier New",Consolas,"LXGW WenKai","Noto Sans SC",monospace;
   font-size:14.5px;line-height:2.1;padding:2px 0;
   opacity:0;transform:translateX(-8px)}
 .rline.in{opacity:1;transform:none;transition:all .35s ease}

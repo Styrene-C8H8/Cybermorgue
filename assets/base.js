@@ -79,3 +79,139 @@ window.__CM_CURSOR__ = true;
   }
   if (document.body) boot(); else document.addEventListener("DOMContentLoaded", boot);
 })();
+
+/* ============================================================
+   CYBERMORGUE 全局音效（base.js 内置，全站生效）
+   - 按钮点击：button1.ogg（所有可点元素）
+   - 主界面音乐：thesentinal.mp3（循环，音量 15%，跨页续播）
+   - 开场：startup.mp3（主页 boot 加载动画期间播放）
+   音频文件位于 assets/sounds/
+   ============================================================ */
+(function () {
+  if (window.__CM_SFX__) return;
+  window.__CM_SFX__ = true;
+  var BASE = "";
+  try { BASE = new URL(".", document.currentScript.src).href; } catch (e) { BASE = "assets/"; }
+  var SOUNDS = BASE + "sounds/";
+  var MUSIC_VOL = 0.20;       /* 主音乐音量 15% */
+  var MUSIC_KEY = "cm_music_t"; /* 跨页续播：记录播放位置 */
+  var click = null, music = null, startup = null, hover = null;
+  var musicStarted = false, lastHover = null, hoverTimer = null;
+
+  function mk(path, loop, vol) {
+    try {
+      var a = new Audio(SOUNDS + path);
+      a.loop = !!loop;
+      a.volume = vol == null ? 1 : vol;
+      a.preload = "auto";
+      return a;
+    } catch (e) { return null; }
+  }
+  function playSafe(a) {
+    if (!a) return;
+    try { var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+  }
+  function stopSafe(a) {
+    if (!a) return;
+    try { a.pause(); a.currentTime = 0; } catch (e) {}
+  }
+  /* 主音乐：恢复上次播放位置 + 淡入（跨页切换听起来像没断） */
+  function startMusic() {
+    if (musicStarted || !music) return;
+    musicStarted = true;
+    try {
+      var saved = parseFloat(sessionStorage.getItem(MUSIC_KEY) || "0");
+      if (saved > 0 && music.duration && isFinite(music.duration)) music.currentTime = saved % music.duration;
+      else if (saved > 0) music.currentTime = saved;
+    } catch (e) {}
+    music.volume = 0;
+    playSafe(music);
+    var t0 = Date.now(), dur = 1800;
+    (function fade() {
+      var p = Math.min((Date.now() - t0) / dur, 1);
+      music.volume = MUSIC_VOL * p;
+      if (p < 1) setTimeout(fade, 60);
+    })();
+  }
+  function startStartup() { if (startup) { try { startup.currentTime = 0; playSafe(startup); } catch (e) {} } }
+  function stopStartup() { if (startup) stopSafe(startup); }
+
+  /* 按钮音：捕获阶段委托，命中任何可点元素即播 */
+  var CLICK_SEL = "button,a,[onclick],.opt,.aopt,.gate,.mi,.chip,.post,.todo,.pg,.cal-nav,.step-ind," +
+    ".f-btn,.gnext,.backbtn,.sp-btn,.bigbtn,.nbtn,.mbtn,.more,.entry,.path,.card,.thread,.rec,.rec-head," +
+    ".expand,.sysdlg,.attach,.mailbtn,.recipe,.video,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item," +
+    ".key,.np-trackbar,.spoiler,.anom-t,.trig-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.witem,.arc-item," +
+    ".mailbox .mitem,.cs-fab,.cs-min,.cs-send,.cs-chips button,.cs-link,.hdr-reset,.gexit,.tb-back,.locked";
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest(CLICK_SEL)) {
+      if (click) { try { click.currentTime = 0; playSafe(click); } catch (e2) {} }
+    }
+  }, true);
+
+  /* 悬浮音：悬浮到可点元素时播放（只放前 3 秒；离开即停；再悬浮从头播） */
+  if (window.matchMedia && !matchMedia("(hover: none)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.addEventListener("mouseover", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var hit = t.closest(CLICK_SEL);
+      if (!hit || hit === lastHover || !hover) return;
+      lastHover = hit;
+      try { hover.currentTime = 0; playSafe(hover); } catch (e2) {}
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(function () { if (hover) hover.pause(); }, 3000);
+    }, true);
+    document.addEventListener("mouseout", function (e) {
+      var t = e.target, rt = e.relatedTarget;
+      if (!t || !t.closest) return;
+      var hit = t.closest(CLICK_SEL);
+      if (hit && hit === lastHover && !(rt && hit.contains(rt))) {
+        lastHover = null;
+        if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+        if (hover) hover.pause();
+      }
+    }, true);
+  }
+
+  function init() {
+    click = mk("button1.ogg", false, 1);
+    hover = mk("musicholder-hover-button-287656.mp3", false, 0.30);
+    music = mk("thesentinal.mp3", true, MUSIC_VOL);
+    startup = mk("startup.mp3", false, 1);
+    var boot = document.getElementById("boot");
+    if (boot) {
+      startStartup();   /* 加载动画期间播 startup */
+      var done = false;
+      function check() {
+        if (done) return;
+        if (!document.getElementById("boot")) {
+          done = true;
+          stopStartup();
+          startMusic();
+        }
+      }
+      try {
+        var mo = new MutationObserver(check);
+        mo.observe(document.body, { childList: true, subtree: true });
+      } catch (e) {}
+      setTimeout(check, 2500);
+    } else {
+      startMusic();
+    }
+    /* 定期记录播放位置（跨页续播用） */
+    setInterval(function () {
+      if (music && !music.paused && isFinite(music.currentTime)) {
+        try { sessionStorage.setItem(MUSIC_KEY, String(music.currentTime)); } catch (e) {}
+      }
+    }, 4000);
+    window.__CM_SFX_API__ = {
+      playClick: function () { if (click) { try { click.currentTime = 0; playSafe(click); } catch (e) {} } },
+      startMusic: startMusic,
+      startStartup: startStartup,
+      stopStartup: stopStartup
+    };
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
