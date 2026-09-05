@@ -96,7 +96,34 @@ window.__CM_CURSOR__ = true;
   var MUSIC_VOL = 0.20;       /* 主音乐音量 15% */
   var MUSIC_KEY = "cm_music_t"; /* 跨页续播：记录播放位置 */
   var click = null, music = null, startup = null, hover = null;
-  var musicStarted = false, lastHover = null, hoverTimer = null;
+  var musicStarted = false, lastHover = null, hoverTimer = null, ac = null;
+  function canPlay(m) { try { var a = new Audio(); var c = a.canPlayType(m); return c === "probably" || c === "maybe"; } catch (e) { return true; } }
+  function ensureCtx() { try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); return ac; } catch (e) { return null; } }
+  /* Web Audio 合成 blip：ogg/mp3 都放不出来时的兜底（iOS 也能响） */
+  function synthBlip() {
+    try {
+      var c = ensureCtx(); if (!c) return;
+      if (c.state === "suspended") c.resume();
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = "square"; o.frequency.value = 1150;
+      g.gain.setValueAtTime(0.05, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.09);
+      o.connect(g); g.connect(c.destination);
+      o.start(); o.stop(c.currentTime + 0.1);
+    } catch (e) {}
+  }
+  /* 点击音：真音频失败/缺失 → 合成兜底 */
+  function clickFX() {
+    if (click) {
+      try {
+        click.currentTime = 0;
+        var p = click.play();
+        if (p && p.catch) p.catch(function () { synthBlip(); });
+        return;
+      } catch (e2) {}
+    }
+    synthBlip();
+  }
 
   function mk(path, loop, vol) {
     try {
@@ -134,10 +161,23 @@ window.__CM_CURSOR__ = true;
     })();
   }
   function startStartup() { if (startup) { try { startup.currentTime = 0; playSafe(startup); } catch (e) {} } }
-  function stopStartup() { if (startup) stopSafe(startup); }
+  /* startup 淡出后再停（避免戛然而止）；fade=false 时立即停 */
+  function stopStartup(fade) {
+    if (!startup) return;
+    if (fade === false) { stopSafe(startup); return; }
+    try {
+      var v0 = startup.volume || 1, t0 = Date.now(), dur = 550;
+      (function f() {
+        var p = Math.min((Date.now() - t0) / dur, 1);
+        startup.volume = v0 * (1 - p);
+        if (p < 1) setTimeout(f, 40);
+        else stopSafe(startup);
+      })();
+    } catch (e) { stopSafe(startup); }
+  }
 
   /* 按钮音：捕获阶段委托，命中任何可点元素即播 */
-  var CLICK_SEL = "button,a,[onclick],.opt,.aopt,.gate,.mi,.chip,.post,.todo,.pg,.cal-nav,.step-ind," +
+  var CLICK_SEL = "#boot,button,a,[onclick],.opt,.aopt,.gate,.mi,.chip,.post,.todo,.pg,.cal-nav,.step-ind," +
     ".f-btn,.gnext,.backbtn,.sp-btn,.bigbtn,.nbtn,.mbtn,.more,.entry,.path,.card,.thread,.rec,.rec-head," +
     ".expand,.sysdlg,.attach,.mailbtn,.recipe,.video,.music-ui,.fchip,.dict-link,.dept,.rule-head,.ow,.ow-item," +
     ".key,.np-trackbar,.spoiler,.anom-t,.trig-btn,.red-t,.fv-btn,.fvideo,.mz,.zone,.witem,.arc-item," +
@@ -145,9 +185,7 @@ window.__CM_CURSOR__ = true;
   document.addEventListener("click", function (e) {
     var t = e.target;
     if (!t || !t.closest) return;
-    if (t.closest(CLICK_SEL)) {
-      if (click) { try { click.currentTime = 0; playSafe(click); } catch (e2) {} }
-    }
+    if (t.closest(CLICK_SEL)) clickFX();
   }, true);
 
   /* 悬浮音：悬浮到可点元素时播放（只放前 3 秒；离开即停；再悬浮从头播） */
@@ -175,7 +213,11 @@ window.__CM_CURSOR__ = true;
   }
 
   function init() {
-    click = mk("button1.ogg", false, 1);
+    /* 格式选择：浏览器支持 ogg 用 ogg（桌面 Chrome/Firefox）；不支持（iOS Safari）
+       用 mp3——若 button1.mp3 不存在，play 会失败 → clickFX 自动走 Web Audio 合成兜底 */
+    if (canPlay("audio/ogg")) click = mk("button1.ogg", false, 1);
+    else if (canPlay("audio/mpeg")) click = mk("button1.mp3", false, 1);
+    else click = null;
     hover = mk("musicholder-hover-button-287656.mp3", false, 0.30);
     music = mk("thesentinal.mp3", true, MUSIC_VOL);
     startup = mk("startup.mp3", false, 1);
@@ -187,7 +229,7 @@ window.__CM_CURSOR__ = true;
         if (done) return;
         if (!document.getElementById("boot")) {
           done = true;
-          stopStartup();
+          stopStartup(false);   /* 硬切：按键音在同刻播放，不淡出 */
           startMusic();
         }
       }
@@ -206,7 +248,7 @@ window.__CM_CURSOR__ = true;
       }
     }, 4000);
     window.__CM_SFX_API__ = {
-      playClick: function () { if (click) { try { click.currentTime = 0; playSafe(click); } catch (e) {} } },
+      playClick: clickFX,
       startMusic: startMusic,
       startStartup: startStartup,
       stopStartup: stopStartup
